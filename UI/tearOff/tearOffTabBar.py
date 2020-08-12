@@ -1,20 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020 Perry Leijten
-# Website: http://www.perryleijten.com
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# See http://www.gnu.org/licenses/gpl.html for a copy of the GNU General
-# Public License.
-#--------------------------------------------------------------------------------------
 from ..qt_util import *
 from ..utils import *
 import sys
@@ -136,15 +120,3 @@ class EditableTabBar(TearoffTabBar):
                 self.tabLabelRenamed.emit(oldText, newText)
                 self.__editIndex = -1
             return oldText, newText
-
-    def contextMenuEvent(self, event):
-        index = self.tabAt(event.pos())
-        if index == self.currentIndex():
-            menu = QMenu()
-            parent = self.parent()
-            if parent:
-                renameTabNameAct = menu.addAction('Rename')
-                renameTabNameAct.triggered.connect(lambda : self.editTab(index))
-                deleteTabNameAct = menu.addAction('Delete')
-                deleteTabNameAct.triggered.connect(lambda : self.requestRemove.emit(index))
-            menu.exec_(event.globalPos())
