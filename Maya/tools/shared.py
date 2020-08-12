@@ -1,11 +1,14 @@
-from collections import defaultdict, deque, OrderedDict
+import sys
+import traceback
+from collections import defaultdict, deque
 from functools import wraps
-from maya import cmds
+from maya import cmds, mel
 from maya.api import OpenMaya
-from ...UI.utils import buttonsToAttach
+
 
 def dec_undo(func):
     '''undo decorator'''
+
     @wraps(func)
     def _undo_func(*args, **kwargs):
         try:
@@ -15,16 +18,18 @@ def dec_undo(func):
             print(e)
             print(e.__class__)
             print(sys.exc_info())
-            cmds.warning(traceback.format_exc( )) 
+            cmds.warning(traceback.format_exc())
         finally:
             cmds.undoInfo(cck=True)
-    
+
     return _undo_func
+
 
 class Graph(object):
     ''' dijkstra closest path technique (for nurbs and lattice)
     implemented from: https://gist.github.com/econchick/4666413  
     basic idea: http://www.redblobgames.com/pathfinding/a-star/introduction.html'''
+
     def __init__(self):
         self.nodes = set()
         self.edges = defaultdict(list)
@@ -37,6 +42,7 @@ class Graph(object):
         self.edges[from_node].append(to_node)
         self.edges[to_node].append(from_node)
         self.distances[(from_node, to_node)] = distance
+
 
 def dijkstra(graph, initial):
     ''' dijkstra closest path technique (for nurbs and lattice)'''
@@ -70,6 +76,7 @@ def dijkstra(graph, initial):
 
     return visited, path
 
+
 def shortest_path(graph, origin, destination):
     ''' dijkstra closest path technique (for nurbs and lattice)'''
     visited, paths = dijkstra(graph, origin)
@@ -85,18 +92,21 @@ def shortest_path(graph, origin, destination):
 
     return visited[destination], list(full_path)
 
+
 # ------------------------------------------------------------------------------
-#@note: make sure that all objects return full path
+# @note: make sure that all objects return full path
 
 def skinCluster(object, silent=False):
-    object = SkinningTools.getParentShape(object)
-    skinCluster = mel.eval('findRelatedSkinCluster("%s");'%object) 
+    object = getParentShape(object)
+    skinCluster = mel.eval('findRelatedSkinCluster("%s");' % object)
     if not skinCluster:
         if silent == False:
-            cmds.confirmDialog( title='Error', message='no SkinCluster found on: %s!'%object, button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+            cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % object, button=['Ok'],
+                               defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
         else:
             skinCluster = None
     return skinCluster
+
 
 def getParentShape(object):
     if isinstance(object, list):
@@ -108,22 +118,24 @@ def getParentShape(object):
         object = cmds.listRelatives(object, p=True, f=True)[0]
     return object
 
+
 def doCorrectSelectionVisualization(skinMesh):
     objType = cmds.objectType(skinMesh)
     if objType == "transform":
         shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
         objType = cmds.objectType(shape)
 
-    #@todo: convert this to openmaya?
+    # @todo: convert this to openmaya?
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
     if objType in ["nurbsSurface", "nurbsCurve"]:
-        mel.eval('doMenuNURBComponentSelection("%s", "controlVertex");'%skinMesh )
+        mel.eval('doMenuNURBComponentSelection("%s", "controlVertex");' % skinMesh)
     elif objType == "lattice":
-        mel.eval('doMenuLatticeComponentSelection("%s", "latticePoint");'%skinMesh )
+        mel.eval('doMenuLatticeComponentSelection("%s", "latticePoint");' % skinMesh)
     elif objType == "mesh":
-        mel.eval('doMenuComponentSelection("%s", "vertex");'%skinMesh )
+        mel.eval('doMenuComponentSelection("%s", "vertex");' % skinMesh)
 
-def convertToVertexList(self, object):
+
+def convertToVertexList(object):
     checkObject = object
     if isinstance(object, list):
         checkObject = object[0]
@@ -136,63 +148,67 @@ def convertToVertexList(self, object):
         checkType = shapes[0]
 
     objType = cmds.objectType(checkType)
-    if objType == 'mesh': 
+    if objType == 'mesh':
         convertedVertices = cmds.polyListComponentConversion(object, tv=True)
         return cmds.filterExpand(convertedVertices, sm=31)
-    
+
     if objType == "nurbsCurve" or objType == "nurbsSurface":
         if isinstance(object, list) and ".cv" in object[0]:
             return cmds.filterExpand(object, sm=28)
         elif isinstance(object, list):
-            return cmds.filterExpand('%s.cv[*]'%object[0], sm=28)
+            return cmds.filterExpand('%s.cv[*]' % object[0], sm=28)
         elif ".cv" in object:
             return cmds.filterExpand(object, sm=28)
         else:
-            return cmds.filterExpand('%s.cv[*]'%object, sm=28)
-    
+            return cmds.filterExpand('%s.cv[*]' % object, sm=28)
+
     if objType == "lattice":
         if isinstance(object, list) and ".pt" in object[0]:
-            return cmds.filterExpand(object, sm =46 )
+            return cmds.filterExpand(object, sm=46)
         elif isinstance(object, list):
-            return cmds.filterExpand('%s.pt[*]'%object[0], sm =46 )
+            return cmds.filterExpand('%s.pt[*]' % object[0], sm=46)
         elif ".pt" in object:
-            return cmds.filterExpand(object, sm =46 )
+            return cmds.filterExpand(object, sm=46)
         else:
-            return cmds.filterExpand('%s.pt[*]'%object, sm =46 )
+            return cmds.filterExpand('%s.pt[*]' % object, sm=46)
 
 
 # -------------maya ui tools----------------
 
 def mirrorSkinOptions():
-    cmds.optionVar( stringValue=( "mirrorSkinAxis", "YZ"))
-    cmds.optionVar( intValue= ("mirrorSkinWeightsSurfaceAssociationOption", 3))
-    cmds.optionVar( intValue= ("mirrorSkinWeightsInfluenceAssociationOption1", 3))
-    cmds.optionVar( intValue= ("mirrorSkinWeightsInfluenceAssociationOption2", 2))
-    cmds.optionVar( intValue= ("mirrorSkinWeightsInfluenceAssociationOption3", 1))
-    cmds.optionVar( intValue= ("mirrorSkinNormalize", 1))   
+    cmds.optionVar(stringValue=("mirrorSkinAxis", "YZ"))
+    cmds.optionVar(intValue=("mirrorSkinWeightsSurfaceAssociationOption", 3))
+    cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption1", 3))
+    cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption2", 2))
+    cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption3", 1))
+    cmds.optionVar(intValue=("mirrorSkinNormalize", 1))
     cmds.MirrorSkinWeightsOptions()
 
+
 def copySkinWeightsOptions():
-    cmds.optionVar( intValue= ("copySkinWeightsSurfaceAssociationOption", 3))
-    cmds.optionVar( intValue= ("copySkinWeightsInfluenceAssociationOption1", 4))
-    cmds.optionVar( intValue= ("copySkinWeightsInfluenceAssociationOption2", 4))
-    cmds.optionVar( intValue= ("copySkinWeightsInfluenceAssociationOption3", 6))
-    cmds.optionVar( intValue= ("copySkinWeightsNormalize", 1))  
+    cmds.optionVar(intValue=("copySkinWeightsSurfaceAssociationOption", 3))
+    cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption1", 4))
+    cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption2", 4))
+    cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption3", 6))
+    cmds.optionVar(intValue=("copySkinWeightsNormalize", 1))
     cmds.CopySkinWeightsOptions()
+
 
 def uniteSkinned():
     selection = cmds.ls(sl=True, l=1)
-    cmds.polyUniteSkinned( selection, ch= 0, mergeUVSets =1)
+    cmds.polyUniteSkinned(selection, ch=0, mergeUVSets=1)
+
 
 def mayaToolsWindow():
-    mb01 = buttonsToAttach('Smooth Bind', 			cmds.SmoothBindSkinOptions)
-    mb02 = buttonsToAttach('Rigid Bind', 			cmds.RigidBindSkinOptions)
-    mb03 = buttonsToAttach('Detach Skin', 			cmds.DetachSkinOptions)
-    mb04 = buttonsToAttach('Paint Skin Weights',    cmds.ArtPaintSkinWeightsToolOptions) 
-    mb05 = buttonsToAttach('Mirror Skin Weights',   mirrorSkinOptions)
-    mb06 = buttonsToAttach('Copy Skin Weights',     copySkinWeightsOptions)
-    mb07 = buttonsToAttach('Prune Weights',         cmds.PruneSmallWeightsOptions)
-    mb08 = buttonsToAttach( 'Combine skinned mesh', uniteSkinned )
+    from ...UI.utils import buttonsToAttach
+
+    mb01 = buttonsToAttach('Smooth Bind', cmds.SmoothBindSkinOptions)
+    mb02 = buttonsToAttach('Rigid Bind', cmds.RigidBindSkinOptions)
+    mb03 = buttonsToAttach('Detach Skin', cmds.DetachSkinOptions)
+    mb04 = buttonsToAttach('Paint Skin Weights', cmds.ArtPaintSkinWeightsToolOptions)
+    mb05 = buttonsToAttach('Mirror Skin Weights', mirrorSkinOptions)
+    mb06 = buttonsToAttach('Copy Skin Weights', copySkinWeightsOptions)
+    mb07 = buttonsToAttach('Prune Weights', cmds.PruneSmallWeightsOptions)
+    mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
-
