@@ -1,0 +1,15 @@
+# ---------------------------------------------------------#
+#for windows use these commands in powerShell
+
+$mydocuments = [environment]::getfolderpath("mydocuments")
+cd $mydocuments\maya\scripts\skinningTool\plugin\build
+cmake -g "Visual Studio 11 2012 Win64" -DMAYA_VERSION="2016.5" -DCMAKE_GENERATOR_PLATFORM=x64 ../
+cmake --build . --config release
+
+# ---------------------------------------------------------#
+#for osx use these commands in terminal
+
+cd /users/shared/Autodesk/maya/scripts/skinningTool/plugin/build/
+cmake -g "Unix makefiles" -DMAYAVERSION=2017 ../
+cmake --build . --config Release
+# ---------------------------------------------------------#
