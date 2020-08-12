@@ -31,7 +31,7 @@ class AbstractControl(QWidget):
         if not self.selected:
             qp.end()
             return
-        
+
         qp.setBrush(Qt.NoBrush)
         pen = QPen(QColor(96, 127, 156), 1, Qt.SolidLine)
         qp.setPen(pen)
