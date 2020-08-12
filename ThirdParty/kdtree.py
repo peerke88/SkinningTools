@@ -17,7 +17,7 @@ def square_distance(pointA, pointB):
     # squared euclidean distance
     distance = 0
     dimensions = len(pointA) # assumes both points have the same dimensions
-    for dimension in range(dimensions):
+    for dimension in xrange(dimensions):
         distance += (pointA[dimension] - pointB[dimension])**2
     return distance
 
