@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..qtUtil import *
+from ..qt_util import *
 
 class Slider(QWidget):
     valueChanged  = pyqtSignal(float)

@@ -1,71 +1,70 @@
 # -*- coding: utf-8 -*-
 import os, re, functools, logging
 from math import sqrt, sin, cos, pi
-from maya import cmds, OpenMaya
+#@todo: figure out a way to remove maya commands from this setup!
+from maya import cmds # , OpenMaya
 
-from ..qtUtil import *
-
+from ..qt_util import *
 from .sliderControl import SliderControl
-from skinningTool import mscreen
-mscreen.logger.setLevel( logging.CRITICAL )
+
 
 class VertexInfluenceEditor(QGroupBox):
-    lockIcon = QIcon('%s/Icon/openlock.png'%os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-    unlockIcon = QIcon('%s/Icon/closedlock.png'%os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+    lockIcon = QIcon(':/nodeGrapherUnlocked.png')
+    unlockIcon = QIcon(':/lockGeneric.png')
 
-    def _lookAt(self, pos1, pos2):
-        aim =OpenMaya.MVector().zAxis
+    # def _lookAt(self, pos1, pos2):
+    #     aim =OpenMaya.MVector().zAxis
 
-        source = OpenMaya.MVector(pos1[0], pos1[1],pos1[2])
-        target = OpenMaya.MVector(pos2[0], pos2[1],pos2[2])
+    #     source = OpenMaya.MVector(pos1[0], pos1[1],pos1[2])
+    #     target = OpenMaya.MVector(pos2[0], pos2[1],pos2[2])
 
-        aimVector = (target - source).normal()
+    #     aimVector = (target - source).normal()
 
-        quat = OpenMaya.MQuaternion()
-        QuatU = OpenMaya.MQuaternion(aim, aimVector).asEulerRotation()
+    #     quat = OpenMaya.MQuaternion()
+    #     QuatU = OpenMaya.MQuaternion(aim, aimVector).asEulerRotation()
         
-        return (QuatU.x, QuatU.y,QuatU.z)
+    #     return (QuatU.x, QuatU.y,QuatU.z)
         
-    def _hiliteNode(self, radius):
-        POINTS = []
-        r = radius
-        fullRange = pi*12.5
-        for angle in range(int(fullRange)+1):
-            POINTS.append(( r*cos(angle/6.25), r*sin(angle/6.25), 0 ))
+    # def _hiliteNode(self, radius):
+    #     POINTS = []
+    #     r = radius
+    #     fullRange = pi*12.5
+    #     for angle in range(int(fullRange)+1):
+    #         POINTS.append(( r*cos(angle/6.25), r*sin(angle/6.25), 0 ))
 
-        circle = mscreen.drawCurve(POINTS, color=mscreen.COLOR_RED, drawInFront = True)
-        point = mscreen.drawPoint((0.0,0.0,0.0), mscreen.COLOR_YELLOW, drawInFront = True)
-        return circle, point
+    #     circle = mscreen.drawCurve(POINTS, color=mscreen.COLOR_RED, drawInFront = True)
+    #     point = mscreen.drawPoint((0.0,0.0,0.0), mscreen.COLOR_YELLOW, drawInFront = True)
+    #     return circle, point
 
-    def _activeCamera(self):
-        camera = cmds.modelEditor(cmds.playblast(ae=True), q=True, camera=True)
-        if not camera:
-            camera = cmds.modelEditor(cmds.modelEditor(q=True, activeView=True), q=True, camera=True)
-        if not camera:
-            return
-        if cmds.ls(camera, type='shape'):
-            camera = cmds.listRelatives(camera, p=True, f=True)
-        return camera
+    # def _activeCamera(self):
+    #     camera = cmds.modelEditor(cmds.playblast(ae=True), q=True, camera=True)
+    #     if not camera:
+    #         camera = cmds.modelEditor(cmds.modelEditor(q=True, activeView=True), q=True, camera=True)
+    #     if not camera:
+    #         return
+    #     if cmds.ls(camera, type='shape'):
+    #         camera = cmds.listRelatives(camera, p=True, f=True)
+    #     return camera
 
-    def _snapHiliteNode(self, vertex):
-        pos = cmds.xform(vertex, q=True, ws=True, t=True)
-        camera = self._activeCamera()
-        if not camera: return False
-        camPos = cmds.xform(camera, q=True, ws=True, rp=True)
-        euler = self._lookAt(pos, camPos)
+    # def _snapHiliteNode(self, vertex):
+    #     pos = cmds.xform(vertex, q=True, ws=True, t=True)
+    #     camera = self._activeCamera()
+    #     if not camera: return False
+    #     camPos = cmds.xform(camera, q=True, ws=True, rp=True)
+    #     euler = self._lookAt(pos, camPos)
 
-        scale = sqrt((camPos[0]-pos[0])*(camPos[0]-pos[0])+
-            (camPos[1]-pos[1])*(camPos[1]-pos[1])+
-            (camPos[2]-pos[2])*(camPos[2]-pos[2])) * 0.01
+    #     scale = sqrt((camPos[0]-pos[0])*(camPos[0]-pos[0])+
+    #         (camPos[1]-pos[1])*(camPos[1]-pos[1])+
+    #         (camPos[2]-pos[2])*(camPos[2]-pos[2])) * 0.01
         
-        mscreen.clear() 
-        hilite, vtx= self._hiliteNode(scale)
-        hilite.move(pos[0], pos[1], pos[2])
-        hilite.rotate( euler[0], euler[1],euler[2], False)
-        vtx.move(pos[0], pos[1], pos[2])
-        mscreen.refresh()
+    #     mscreen.clear() 
+    #     hilite, vtx= self._hiliteNode(scale)
+    #     hilite.move(pos[0], pos[1], pos[2])
+    #     hilite.rotate( euler[0], euler[1],euler[2], False)
+    #     vtx.move(pos[0], pos[1], pos[2])
+    #     mscreen.refresh()
         
-        return True
+    #     return True
 
     @staticmethod
     def VLayout():
@@ -170,16 +169,16 @@ class VertexInfluenceEditor(QGroupBox):
         if hasUnused:
             self.layout().addWidget(self.__unusedJoints)
 
-    def enterEvent(self, event):
-        super(VertexInfluenceEditor, self).enterEvent(event)
-        if not self._snapHiliteNode(self.__target):
-            mscreen.clear()
-            mscreen.refresh()
+    # def enterEvent(self, event):
+    #     super(VertexInfluenceEditor, self).enterEvent(event)
+    #     if not self._snapHiliteNode(self.__target):
+    #         mscreen.clear()
+    #         mscreen.refresh()
 
-    def leaveEvent(self, event):
-        super(VertexInfluenceEditor, self).leaveEvent(event)
-        mscreen.clear()
-        mscreen.refresh()
+    # def leaveEvent(self, event):
+    #     super(VertexInfluenceEditor, self).leaveEvent(event)
+    #     mscreen.clear()
+    #     mscreen.refresh()
 
     def finalize(self):
         self.__unusedJoints.setChecked(False)
@@ -260,7 +259,7 @@ class VertexInfluenceEditor(QGroupBox):
             else:
                 weights[i] *= scale
             slider.slider.setValue(weights[i])
-        self._snapHiliteNode(self.__target)
+        # self._snapHiliteNode(self.__target)
         self.__busyWithCallback = False
 
         # apply to skincluster

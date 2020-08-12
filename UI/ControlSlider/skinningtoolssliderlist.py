@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from maya import cmds, mel
 
-from ..qtUtil import *
+from ..qt_util import *
 
-from skinningTool.skinningTools import SkinningTools
+from ...Maya.tools.shared import *
 from .vertexinfluenceeditor import VertexInfluenceEditor
 
 class SkinningToolsSliderList(QWidget):
@@ -26,7 +26,7 @@ class SkinningToolsSliderList(QWidget):
         # get long selection
         step = cmds.ls(sl=True, l=True)
         if not step: return
-        vertices = SkinningTools().convertToVertexList(step)
+        vertices = convertToVertexList(step)
         if not vertices: return
 
 
@@ -36,7 +36,7 @@ class SkinningToolsSliderList(QWidget):
             if mesh in skinClusterCache:
                 skinCluster, skinBones = skinClusterCache[mesh]
             else:
-                skinCluster = SkinningTools.skinCluster(mesh)
+                skinCluster = skinCluster(mesh)
                 if not skinCluster:
                     return
                 skinBones = cmds.skinCluster(skinCluster, q=True, influence=True)

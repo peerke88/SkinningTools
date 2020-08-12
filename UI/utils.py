@@ -11,6 +11,19 @@ def buttonsToAttach(name, command,*args):
     button.setMinimumHeight(23)
     return button
 
+
+def toolButton(pixmap = '', orientation = 0 ):
+    btn = QToolButton()
+    if isinstance(pixmap, str):
+        pixmap = QPixmap(pixmap)
+    if orientation != 0:
+        transform = QTransform().rotate(orientation, Qt.ZAxis)
+        pixmap = pixmap.transformed(transform, Qt.SmoothTransformation)
+    btn.setIcon( QIcon(pixmap) )
+    btn.setFocusPolicy(Qt.NoFocus)
+    btn.setStyleSheet('border: 0px;')
+    return btn
+
 def find_missing_items(int_list):
     original_set = set(int_list)
     smallest_item = min(original_set)

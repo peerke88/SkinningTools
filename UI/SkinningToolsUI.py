@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from .qt_util import *
+from .utils import *
 from .tearOff.editableTab import EditableTabWidget
 from .tearOff.tearOffDialog import *
 from ..Maya.tools.shared import *
-
+from .ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
+from functools import partial
 
 __VERSION__ = "5.0.20200812"
 
@@ -13,8 +15,8 @@ class SkinningTools(QMainWindow):
         mainWidget = QWidget()
         self.setWindowFlags( Qt.Tool )
         self.setCentralWidget(mainWidget)
+        self.__defaults()
 
-        self.settings = QSettings("uiSave","SkinningTools")
         mainLayout = QVBoxLayout()
         mainWidget.setLayout(mainLayout)
         
@@ -29,6 +31,12 @@ class SkinningTools(QMainWindow):
         mainLayout.addWidget(self.tabs)
         
         self.loadUIState()
+
+    # ------------------------- defaults -------------------------------
+    def __defaults(self):
+        self.settings = QSettings("uiSave","SkinningTools")
+        self.__liveIMG = QPixmap(":/UVPivotLeft.png")
+        self.__notLiveIMG = QPixmap(":/enabled.png")
 
     # ------------------------- contextMenu -------------------------------
         
@@ -51,22 +59,19 @@ class SkinningTools(QMainWindow):
     def __menuSetup(self):
         self.setMenuBar(QMenuBar())
         self.menuBar().setLayoutDirection(Qt.RightToLeft)
-        # menu = self.menuBar().addMenu('')
-
         self.extraMenu   = QMenu('Extra', self)
+        helpAction = QMenu('', self)
+        helpAction.setIcon( QIcon(":/QR_help.png"))
+        
         self.holdAction  = QAction("hold Model", self)
         self.fetchAction = QAction("fetch Model", self)
         self.objSkeletonAction = QAction("skeleton -> obj", self)
-        for act in [self.holdAction, self.fetchAction, self.objSkeletonAction]:
-            self.extraMenu.addAction(act)
-
-        helpAction = QMenu('', self)
-        helpAction.setIcon( QIcon(":/QR_help.png"))
-        helpAction.setStatusTip('help Functions')
-
         docAction = QAction("Docs", self)
         self.tooltipAction = QAction("Enhanced ToolTip", self)
         self.tooltipAction.setCheckable(True)
+
+        for act in [self.holdAction, self.fetchAction, self.objSkeletonAction]:
+            self.extraMenu.addAction(act)
         for act in [docAction, self.tooltipAction]:
             helpAction.addAction(act)
 
@@ -83,14 +88,55 @@ class SkinningTools(QMainWindow):
 
     def __mayaToolsSetup(self):
         tab = self.tabs.addGraphicsTab("Maya Tools")
+        
+        self.mayaToolsTab = EditableTabWidget()
+        self.mayaToolsTab.tearOff.connect(self.tearOff)
+        
         v = QVBoxLayout()
         tab.view.frame.setLayout(v)
-        buttons =  mayaToolsWindow()
+        v.addWidget(self.mayaToolsTab)
+
+        self.__addSimpleTools()
+        self.__addVertNBoneFunc()
+
+
+    def __addSimpleTools(self):
+        tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools")
+        v = QVBoxLayout()
+        tab.view.frame.setLayout(v)
+        buttons = mayaToolsWindow()
         for button in buttons:
             v.addWidget(button)
 
+    def __addVertNBoneFunc(self):
+        tab = self.mayaToolsTab.addGraphicsTab("Vertex & bone functions")
+        
+
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")
+        self.inflEdit = SkinningToolsSliderList()
+        v = QVBoxLayout()
+        h = QHBoxLayout()
+        rfr = toolButton(":/playbackLoopingContinuous_100.png")
+        live= toolButton(self.__liveIMG)
+        live.setCheckable(True)
+        live.clicked.connect(self._updateLive)
+        
+        spacer =  QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        h.addItem(spacer)
+        for btn in [rfr, live]:
+            h.addWidget(btn)
+        
+        v.addLayout(h)
+        tab.view.frame.setLayout(v)
+        v.addWidget(self.inflEdit)
+    
+    def _updateLive(self):
+        liveBtn = self.sender()
+        if liveBtn.isChecked():
+            liveBtn.setIcon(QIcon(self.__notLiveIMG))
+        else:
+            liveBtn.setIcon(QIcon(self.__liveIMG))
 
     def __componentEditSetup(self):
         tab = self.tabs.addGraphicsTab("Component Editor")
@@ -99,16 +145,17 @@ class SkinningTools(QMainWindow):
         tab = self.tabs.addGraphicsTab("Weight Manager")
 
 
-    def tearOff(self, index, pos = QPoint()):
-        view = self.tabs.viewAtIndex(index)
-        dlg = TearOffDialog(self.mapName(index), self)
-        dlg.setOriginalState(index, self.tabs)
+    def tearOff( self, index, pos= QPoint()):
+        tabs = self.sender()
+        view = tabs.viewAtIndex(index)
+        dlg = TearOffDialog(self._tabName(index, tabs), self)
+        dlg.setOriginalState(index, tabs)
         dlg.addwidget(view)
         if pos.y() > -1:
             dlg.move(pos)
 
         dlg.show()
-        self.tabs.removeTab(index)
+        tabs.removeTab(index)
 
     # ------------------------- utilities ---------------------------------
 
@@ -147,21 +194,13 @@ class SkinningTools(QMainWindow):
             self.__lineEdit_Color(inLineEdit, self.__qt_normal_color)
             button.setEnabled(True)
 
-    def mapName(self, index = -1):
+    def _tabName(self, index = -1, mainTool = None):
+        if mainTool is None:
+            raise NotImplementedError()
         if index < 0:
-            index = self.tabs.currentIndex()
-        return self.tabs.tabText(index)
+            index = mainTool.currentIndex()
+        return mainTool.tabText(index)
 
-    def tearOff(self, index, pos = QPoint()):
-        view = self.tabs.viewAtIndex(index)
-        dlg = TearOffDialog(self.mapName(index), self)
-        dlg.setOriginalState(index, self.tabs)
-        dlg.addwidget(view)
-        if pos.y() > -1:
-            dlg.move(pos)
-        dlg.resize(300, 200)
-        dlg.show()
-        self.tabs.removeTab(index)
     
     def closeEvent(self, event):
         self.saveUIState()
