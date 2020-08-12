@@ -1,11 +1,10 @@
 # @note: also import qt here for the connection with progressbar?
 from py23 import *
-
 from ThirdParty.kdtree import KDTree
 from UI.SkinningToolsUI import SkinningTools
 from UI.qt_util import qApp, QApplication
-from maya import cmds
 from Maya.tools import shared
+from maya import cmds
 
 
 ## adds label to joints, forces maya to recognise joints that are on the exact same position
@@ -403,8 +402,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
                             bone2 = position[0]
                 else:
                     removePos = cmds.xform(jnt, q=True, ws=True, t=True)
-                    pts = sourceKDTree.query(query_point=removePos, t=1) \
- \
+                    pts = sourceKDTree.query(query_point=removePos, t=1)
                     for index, position in enumerate(sourceJoints):
                         if position[1] != pts[0]:
                             continue

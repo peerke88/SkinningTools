@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from .qtUtil import *
+from UI.qt_util import *
+
 
 class QColorButton(QPushButton):
     colorChanged = pyqtSignal()
@@ -18,7 +19,7 @@ class QColorButton(QPushButton):
 
         if self._color == None:
             self.setStyleSheet('background-color: #5D5D5D')
-        
+
         self.setStyleSheet("background-color: %s;" % self._color)
 
     def color(self):
@@ -35,5 +36,5 @@ class QColorButton(QPushButton):
     def mouseClickEvent(self, e):
         if e.button() == Qt.RightButton:
             self.setColor(None)
-      
+
         return super(QColorButton, self).mousePressEvent(e)

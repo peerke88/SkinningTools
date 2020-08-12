@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-from maya import cmds, mel
-
-from ..qt_util import *
-
-from ...Maya.tools.shared import *
+from Maya import api
+from UI.qt_util import *
 from .vertexinfluenceeditor import VertexInfluenceEditor
 
 
@@ -25,34 +22,30 @@ class SkinningToolsSliderList(QWidget):
             widget.deleteLater()
 
         # get long selection
-        step = cmds.ls(sl=True, l=True)
-        if not step: return
-        vertices = convertToVertexList(step)
-        if not vertices: return
+        vertices = api.selectedObjectVertexList(True)
+        if not vertices:
+            return
 
         skinClusterCache = {}
-        for vertex in vertices[:20]:  # truncate the list to it will never cause a leak
-            mesh = vertex.rsplit('.', 1)[0]
+        for mesh, vertex in vertices[:20]:  # truncate the list to it will never cause a leak
             if mesh in skinClusterCache:
                 skinCluster, skinBones = skinClusterCache[mesh]
             else:
-                skinCluster = skinCluster(mesh)
+                skinCluster = api.skinClusterForObject(mesh)
                 if not skinCluster:
                     return
-                skinBones = cmds.skinCluster(skinCluster, q=True, influence=True)
+                skinBones = api.skinClusterInfluences(skinCluster)
                 skinClusterCache[mesh] = skinCluster, skinBones
 
             weights = []
             for bone in skinBones:
-                weights.append(cmds.skinPercent(skinCluster, vertex, transform=bone, q=True, value=True))
+                weights.append(api.getSingleVertexWeight(skinCluster, mesh, vertex, bone))
+
             self.layout().addWidget(VertexInfluenceEditor(skinCluster, vertex, skinBones, weights))
 
         self.layout().addStretch(1)
 
-        cmds.select(vertices[:20])
-
-        mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
-        mel.eval('doMenuComponentSelection("%s", "%s");' % (vertices[0].split('.')[0], "vertex"))
+        api.selectVertices(vertices)
 
         if self.isVisible():
             self.finalize()
@@ -68,10 +61,10 @@ class SkinningToolsSliderList(QWidget):
         creates bugs in the minimumHeight of the
         widget when it is set to visible.
         """
-        iter = 0
+        counter = 0
         while True:
-            item = self.layout().itemAt(iter)
-            iter += 1
+            item = self.layout().itemAt(counter)
+            counter += 1
             if not item:
                 return
             widget = item.widget()

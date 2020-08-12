@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-from ..qt_util import *
-from ..utils import *
 import sys
+from UI.utils import *
+from UI.qt_util import *
+
 
 class TearoffTabBar(QTabBar):
     selectMapNode = pyqtSignal(int)
     tearOff = pyqtSignal(int, QPoint)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         QTabBar.__init__(self, parent)
         self.setCursor(Qt.ArrowCursor)
         self.setMouseTracking(True)
@@ -27,7 +28,7 @@ class TearoffTabBar(QTabBar):
             pixmap = QPixmap.grabWidget(self, rect)
             painter = QPainter(pixmap)
             cursorPm = QPixmap(':/closedHand')
-            cursorPos = QPoint(*[ (x - y) / 2 for x, y in zip(rect.size().toTuple(), QSize(32, 24).toTuple()) ])
+            cursorPos = QPoint(*[(x - y) / 2 for x, y in zip(rect.size().toTuple(), QSize(32, 24).toTuple())])
             painter.drawPixmap(cursorPos, cursorPm)
             painter.end()
             cursor = QCursor(pixmap)
@@ -76,7 +77,7 @@ class EditableTabBar(TearoffTabBar):
     requestRemove = pyqtSignal(int)
     tabChanged = pyqtSignal(int)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         TearoffTabBar.__init__(self, parent)
         self.__editor = QLineEdit(self)
         self.__editor.setWindowFlags(Qt.Popup)
@@ -114,7 +115,7 @@ class EditableTabBar(TearoffTabBar):
             oldText = self.tabText(self.__editIndex)
             newText = self.__editor.text()
             if oldText != newText:
-                names = [ self.tabText(i) for i in xrange(self.count()) ]
+                names = [self.tabText(i) for i in xrange(self.count())]
                 newText = getNumericName(newText, names)
                 self.setTabText(self.__editIndex, newText)
                 self.tabLabelRenamed.emit(oldText, newText)

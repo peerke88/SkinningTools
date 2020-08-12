@@ -1,4 +1,8 @@
-from tearOffTabBar import *
+from UI.utils import getNumericName
+from py23 import *
+from UI.qt_util import *
+from UI.tearOff.tearOffTabBar import TearoffTabBar, EditableTabBar
+
 
 class TabWidget(QTabWidget):
     tabAdded = pyqtSignal(unicode)
@@ -7,7 +11,7 @@ class TabWidget(QTabWidget):
     selectMapNode = pyqtSignal(int)
     tearOff = pyqtSignal(int, QPoint)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(TabWidget, self).__init__(parent)
         self.setTabsClosable(False)
         self.setMouseTracking(True)
@@ -19,8 +23,8 @@ class TabWidget(QTabWidget):
         self.setTabBar(tabBar)
         tabBar.tearOff.connect(self.tearOff.emit)
 
-    def addGraphicsTab(self, text = "NewTAB", changeCurrent = True):
-        names = [ self.tabText(i) for i in xrange(self.count()) ]
+    def addGraphicsTab(self, text="NewTAB", changeCurrent=True):
+        names = [self.tabText(i) for i in xrange(self.count())]
         text = getNumericName(text, names)
         tab = QWidget()
         tab.prefix = ''
@@ -38,7 +42,7 @@ class TabWidget(QTabWidget):
         view.setWidgetResizable(1)
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         view.frame = QFrame()
-        view.frame.setFrameShape (QFrame.NoFrame)
+        view.frame.setFrameShape(QFrame.NoFrame)
         view.setWidget(view.frame)
         tab.view = view
         layout.addWidget(view)
@@ -53,14 +57,14 @@ class TabWidget(QTabWidget):
         layout = QHBoxLayout(tab)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(listView)
-    
+
     def viewAtIndex(self, index):
         if self.widget(index):
             return self.widget(index).findChild(QScrollArea)
         return None
 
     def clear(self):
-        allTabs = [ self.widget(i) for i in xrange(self.count()) ]
+        allTabs = [self.widget(i) for i in xrange(self.count())]
         self.blockSignals(True)
         for tab in allTabs:
             tab.deleteLater()
@@ -80,7 +84,7 @@ class EditableTabWidget(TabWidget):
     copyItems = pyqtSignal(list)
     selectedItemsChanged = pyqtSignal(list)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         TabWidget.__init__(self, parent)
         self.setAcceptDrops(False)
         self.setObjectName('EditableTabWidget')
@@ -91,7 +95,7 @@ class EditableTabWidget(TabWidget):
     def setCustomTabBar(self):
         tabBar = EditableTabBar(self)
         self.setTabBar(tabBar)
-        tabBar.tabMoved.connect(lambda : self.windowModified.emit())
-        tabBar.tabLabelRenamed.connect(lambda : self.windowModified.emit())
+        tabBar.tabMoved.connect(lambda: self.windowModified.emit())
+        tabBar.tabLabelRenamed.connect(lambda: self.windowModified.emit())
         tabBar.tabLabelRenamed.connect(self.tabLabelRenamed.emit)
         tabBar.tearOff.connect(self.tearOff.emit)

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import functools
-
+import functools, re
 from Maya import api
 from py23 import *
 from ..qt_util import *

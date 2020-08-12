@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from .qt_util import *
-from .utils import *
-from .tearOff.editableTab import EditableTabWidget
-from .tearOff.tearOffDialog import *
-from ..Maya.tools.shared import *
-from .ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
-from .fallofCurveUI import BezierGraph
+from Maya import api
+from UI.utils import *
+from UI.qt_util import *
+from UI.tearOff.editableTab import EditableTabWidget
+from UI.tearOff.tearOffDialog import *
+from UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
+from UI.fallofCurveUI import BezierGraph
 from functools import partial
 import tempfile, os
 
@@ -121,7 +121,7 @@ class SkinningTools(QMainWindow):
         tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools")
         v = nullVBoxLayout()
         tab.view.frame.setLayout(v)
-        buttons = mayaToolsWindow()
+        buttons = api.dccToolButtons()
         for button in buttons:
             v.addWidget(button)
         v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))

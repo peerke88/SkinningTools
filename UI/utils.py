@@ -1,39 +1,44 @@
 # -*- coding: utf-8 -*-
+from py23 import *
 import re
-from .qt_util import *
+from UI.qt_util import *
 
-def nullVBoxLayout(parent = None, size = 0):
+
+def nullVBoxLayout(parent=None, size=0):
     v = QVBoxLayout()
-    v.setContentsMargins(size,size,size,size)
+    v.setContentsMargins(size, size, size, size)
     return v
 
-def nullHBoxLayout(parent = None, size = 0):
+
+def nullHBoxLayout(parent=None, size=0):
     h = QHBoxLayout()
-    h.setContentsMargins(size,size,size,size)
+    h.setContentsMargins(size, size, size, size)
     return h
 
-def buttonsToAttach(name, command,*args):
+
+def buttonsToAttach(name, command, *args):
     button = QPushButton()
-    
-    button.setText (name)
-    button.setObjectName (name)
-    
+
+    button.setText(name)
+    button.setObjectName(name)
+
     button.clicked.connect(command)
     button.setMinimumHeight(23)
     return button
 
 
-def toolButton(pixmap = '', orientation = 0 ):
+def toolButton(pixmap='', orientation=0):
     btn = QToolButton()
     if isinstance(pixmap, str):
         pixmap = QPixmap(pixmap)
     if orientation != 0:
         transform = QTransform().rotate(orientation, Qt.ZAxis)
         pixmap = pixmap.transformed(transform, Qt.SmoothTransformation)
-    btn.setIcon( QIcon(pixmap) )
+    btn.setIcon(QIcon(pixmap))
     btn.setFocusPolicy(Qt.NoFocus)
     btn.setStyleSheet('border: 0px;')
     return btn
+
 
 def find_missing_items(int_list):
     original_set = set(int_list)
@@ -46,7 +51,7 @@ def find_missing_items(int_list):
 def getNumericName(text, names):
     if text in names:
         text = re.sub('\\d*$', '', text)
-        names = [ n for n in names if n.startswith(text) ]
+        names = [n for n in names if n.startswith(text)]
         int_list = []
         for name in names:
             m = re.match('^%s(\\d+)' % text, name)
@@ -67,13 +72,15 @@ def getNumericName(text, names):
     return text
 
 
-def FalseFolderCharacters(inString):                                                                    
+def FalseFolderCharacters(inString):
     return re.search(r'[\\/:\[\]<>"!@#$%^&-.]', inString) or re.search(r'[*?|]', inString) or re.match(r'[0-9]', inString) or re.search(u'[\u4E00-\u9FFF]+', inString, re.U) or re.search(u'[\u3040-\u309Fー]+', inString, re.U) or re.search(u'[\u30A0-\u30FF]+', inString, re.U)
-    
-def FalseFolderCharactersJapanese(self, inString):   
-    return re.search(r'[\\/:\[\]<>"!@#$%^&-]', inString) or re.search(r'[*?|]', inString) or "." in inString or (len(inString) >0 and inString[0].isdigit()) or re.search(u'[\u4E00-\u9FFF]+', inString, re.U) or re.search(u'[\u3040-\u309Fー]+', inString, re.U) or re.search(u'[\u30A0-\u30FF]+', inString, re.U)
 
-def checkStringForBadChars(self, inText, button, option = 1, *args):
+
+def FalseFolderCharactersJapanese(self, inString):
+    return re.search(r'[\\/:\[\]<>"!@#$%^&-]', inString) or re.search(r'[*?|]', inString) or "." in inString or (len(inString) > 0 and inString[0].isdigit()) or re.search(u'[\u4E00-\u9FFF]+', inString, re.U) or re.search(u'[\u3040-\u309Fー]+', inString, re.U) or re.search(u'[\u30A0-\u30FF]+', inString, re.U)
+
+
+def checkStringForBadChars(self, inText, button, option=1, *args):
     if (option == 1 and not FalseFolderCharacters(inText) in [None, True]) or (option == 2 and not FalseFolderCharactersJapanese(inText) in [None, False]):
         return False
     if inText == "":
