@@ -6,6 +6,7 @@ from ..qt_util import *
 from ...Maya.tools.shared import *
 from .vertexinfluenceeditor import VertexInfluenceEditor
 
+
 class SkinningToolsSliderList(QWidget):
     def __init__(self):
         super(SkinningToolsSliderList, self).__init__()
@@ -29,10 +30,9 @@ class SkinningToolsSliderList(QWidget):
         vertices = convertToVertexList(step)
         if not vertices: return
 
-
         skinClusterCache = {}
-        for vertex in vertices[:20]: # truncate the list to it will never cause a leak
-            mesh = vertex.rsplit('.',1)[0]
+        for vertex in vertices[:20]:  # truncate the list to it will never cause a leak
+            mesh = vertex.rsplit('.', 1)[0]
             if mesh in skinClusterCache:
                 skinCluster, skinBones = skinClusterCache[mesh]
             else:
@@ -44,16 +44,16 @@ class SkinningToolsSliderList(QWidget):
 
             weights = []
             for bone in skinBones:
-                weights.append( cmds.skinPercent(skinCluster, vertex, transform=bone, q=True, value=True) )
+                weights.append(cmds.skinPercent(skinCluster, vertex, transform=bone, q=True, value=True))
             self.layout().addWidget(VertexInfluenceEditor(skinCluster, vertex, skinBones, weights))
 
         self.layout().addStretch(1)
 
         cmds.select(vertices[:20])
-        
+
         mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
-        mel.eval('doMenuComponentSelection("%s", "%s");'%(vertices[0].split('.')[0], "vertex"))
-        
+        mel.eval('doMenuComponentSelection("%s", "%s");' % (vertices[0].split('.')[0], "vertex"))
+
         if self.isVisible():
             self.finalize()
 
@@ -62,12 +62,12 @@ class SkinningToolsSliderList(QWidget):
         self.finalize()
 
     def finalize(self):
-        '''
+        """
         This function hides all unused influences
         Doing this before the widget is visible
         creates bugs in the minimumHeight of the
         widget when it is set to visible.
-        '''
+        """
         iter = 0
         while True:
             item = self.layout().itemAt(iter)

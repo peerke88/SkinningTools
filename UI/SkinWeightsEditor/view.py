@@ -27,8 +27,10 @@
 #
 # See http://www.gnu.org/licenses/gpl.html for a copy of the GNU General
 # Public License.
-#--------------------------------------------------------------------------------------
-from ..qtUtil import *
+# --------------------------------------------------------------------------------------
+from UI.qt_util import *
+from py23 import *
+
 
 class SkinWeightsViewport(QWidget):
     scrolled = pyqtSignal()
@@ -56,7 +58,7 @@ class SkinWeightsViewport(QWidget):
             v = self._model.value(startCol, row)
 
             r = QRect(x + SkinWeightsViewport.PADDING, y, SkinWeightsViewport.CELL_WIDTH - SkinWeightsViewport.PADDING - 1, SkinWeightsViewport.CELL_HEIGHT - 1)
-            painter.drawText(r, Qt.AlignTop | Qt.AlignLeft, '%.3f'%v)
+            painter.drawText(r, Qt.AlignTop | Qt.AlignLeft, '%.3f' % v)
 
             x += SkinWeightsViewport.CELL_WIDTH
             startCol += 1
@@ -85,11 +87,7 @@ class SkinWeightsViewport(QWidget):
 
     def updateHeaderData(self):
         rect = self.visibleRegion().boundingRect()
-        colCount = self._model.columnCount()
         c, r, cols, rows = self.visibleSpan()
-
-        x = c * SkinWeightsViewport.CELL_WIDTH
-        y = r * SkinWeightsViewport.CELL_HEIGHT
 
         self.headerData = [c, r, cols, rows, rect.x(), rect.y()]
 
@@ -171,7 +169,7 @@ class SkinWeightsView(QWidget):
                          0,
                          SkinWeightsViewport.CELL_WIDTH - SkinWeightsViewport.PADDING,
                          SkinWeightsViewport.CELL_HEIGHT)
-                
+
             txt = self.headerLabel(c)
             painter.drawText(area, Qt.AlignCenter | Qt.AlignLeft, txt)
             c += 1

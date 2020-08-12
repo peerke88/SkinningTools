@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-
-from ..qtUtil import *
-            
-from skinningTool.SkinWeightsEditor import view
+from UI.SkinWeightsEditor.view import SkinWeightsViewport, SkinWeightsView
+from UI.qt_util import *
 from functools import partial
 
-class SkinWeightsSelectable(view.SkinWeightsViewport):
+
+class SkinWeightsSelectable(SkinWeightsViewport):
     def __init__(self, *args):
         super(SkinWeightsSelectable, self).__init__(*args)
         self._selectionArea = None
@@ -18,7 +17,7 @@ class SkinWeightsSelectable(view.SkinWeightsViewport):
         self.repaint()
 
     def mouseMoveEvent(self, event):
-        if self.__isPressed == False or self._selectionArea == None:
+        if not self.__isPressed or self._selectionArea is None:
             return
         x, y = self.rowColumnAt(event.pos())
         self._selectionArea = [
@@ -50,7 +49,7 @@ class SkinWeightsSelectable(view.SkinWeightsViewport):
         if self._selectionArea is None:
             return False
         if col < self._selectionArea[0] or col > self._selectionArea[2] or \
-            row < self._selectionArea[1] or row > self._selectionArea[3]:
+                row < self._selectionArea[1] or row > self._selectionArea[3]:
             return False
         return True
 
@@ -74,14 +73,14 @@ class SkinWeightsSelectable(view.SkinWeightsViewport):
                 painter.setPen(pen)
 
             r = QRect(x + self.PADDING, y, self.CELL_WIDTH - self.PADDING - 1, self.CELL_HEIGHT - 1)
-            painter.drawText(r, Qt.AlignTop | Qt.AlignLeft, '%.3f'%v)
+            painter.drawText(r, Qt.AlignTop | Qt.AlignLeft, '%.3f' % v)
             painter.setPen(pen)
 
             x += self.CELL_WIDTH
             startCol += 1
 
 
-class SkinWeightsTable(view.SkinWeightsView):
+class SkinWeightsTable(SkinWeightsView):
     def _initView(self, model):
         self._view = SkinWeightsSelectable(model)
 
@@ -102,7 +101,7 @@ class SkinWeightsTable(view.SkinWeightsView):
                 unlockAllAction.triggered.connect(self.unlockAllHeader)
 
             lockAction.triggered.connect(partial(self.lockHeader, c))
-            
+
             menu.popup(self.mapToGlobal(event.pos()))
         else:
             self._selectColumnLeft = self._columnAt(event.pos().x())
@@ -131,11 +130,11 @@ class SkinWeightsTable(view.SkinWeightsView):
             return
 
         if c < 0 or c > mdl.columnCount() - 1 \
-          or event.pos().y() > view.SkinWeightsViewport.CELL_HEIGHT:
+                or event.pos().y() > SkinWeightsViewport.CELL_HEIGHT:
             return
 
-        x = int(event.pos().x()/view.SkinWeightsViewport.CELL_WIDTH)*view.SkinWeightsViewport.CELL_WIDTH
-        y = -view.SkinWeightsViewport.CELL_HEIGHT * 2
+        x = int(event.pos().x() / SkinWeightsViewport.CELL_WIDTH) * SkinWeightsViewport.CELL_WIDTH
+        y = -SkinWeightsViewport.CELL_HEIGHT * 2
         QToolTip.showText(self.mapToGlobal(QPoint(x, y)), self.headerLabel(c))
 
     def mouseReleaseEvent(self, event):

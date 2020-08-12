@@ -11,17 +11,18 @@ import tempfile, os
 
 __VERSION__ = "5.0.20200812"
 
+
 class SkinningTools(QMainWindow):
     def __init__(self, parent=None):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
         self.setCentralWidget(mainWidget)
-        self.setWindowFlags( Qt.Tool )
+        self.setWindowFlags(Qt.Tool)
         self.__defaults()
 
         mainLayout = nullVBoxLayout(None, 3)
         mainWidget.setLayout(mainLayout)
-        
+
         self.__menuSetup()
         self.__tabsSetup()
 
@@ -31,43 +32,43 @@ class SkinningTools(QMainWindow):
         self.__weightManagerSetup()
 
         mainLayout.addWidget(self.tabs)
-        
+
         self.loadUIState()
 
     # ------------------------- defaults -------------------------------
     def __defaults(self):
         self.__graphSize = 60
-        self.settings = QSettings("uiSkinSave","SkinningTools")
+        self.settings = QSettings("uiSkinSave", "SkinningTools")
         self.__liveIMG = QPixmap(":/UVPivotLeft.png")
         self.__notLiveIMG = QPixmap(":/enabled.png")
         self.BezierGraph = BezierGraph()
 
     # ------------------------- contextMenu -------------------------------
-        
+
     def btnContextMenu(self, point):
         popMenu = QMenu(self)
         action = QAction(self.__lang['delete'], self)
         popMenu.addAction(action)
         action.triggered.connect(partial(self.deleteButton, self.sender()))
-        popMenu.exec_(self.sender().mapToGlobal(point))   
+        popMenu.exec_(self.sender().mapToGlobal(point))
 
     def filterContextMenu(self, point):
         popMenu = QMenu(self)
         action = QAction(self.__lang['uncheck all'], self)
         popMenu.addAction(action)
         action.triggered.connect(self.unCheckFilters)
-        popMenu.exec_(self.sender().mapToGlobal(point))   
+        popMenu.exec_(self.sender().mapToGlobal(point))
 
-    # ------------------------- ui Setups ---------------------------------
+        # ------------------------- ui Setups ---------------------------------
 
     def __menuSetup(self):
         self.setMenuBar(QMenuBar())
         self.menuBar().setLayoutDirection(Qt.RightToLeft)
-        self.extraMenu   = QMenu('Extra', self)
+        self.extraMenu = QMenu('Extra', self)
         helpAction = QMenu('', self)
-        helpAction.setIcon( QIcon(":/QR_help.png"))
-        
-        self.holdAction  = QAction("hold Model", self)
+        helpAction.setIcon(QIcon(":/QR_help.png"))
+
+        self.holdAction = QAction("hold Model", self)
         self.fetchAction = QAction("fetch Model", self)
         self.objSkeletonAction = QAction("skeleton -> obj", self)
         docAction = QAction("Docs", self)
@@ -81,9 +82,9 @@ class SkinningTools(QMainWindow):
 
         self.changeLN = QAction("[EN]", self)
 
-        self.menuBar().addMenu( helpAction )
+        self.menuBar().addMenu(helpAction)
         self.menuBar().addMenu(self.extraMenu)
-        self.menuBar().addAction( self.changeLN )
+        self.menuBar().addAction(self.changeLN)
 
     def __tabsSetup(self):
         self.tabs = EditableTabWidget()
@@ -92,14 +93,14 @@ class SkinningTools(QMainWindow):
 
     def __mayaToolsSetup(self):
         tab = self.tabs.addGraphicsTab("Maya Tools")
-        
+
         self.mayaToolsTab = EditableTabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
 
         v = nullVBoxLayout()
         h = nullHBoxLayout()
 
-        filePath = self._updateGraph()        
+        filePath = self._updateGraph()
 
         self.graph = toolButton(filePath)
         self.graph.setFixedSize(QSize(self.__graphSize, self.__graphSize))
@@ -127,7 +128,6 @@ class SkinningTools(QMainWindow):
 
     def __addVertNBoneFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("Vertex & bone functions")
-        
 
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")
@@ -135,23 +135,23 @@ class SkinningTools(QMainWindow):
         v = nullVBoxLayout()
         h = nullHBoxLayout()
         rfr = toolButton(":/playbackLoopingContinuous_100.png")
-        live= toolButton(self.__liveIMG)
+        live = toolButton(self.__liveIMG)
         live.setCheckable(True)
         live.clicked.connect(self._updateLive)
-         
+
         h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
         for btn in [rfr, live]:
             h.addWidget(btn)
-        
+
         v.addLayout(h)
         tab.view.frame.setLayout(v)
         v.addWidget(self.inflEdit)
-    
+
     def __componentEditSetup(self):
-        tab = self.tabs.addGraphicsTab("Component Editor")
+        self.tabs.addGraphicsTab("Component Editor")
 
     def __weightManagerSetup(self):
-        tab = self.tabs.addGraphicsTab("Weight Manager")
+        self.tabs.addGraphicsTab("Weight Manager")
 
     # ------------------------- connections ---------------------------------
 
@@ -167,14 +167,14 @@ class SkinningTools(QMainWindow):
 
     # ------------------------- utilities ---------------------------------
 
-    def _tabName(self, index = -1, mainTool = None):
+    def _tabName(self, index=-1, mainTool=None):
         if mainTool is None:
             raise NotImplementedError()
         if index < 0:
             index = mainTool.currentIndex()
         return mainTool.tabText(index)
 
-    def tearOff( self, index, pos= QPoint()):
+    def tearOff(self, index, pos=QPoint()):
         tabs = self.sender()
         view = tabs.viewAtIndex(index)
         dlg = TearOffDialog(self._tabName(index, tabs), self)
@@ -187,17 +187,17 @@ class SkinningTools(QMainWindow):
         tabs.removeTab(index)
 
     def _updateGraph(self):
-        filePath  = os.path.join(tempfile.gettempdir(),'screenshot.jpg')
+        filePath = os.path.join(tempfile.gettempdir(), 'screenshot.jpg')
         QPixmap.grabWidget(self.BezierGraph.view).save(filePath, 'jpg')
         return filePath
 
     def _updateGraphButton(self):
-        filePath = self._updateGraph()    
-        self.graph.setIcon( QIcon(QPixmap(filePath)) )
+        filePath = self._updateGraph()
+        self.graph.setIcon(QIcon(QPixmap(filePath)))
         self.graph.setIconSize(QSize(self.__graphSize, self.__graphSize))
 
     # -------------------- window geometry -------------------------------
-    
+
     def saveUIState(self):
         self.settings.setValue("geometry", self.saveGeometry())
 
@@ -221,7 +221,7 @@ def showUI():
                 pass
         return None
 
-    window_name = 'SkinningTools: %s'%__VERSION__
+    window_name = 'SkinningTools: %s' % __VERSION__
     mainWindow = get_maya_window()
 
     if mainWindow:
@@ -232,7 +232,6 @@ def showUI():
     window = SkinningTools(mainWindow)
     window.setObjectName(window_name)
     window.setWindowTitle(window_name)
-    window.show( )
+    window.show()
 
     return window
-
