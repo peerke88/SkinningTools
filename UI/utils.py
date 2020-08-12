@@ -1,5 +1,16 @@
+# -*- coding: utf-8 -*-
 import re
 from .qt_util import *
+
+def nullVBoxLayout(parent = None, size = 0):
+    v = QVBoxLayout()
+    v.setContentsMargins(size,size,size,size)
+    return v
+
+def nullHBoxLayout(parent = None, size = 0):
+    h = QHBoxLayout()
+    h.setContentsMargins(size,size,size,size)
+    return h
 
 def buttonsToAttach(name, command,*args):
     button = QPushButton()
@@ -54,3 +65,17 @@ def getNumericName(text, names):
         _id = ''
     text += _id
     return text
+
+
+def FalseFolderCharacters(inString):                                                                    
+    return re.search(r'[\\/:\[\]<>"!@#$%^&-.]', inString) or re.search(r'[*?|]', inString) or re.match(r'[0-9]', inString) or re.search(u'[\u4E00-\u9FFF]+', inString, re.U) or re.search(u'[\u3040-\u309Fー]+', inString, re.U) or re.search(u'[\u30A0-\u30FF]+', inString, re.U)
+    
+def FalseFolderCharactersJapanese(self, inString):   
+    return re.search(r'[\\/:\[\]<>"!@#$%^&-]', inString) or re.search(r'[*?|]', inString) or "." in inString or (len(inString) >0 and inString[0].isdigit()) or re.search(u'[\u4E00-\u9FFF]+', inString, re.U) or re.search(u'[\u3040-\u309Fー]+', inString, re.U) or re.search(u'[\u30A0-\u30FF]+', inString, re.U)
+
+def checkStringForBadChars(self, inText, button, option = 1, *args):
+    if (option == 1 and not FalseFolderCharacters(inText) in [None, True]) or (option == 2 and not FalseFolderCharactersJapanese(inText) in [None, False]):
+        return False
+    if inText == "":
+        return False
+    return True

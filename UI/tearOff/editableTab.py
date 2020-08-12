@@ -26,7 +26,7 @@ class TabWidget(QTabWidget):
         tab.prefix = ''
         tab.usePrefix = False
         layout = QHBoxLayout(tab)
-        layout.setContentsMargins(3, 3, 3, 3)
+        layout.setContentsMargins(0, 0, 0, 0)
         if changeCurrent:
             index = self.currentIndex()
             index = self.insertTab(index + 1, tab, text)
@@ -38,6 +38,7 @@ class TabWidget(QTabWidget):
         view.setWidgetResizable(1)
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         view.frame = QFrame()
+        view.frame.setFrameShape (QFrame.NoFrame)
         view.setWidget(view.frame)
         tab.view = view
         layout.addWidget(view)

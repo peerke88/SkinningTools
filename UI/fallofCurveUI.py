@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, math, re
-from .qtUtil import *
+from .qt_util import *
 
 class BezierFunctions(object):
     def binomial(self, i, n):
@@ -304,6 +304,8 @@ class NodeView(QGraphicsView):
         self.setStyleSheet(windowCss)
 
 class BezierGraph(QMainWindow):
+    closed = pyqtSignal()
+
     def __init__(self):
         super(BezierGraph, self).__init__()
         self.widget = QWidget()
@@ -351,7 +353,7 @@ class BezierGraph(QMainWindow):
         layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
 
-        self.show()
+        # self.show()
         self.updateView()
         self.__lineEdit_FieldEditted()
         self._loadCBox()
@@ -435,3 +437,23 @@ class BezierGraph(QMainWindow):
     def resizeEvent(self,event):
         super(BezierGraph, self ).resizeEvent( event )
         self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+
+    def hideEvent(self, event):
+        self.closed.emit()
+        super(BezierGraph, self ).hideEvent( event )
+
+    ## @note: possibly add animation that looks like it pops out of the button?
+    # def showEvent(self, event):
+    #     size = self.size()
+    #     start_size = QSize(40, 40)
+    #     self.resize(start_size)
+
+    #     anim = QPropertyAnimation(self, 'size', self)
+    #     anim.setStartValue(start_size)
+    #     anim.setEndValue(size)
+    #     anim.setDuration(700)
+
+    #     self.show()
+    #     anim.start()
+
+    #     event.accept()

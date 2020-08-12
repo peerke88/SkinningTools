@@ -5,7 +5,9 @@ from .tearOff.editableTab import EditableTabWidget
 from .tearOff.tearOffDialog import *
 from ..Maya.tools.shared import *
 from .ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
+from .fallofCurveUI import BezierGraph
 from functools import partial
+import tempfile, os
 
 __VERSION__ = "5.0.20200812"
 
@@ -13,11 +15,11 @@ class SkinningTools(QMainWindow):
     def __init__(self, parent=None):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
-        self.setWindowFlags( Qt.Tool )
         self.setCentralWidget(mainWidget)
+        self.setWindowFlags( Qt.Tool )
         self.__defaults()
 
-        mainLayout = QVBoxLayout()
+        mainLayout = nullVBoxLayout(None, 3)
         mainWidget.setLayout(mainLayout)
         
         self.__menuSetup()
@@ -34,9 +36,11 @@ class SkinningTools(QMainWindow):
 
     # ------------------------- defaults -------------------------------
     def __defaults(self):
-        self.settings = QSettings("uiSave","SkinningTools")
+        self.__graphSize = 60
+        self.settings = QSettings("uiSkinSave","SkinningTools")
         self.__liveIMG = QPixmap(":/UVPivotLeft.png")
         self.__notLiveIMG = QPixmap(":/enabled.png")
+        self.BezierGraph = BezierGraph()
 
     # ------------------------- contextMenu -------------------------------
         
@@ -91,22 +95,35 @@ class SkinningTools(QMainWindow):
         
         self.mayaToolsTab = EditableTabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
-        
-        v = QVBoxLayout()
-        tab.view.frame.setLayout(v)
+
+        v = nullVBoxLayout()
+        h = nullHBoxLayout()
+
+        filePath = self._updateGraph()        
+
+        self.graph = toolButton(filePath)
+        self.graph.setFixedSize(QSize(self.__graphSize, self.__graphSize))
+        self.graph.setIconSize(QSize(self.__graphSize, self.__graphSize))
+        self.graph.clicked.connect(self._showGraph)
+        self.BezierGraph.closed.connect(self._updateGraphButton)
+        h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        h.addWidget(self.graph)
+
+        v.addLayout(h)
         v.addWidget(self.mayaToolsTab)
+        tab.view.frame.setLayout(v)
 
-        self.__addSimpleTools()
         self.__addVertNBoneFunc()
-
+        self.__addSimpleTools()
 
     def __addSimpleTools(self):
         tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools")
-        v = QVBoxLayout()
+        v = nullVBoxLayout()
         tab.view.frame.setLayout(v)
         buttons = mayaToolsWindow()
         for button in buttons:
             v.addWidget(button)
+        v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __addVertNBoneFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("Vertex & bone functions")
@@ -115,15 +132,14 @@ class SkinningTools(QMainWindow):
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")
         self.inflEdit = SkinningToolsSliderList()
-        v = QVBoxLayout()
-        h = QHBoxLayout()
+        v = nullVBoxLayout()
+        h = nullHBoxLayout()
         rfr = toolButton(":/playbackLoopingContinuous_100.png")
         live= toolButton(self.__liveIMG)
         live.setCheckable(True)
         live.clicked.connect(self._updateLive)
-        
-        spacer =  QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        h.addItem(spacer)
+         
+        h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
         for btn in [rfr, live]:
             h.addWidget(btn)
         
@@ -131,6 +147,17 @@ class SkinningTools(QMainWindow):
         tab.view.frame.setLayout(v)
         v.addWidget(self.inflEdit)
     
+    def __componentEditSetup(self):
+        tab = self.tabs.addGraphicsTab("Component Editor")
+
+    def __weightManagerSetup(self):
+        tab = self.tabs.addGraphicsTab("Weight Manager")
+
+    # ------------------------- connections ---------------------------------
+
+    def _showGraph(self):
+        self.BezierGraph.show()
+
     def _updateLive(self):
         liveBtn = self.sender()
         if liveBtn.isChecked():
@@ -138,12 +165,14 @@ class SkinningTools(QMainWindow):
         else:
             liveBtn.setIcon(QIcon(self.__liveIMG))
 
-    def __componentEditSetup(self):
-        tab = self.tabs.addGraphicsTab("Component Editor")
+    # ------------------------- utilities ---------------------------------
 
-    def __weightManagerSetup(self):
-        tab = self.tabs.addGraphicsTab("Weight Manager")
-
+    def _tabName(self, index = -1, mainTool = None):
+        if mainTool is None:
+            raise NotImplementedError()
+        if index < 0:
+            index = mainTool.currentIndex()
+        return mainTool.tabText(index)
 
     def tearOff( self, index, pos= QPoint()):
         tabs = self.sender()
@@ -157,54 +186,29 @@ class SkinningTools(QMainWindow):
         dlg.show()
         tabs.removeTab(index)
 
-    # ------------------------- utilities ---------------------------------
+    def _updateGraph(self):
+        filePath  = os.path.join(tempfile.gettempdir(),'screenshot.jpg')
+        QPixmap.grabWidget(self.BezierGraph.view).save(filePath, 'jpg')
+        return filePath
 
+    def _updateGraphButton(self):
+        filePath = self._updateGraph()    
+        self.graph.setIcon( QIcon(QPixmap(filePath)) )
+        self.graph.setIconSize(QSize(self.__graphSize, self.__graphSize))
+
+    # -------------------- window geometry -------------------------------
+    
     def saveUIState(self):
-        state = []
-        state.append(self.saveGeometry())
-        self.settings.setValue("windowState", state)
+        self.settings.setValue("geometry", self.saveGeometry())
 
     def loadUIState(self):
-        state = [None]
-        getState = self.settings.value("windowState")
-        if getState == None:
+        getGeo = self.settings.value("geometry")
+        if getGeo == None:
             return
-        if state[0] is not None:
-            self.restoreGeometry(state[0])
+        self.restoreGeometry(getGeo)
 
-    def __lineEdit_FalseFolderCharacters1(self, inLineEdit):                                                                    
-        return re.search(r'[\\/:\[\]<>"!@#$%^&-.]', inLineEdit) or re.search(r'[*?|]', inLineEdit) or re.match(r'[0-9]', inLineEdit) or re.search(u'[\u4E00-\u9FFF]+', inLineEdit, re.U) or re.search(u'[\u3040-\u309Fー]+', inLineEdit, re.U) or re.search(u'[\u30A0-\u30FF]+', inLineEdit, re.U)
-        
-    def __lineEdit_FalseFolderCharacters2(self, inLineEdit):   
-        return re.search(r'[\\/:\[\]<>"!@#$%^&-]', inLineEdit) or re.search(r'[*?|]', inLineEdit) or "." in inLineEdit or (len(inLineEdit) >0 and inLineEdit[0].isdigit()) or re.search(u'[\u4E00-\u9FFF]+', inLineEdit, re.U) or re.search(u'[\u3040-\u309Fー]+', inLineEdit, re.U) or re.search(u'[\u30A0-\u30FF]+', inLineEdit, re.U)
-    
-    def __lineEdit_Color(self, inLineEdit, inColor):                                                                        
-        PalleteColor = QPalette(inLineEdit.palette())
-        PalleteColor.setColor(QPalette.Base,QColor(inColor))
-        inLineEdit.setPalette(PalleteColor)
-    
-    def __lineEdit_FieldEditted(self, inLineEdit, button, option = 1, *args):
-        inText = inLineEdit.text()
-        if (option == 1 and not self.__lineEdit_FalseFolderCharacters1(inText) in [None, True]) or (option == 2 and not self.__lineEdit_FalseFolderCharacters2(inText) in [None, False]):
-            self.__lineEdit_Color(inLineEdit, 'red')
-            button.setEnabled(False)
-        elif inText == "":
-            button.setEnabled(False)
-        else:
-            self.__lineEdit_Color(inLineEdit, self.__qt_normal_color)
-            button.setEnabled(True)
-
-    def _tabName(self, index = -1, mainTool = None):
-        if mainTool is None:
-            raise NotImplementedError()
-        if index < 0:
-            index = mainTool.currentIndex()
-        return mainTool.tabText(index)
-
-    
-    def closeEvent(self, event):
+    def hideEvent(self, event):
         self.saveUIState()
-        
 
 
 def showUI():
