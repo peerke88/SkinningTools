@@ -29,7 +29,7 @@ class VertexInfluenceEditor(QGroupBox):
     #     POINTS = []
     #     r = radius
     #     fullRange = pi*12.5
-    #     for angle in range(int(fullRange)+1):
+    #     for angle in xrange(int(fullRange)+1):
     #         POINTS.append(( r*cos(angle/6.25), r*sin(angle/6.25), 0 ))
 
     #     circle = mscreen.drawCurve(POINTS, color=mscreen.COLOR_RED, drawInFront = True)
@@ -141,7 +141,7 @@ class VertexInfluenceEditor(QGroupBox):
         self.layout().addWidget(divider)
 
         unusedSliders = 0
-        for i in range(len(skinBones)):
+        for i in xrange(len(skinBones)):
             sliderLayout = VertexInfluenceEditor.HLayout()
             sliderFrame = QFrame()
             sliderFrame.setLayout(sliderLayout)
@@ -219,7 +219,7 @@ class VertexInfluenceEditor(QGroupBox):
         offset = newValue
 
         totalLength = 0.0
-        for i in range(numSliders):
+        for i in xrange(numSliders):
             if i == setId: continue
             slider, __ = self.__sliders[i]
             if not slider.isEnabled(): 
@@ -230,7 +230,7 @@ class VertexInfluenceEditor(QGroupBox):
             newValue = offset
         
         weights = [0.0] * numSliders
-        for i in range(numSliders):
+        for i in xrange(numSliders):
             if i == setId: continue
             slider, __ = self.__sliders[i]
             if not slider.isEnabled():
@@ -245,7 +245,7 @@ class VertexInfluenceEditor(QGroupBox):
             scale = (1.0 - offset) / (numSliders - 1)
         else:
             scale = (1.0 - offset) / totalValue
-        for i in range(numSliders):
+        for i in xrange(numSliders):
             if i == setId: continue
             slider, __ = self.__sliders[i]
             if not slider.isEnabled(): 
@@ -264,6 +264,6 @@ class VertexInfluenceEditor(QGroupBox):
 
         # apply to skincluster
         stack = []
-        for i in range(numSliders):
+        for i in xrange(numSliders):
             stack.append((self.__influences[i], weights[i]))
         cmds.skinPercent(*self.__target, normalize=True, transformValue=stack)

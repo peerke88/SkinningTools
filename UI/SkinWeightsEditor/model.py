@@ -32,7 +32,7 @@ class SkinWeightsModel(QObject):
 			self.__lockedColumns = []
 			return
 
-		self.__skinCluster = SkinningTools.skinCluster(self.__geometry)# util.skinClusterFor(self.__geometry)
+		self.__skinCluster = SkinningTools.skinCluster(self.__geometry)
 		self.__influences = cmds.skinCluster(self.__skinCluster, q=True, inf=True)
 		self.__data = cmds.SkinWeights(self.__geometry, self.__skinCluster, q=True)
 		self.__zeroColumns = [None] * len(self.__influences)
@@ -45,7 +45,7 @@ class SkinWeightsModel(QObject):
 		remaindersum = 0.0
 		remainderIds = []
 		one = 1.0
-		for i in range(len(values)):
+		for i in xrange(len(values)):
 			if visibleColumns is not None and i not in visibleColumns:
 				continue
 			if i in setcols:
@@ -57,7 +57,7 @@ class SkinWeightsModel(QObject):
 				remaindersum += values[i]
 		if one <= 0.0:
 			# zero out everything if the locked data is already at maximum
-			for i in range(len(values)):
+			for i in xrange(len(values)):
 				if visibleColumns is not None and i not in visibleColumns:
 					continue
 				if not self.__lockedColumns[i]:
@@ -118,7 +118,7 @@ class SkinWeightsModel(QObject):
 		self.__lockedColumns[col] = state
 
 	def unlockAllColumns(self):
-		for i in range(len(self.__influences)):
+		for i in xrange(len(self.__influences)):
 			self.__lockedColumns[i] = False
 
 	def isZeroColumn(self, col):
