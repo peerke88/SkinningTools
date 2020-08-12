@@ -8,9 +8,9 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 
 ## Authors
 
-* Trevor van Hoof
-* Jan Pijpers
-* Perry Leijten 
+* [Trevor van Hoof](http://trevorius.com/scrapbook/)
+* [Jan Pijpers](https://www.janpijpers.com/)
+* [Perry Leijten](https://www.perryleijten.com/)
 
 
 ## Prerequisites
@@ -31,11 +31,11 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 
 * Controls sliders
 ```
-  Author: Daniel Niero
+  Author: Daniele Niero (https://github.com/daniele-niero)
   License: GNU license
 ```
 
 
-# @note:
+### note:
 
 the skinningTools.py in /Maya/tools is the old version which needs to be refactored in several categories and removed later
