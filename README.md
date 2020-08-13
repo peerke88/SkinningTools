@@ -31,11 +31,11 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 
 * Controls sliders
 ```
-  Author: Daniele Niero (https://github.com/daniele-niero)
+  Author: [Daniele Niero](https://github.com/daniele-niero)
   License: GNU license
 ```
 
-
-### note:
-
-the skinningTools.py in /Maya/tools is the old version which needs to be refactored in several categories and removed later
+* paint skin weight pickwalking
+``` 
+  Author: [Ryan Porter](https://yantor3d.wordpress.com/)
+```

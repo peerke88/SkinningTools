@@ -74,7 +74,7 @@ def autoLabelJoints(inputLeft, inputRight, progressBar = None):
 ## reset the object back to bindpose without the need of the bindpose node!
 # calculates the bindpose through the prebind matrix of the joints
 #@param string object, mesh that should be reset to bindPost
-def resetToBindPoseobject):
+def resetToBindPoseobject():
 
     #@todo: convert to openMaya api 2.0
     def getMayaMatrix(data):
@@ -112,7 +112,7 @@ def resetToBindPoseobject):
 #@param list joints, list of joints to recompute matrix
 #@param string skincluster, skincluster object to reset
 @dec_undo
-def resetSkinnedJointsjoints, skinCluster = None):
+def resetSkinnedJointsjoints( skinCluster = None):
     for joint in joints:
         skinClusterPlugs = cmds.listConnections(joint + ".worldMatrix[0]", type="skinCluster", p=1)
         if skinCluster is not None and skinClusterPlugs is not None:
@@ -135,7 +135,7 @@ def resetSkinnedJointsjoints, skinCluster = None):
     return True
 
 @dec_undo
-def freezeSkinnedJointsjoints):
+def freezeSkinnedJointsjoints():
     '''cleanup joint orient of skinned/constrained bones'''
     for joint in joints:
         dup = cmds.duplicate(joint, rc=1)[0]
@@ -158,7 +158,7 @@ def freezeSkinnedJointsjoints):
     return joints
 
 @dec_undo
-def freezeSkinnedJointsFulljoints):
+def freezeSkinnedJointsFulljoints():
 	#@todo have another look at this with skinned joints and joints part of ik-spline
     info = OrderedDict()
     parentInfo = OrderedDict()
@@ -213,7 +213,7 @@ def freezeSkinnedJointsFulljoints):
     return info.keys()
 
 @dec_undo
-def removeBindPoses(self):
+def removeBindPoses():
     '''deletes all bindpose nodes from current scene'''
     dagPoses = cmds.ls( type="dagPose" )
     for dagPose in dagPoses:
@@ -223,7 +223,7 @@ def removeBindPoses(self):
     return True
 
 @dec_undo
-def addUnlockedZeroInfljoints, mesh):
+def addUnlockedZeroInfljoints(mesh):
     '''adds joints to the current mesh without altering the weights, and makes sure that the joints are unlocked
     @param joints: joints to be added to the mesh
     @param mesh: mesh onto which the joints will be added as an influence'''
@@ -237,7 +237,7 @@ def addUnlockedZeroInfljoints, mesh):
     return True
 
 @dec_undo
-def BoneMove(self,bone1, bone2, skin):
+def BoneMove(bone1, bone2, skin):
     '''transfer weights between 2 joints using the selected mesh'''
     skinClusterName    = SkinningTools.skinCluster(skin, True)
     infjnts  = cmds.skinCluster(skinClusterName, q=True, inf=True)
@@ -273,7 +273,7 @@ def BoneMove(self,bone1, bone2, skin):
     return True
 
 @dec_undo
-def BoneSwitch(self,joint1, joint2, skin):
+def BoneSwitch(joint1, joint2, skin):
     '''switch bone influences by reconnecting matrices in the skincluster plugs
     really fast, downside: only applicable in bindpose'''
 
@@ -317,7 +317,7 @@ def BoneSwitch(self,joint1, joint2, skin):
     return True
 
 @dec_undo
-def removeJointsskinObjects, jointsToRemove, useParent = True, delete =True, fast = False , progressBar = None):
+def removeJointsskinObjects( jointsToRemove, useParent = True, delete =True, fast = False , progressBar = None):
     '''stores joint weight information on another joint before it gets removed
     @param skinObjects: all objects from which joints need to be removed
     @param jointsToRemove: all joints that need to be removed:
@@ -467,7 +467,7 @@ def comparejointInfluences(skinObjects , query = False):
                     pass
     return True
 
-def getMeshesInfluencedByJointcurrentJoints):
+def getMeshesInfluencedByJointcurrentJoints():
     '''returns all meshes that have any skincluster attachemt with given joints'''
     allSkinClusters = cmds.ls(type = "skinCluster")
 

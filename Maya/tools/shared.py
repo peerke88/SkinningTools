@@ -1,6 +1,6 @@
 from collections import defaultdict, deque, OrderedDict
 from functools import wraps
-from maya import cmds
+from maya import cmds, mel
 from maya.api import OpenMaya
 from ...UI.utils import buttonsToAttach
 
@@ -88,12 +88,16 @@ def shortest_path(graph, origin, destination):
 # ------------------------------------------------------------------------------
 #@note: make sure that all objects return full path
 
-def skinCluster(object, silent=False):
-    object = SkinningTools.getParentShape(object)
-    skinCluster = mel.eval('findRelatedSkinCluster("%s");'%object) 
+def skinCluster(inObject = None, silent=False):
+    if inObject is None:
+        inObject = cmds.ls(sl=1, l=1)
+    if not inObject:
+        return None
+    inObject = getParentShape(inObject)
+    skinCluster = mel.eval('findRelatedSkinCluster("%s");'%inObject) 
     if not skinCluster:
         if silent == False:
-            cmds.confirmDialog( title='Error', message='no SkinCluster found on: %s!'%object, button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+            cmds.confirmDialog( title='Error', message='no SkinCluster found on: %s!'%inObject, button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
         else:
             skinCluster = None
     return skinCluster
@@ -123,7 +127,7 @@ def doCorrectSelectionVisualization(skinMesh):
     elif objType == "mesh":
         mel.eval('doMenuComponentSelection("%s", "vertex");'%skinMesh )
 
-def convertToVertexList(self, object):
+def convertToVertexList(object):
     checkObject = object
     if isinstance(object, list):
         checkObject = object[0]
@@ -196,3 +200,63 @@ def mayaToolsWindow():
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
 
+
+            
+def getConnectedVerts( mesh, vtxSelectionSet):
+    mObject = OpenMaya.MGlobal.getSelectionListByName(mesh).getDependNode(0)
+    iterVertLoop = OpenMaya.MItMeshVertex(mObject)
+    
+    talkedToNeighbours = set() 
+    
+    districtDict =  collections.defaultdict(list) 
+    districtNr = 0 
+            
+    for currentIndex in vtxSelectionSet:
+        districtHouses = set() 
+    
+        if not currentIndex in talkedToNeighbours:
+            districtHouses.add( currentIndex )
+            currentNeighbours = getNeighbours(iterVertLoop, currentIndex)
+            
+            while currentNeighbours:
+                newNeighbours = set() 
+                for neighbour in currentNeighbours:
+                    if neighbour in vtxSelectionSet and not neighbour in talkedToNeighbours:
+                        talkedToNeighbours.add(neighbour)
+                        districtHouses.add(neighbour)
+                        newNeighbours = newNeighbours.union(getNeighbours(iterVertLoop, neighbour))
+                        
+                currentNeighbours = newNeighbours
+            districtDict[districtNr] = districtHouses 
+            districtNr += 1 
+            
+        iterVertLoop.setIndex(currentIndex)
+        iterVertLoop.next()
+
+    return districtDict
+
+def getNeighbours( mVtxItter, index):
+    intArray = mVtxItter.getConnectedVertices(intArray)
+    return set(int(x) for x in intArray)
+
+def growLatticePoints(points):
+    base =points[0].split('.')[0]
+    allPoints = cmds.filterExpand("%s.pt[*]"%base, sm=46)
+
+    extras = []
+    for j in points:
+        extras.append(j)
+        a = int(j.split("[")[1].split("]")[0])
+        b = int(j.split("[")[2].split("]")[0])
+        c = int(j.split("[")[3].split("]")[0])
+        for i in [-1, 1]:
+            growa = "%s.pt[%s][%s][%s]"%(base, a+i, b, c)
+            growb = "%s.pt[%s][%s][%s]"%(base, a, b+i, c)
+            growc = "%s.pt[%s][%s][%s]"%(base, a, b, c+i)
+            if growa in allPoints:
+                extras.append(growa)
+            if growb in allPoints:
+                extras.append(growb)     
+            if growc in allPoints:
+                extras.append(growc)
+    return extras
