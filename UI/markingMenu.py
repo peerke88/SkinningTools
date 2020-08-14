@@ -4,7 +4,7 @@ from maya import cmds, mel, OpenMayaUI, OpenMaya
 from functools import partial
 from math import *
 
-def objectUnderMouse():
+def objectUnderMouse(margin = 4, selectionType = "joint"):
     def selectFromScreenApi(x, y, x_rect=None, y_rect=None):
         # find object under mouse, (silently select the object using api and clear selection)
         sel = OpenMaya.MSelectionList()
@@ -36,57 +36,80 @@ def objectUnderMouse():
         
     active_view = OpenMayaUI.M3dView.active3dView()
     pos = QCursor.pos()
-    widget = qApp.widgetAt(pos)
+    widget = QApplication.widgetAt(pos)
         
     try:
         relpos = widget.mapFromGlobal(pos)
     except:
         return False
-
-    margin = 4
+    
+    if selectionType == "joint":
+        maskOn = cmds.selectType( q=True, joint=True )
+        sm = getSelectionModeIcons()    
+        mel.eval("changeSelectMode -object;")
+        cmds.selectType( joint=True )
     foundObjects = selectFromScreenApi( relpos.x()-margin, 
                                         active_view.portHeight() - relpos.y()-margin, 
                                         relpos.x()+margin, 
                                         active_view.portHeight() - relpos.y()+margin )
-    
-    toUse = None
-    usedObject = None
+    if selectionType == "joint":
+        cmds.selectType( joint=maskOn )
+        mel.eval("changeSelectMode -%s;"%sm)
+
+    foundBone = False
+    boneName = ''
     for fobj in foundObjects:
-        connects = cmds.listConnections( fobj, s = 0, d = 1 )
-        if connects is None:
-            return 
-        for conns in connects:
-            if cmds.objectType( conns ) == "RigSystemDynamicParent":
-                toUse = conns
-                usedObject = fobj
-    return usedObject, toUse 
+        if cmds.objectType(fobj) == selectionType:
+            foundBone = True
+            boneName = fobj
+            break
+    return foundBone, boneName
         
 class ToolTipFilter(QObject):
-    def __init__(self):
-        super(ToolTipFilter, self).__init__()
-        self.MenuName = 'rigSystemSpaceSwitchMenu'  
+    def __init__(self, name = "MarkingMenu", parent = None):
+        super(ToolTipFilter, self).__init__(parent)
+        self.MenuName = name  
         self.popup = None 
-        self.isChecked = False
+        self.getBoneUnderMouse = False
+        print "test"
     
     def eventFilter(self, obj, event):
-        if not ( QApplication.keyboardModifiers() == Qt.ControlModifier and event.type() == QEvent.MouseButtonPress and event.button() == 4):
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.AltModifier:
+            self.getBoneUnderMouse = False
             return False
-        if event.type() == QEvent.MouseButtonRelease: 
-            print(self.popup, "released")
+
+        if ( event.type() == QEvent.MouseButtonPress and event.button() == 4):
+            print "mousePressed"
+            foundObjects = objectUnderMouse()
+            print foundObjects
+
+            if foundObjects == (False, '') or foundObjects is False:
+                return False
+            
+            
+            mainWin = wrapinstance( long( OpenMayaUI.MQtUtil.mainWindow() ) )
+
+            self.popup = radialMenu(mainWin, foundObjects, self)
+            self.popup.showAtMousePos()
+            return True
+
+        # do this on mouse press, show the menu and kill it when released, activate button under mouse!
+        if (event.type() == QEvent.MouseButtonRelease and event.button() == 4): 
+            print "mouse released"
             if self.popup is None:
                 return True
+
+            # gather information on object undre mouse? mayeb from global or scene position!
+            # pos = QCursor.pos()
+            # nPos = self.popup.graphicsView.mapFromGlobal(pos)
+            # print nPos
+            # self.popup.scene.itemAt(QPointF(nPos.x(), nPos.y()))
+
             self.popup.hide()
             self.popup.deleteLater()
+            self.popup = None
             return True
-        test = objectUnderMouse()
-        if test == (None, None) or test is None:
-            return False
-        
-        mainWin = wrapinstance( long( OpenMayaUI.MQtUtil.mainWindow() ) )
-
-        self.popup = radialMenu(mainWin, test, self)
-        self.popup.showAtMousePos()
-        return True
 
 class radialMenu(QMainWindow):
     brush = QBrush()
@@ -126,72 +149,49 @@ class radialMenu(QMainWindow):
         return  OpenMaya.MVector(qx, qy, 0.0)
 
     def _buildButtons(self):
+        _availableSpaces = 8
         #@note change these buttons to bone setup marking menu
-        selectAttr = cmds.listConnections(self.inputObjects[1] +'.parentSelect', s=1, d=0, p=1)[0].split('.')[-1]
-        if not cmds.attributeQuery(selectAttr, node=self.inputObjects[0], exists=True):
-            return
-
-        allSpaces = cmds.attributeQuery(selectAttr, node = self.inputObjects[0], listEnum  =1)[0].split(":")
-        currentspace = cmds.getAttr("%s.%s"%(self.inputObjects[0], selectAttr), asString=True)
-        
-        angle = (pi/(len(allSpaces)-1))*2
+        angle = (pi/(_availableSpaces))*2
         origin = OpenMaya.MVector()
         basePos = OpenMaya.MVector(0,-self.__radius,0)
+
         denom = 0
-        for i, space in enumerate(allSpaces):
-            if space == currentspace:
-                denom = 1
-                continue
-            position = self.rotateVec(origin, basePos, (i - denom)*angle)
-            w = QPainter().fontMetrics( ).width( space) + 10
-            item = QPushButton(space)
-            item.workData = space
-            item.setGeometry(position.x-(w*.5),position.y-10.5, w, 21)
-            self.scene.addWidget(item)
-            item.clicked.connect(partial(self.spaceSwitchMatch, selectAttr, i))
+        positionList = []
+        [positionList.append(self.rotateVec(origin, basePos, (i - denom)*angle)) for i in xrange(_availableSpaces)]
 
-        w = QPainter().fontMetrics( ).width("X") + 10
-        item = QPushButton("X")
-        item.setGeometry(-(w*.5),-11.5, w, 23)
-        item.workData = "close"
-        self.scene.addWidget(item)
-        item.clicked.connect(self.close)
-
-        nPos = basePos *-1.5
-        text = "add keyFrames"
-        item = QCheckBox(text)
-        item.setChecked(self.parentObject.isChecked)
-        w = QPainter().fontMetrics( ).width( text) + 20
-        item.setGeometry(nPos.x-(w*.5),nPos.y-11.5, w, 23)
-        item.stateChanged.connect(self._setCheckState)
-
+        item = QLabel(self.inputObjects[1])
+        item.setAlignment(Qt.AlignCenter)
+        w = QPainter().fontMetrics( ).width( item.text()) + 10
+        item.setGeometry(positionList[0].x-(w*.5),positionList[0].y-10.5, w, 21)
         self.scene.addWidget(item)
 
-    def _setCheckState(self, value):
-        #@todo: find a way to keep the checkstate alive!
-        # or check how to store or connect certain values
-        if self.parentObject.isChecked:
-            self.parentObject.isChecked = False
-        else:
-            self.parentObject.isChecked = True
-        self.close()
 
-    def spaceSwitchMatch(self, attrName, attrValue, *args):
-        inputObject, dynparNode = self.inputObjects
-        if self.parentObject.isChecked:
-            currentTimeFrame = cmds.currentTime(query=True)
-            frameBefore = currentTimeFrame - 1
-            cmds.setKeyframe(inputObject, breakdown=0, hierarchy='none', controlPoints=0, shape=False, t=frameBefore)
-        
-        pos = cmds.xform(inputObject, q=1, ws=1, t=1)
-        rot = cmds.xform(inputObject, q=1, ws=1, ro=1)
-        cmds.setAttr("%s.%s"%(inputObject, attrName), attrValue)
-        cmds.xform(inputObject, ws=1, t=pos)
-        cmds.xform(inputObject, ws=1, ro=rot)
+        # add buttons based on free positions above
+        # create button: item = QPushButton(space)
+        # get value from button text: w = QPainter().fontMetrics( ).width( item.text()) + 10
+        # set the button in space with: item.setGeometry(position.x-(w*.5),position.y-10.5, w, 21)
+        # add to scene: self.scene.addWidget(item)
 
-        if self.parentObject.isChecked:
-            cmds.setKeyframe(inputObject, breakdown=0, hierarchy='none', controlPoints=0, shape=1)
-        self.close()
+        ##@not these may be not necessary as the widget closes on release!
+        # w = QPainter().fontMetrics( ).width("X") + 10
+        # item = QPushButton("X")
+        # item.setGeometry(-(w*.5),-11.5, w, 23)
+        # self.scene.addWidget(item)
+        # item.clicked.connect(self.close)
+
+        ## the following adds a button under the current radial menu
+        # nPos = basePos *-1.5
+        # text = "add keyFrames"
+        # item = QCheckBox(text)
+        # item.setChecked(self.parentObject.isChecked)
+        # w = QPainter().fontMetrics( ).width( text) + 20
+        # item.setGeometry(nPos.x-(w*.5),nPos.y-11.5, w, 23)
+        # item.stateChanged.connect(self._setCheckState)
+        # self.scene.addWidget(item)
+
+
+    def __funcPressed(self, *args):
+        print self.sender().text()
 
     def mousePressEvent(self, event):
         # @todo: find a way to close the ui when transparent layer is pressed
@@ -204,16 +204,21 @@ class radialMenu(QMainWindow):
         self.show()
         self._buildButtons()
 
-#too Install
-# filter = ToolTipFilter()
+# to test the functions
+def forceInstallFilter():
+    filter = ToolTipFilter()
 
-# for x in xrange(OpenMayaUI.M3dView.numberOf3dViews()):    
-#     view =  OpenMayaUI.M3dView() 
-#     OpenMayaUI.M3dView.get3dView(x, view)
-#     view._customFilter = filter 
-#     viewWidget = wrapinstance(view.widget())
-#     viewWidget.removeEventFilter(view._customFilter)
-#     viewWidget.installEventFilter(view._customFilter) 
+    for x in xrange(OpenMayaUI.M3dView.numberOf3dViews()):    
+        view =  OpenMayaUI.M3dView() 
+
+        OpenMayaUI.M3dView.get3dView(x, view)
+        viewWidget = wrapinstance(view.widget())
+        try:
+            viewWidget.removeEventFilter(view._customFilter)
+        except:
+            pass
+        view._customFilter = ToolTipFilter(parent = viewWidget)
+        viewWidget.installEventFilter(view._customFilter) 
 
 
 # @note: original Code:
@@ -284,18 +289,7 @@ class radialMenu(QMainWindow):
             if cmds.popupMenu("ContextModModule", exists=True):
                 cmds.deleteUI("ContextModModule")
 
-        if event.type() == QEvent.KeyPress:
-            keyType = event.key()
-            if keyType == Qt.Key_Up:
-                pickwalk = weightPaintUtils.pickWalkSkinClusterInfluenceList("up")
-                if pickwalk == True:
-                    return True
-
-            elif keyType == Qt.Key_Down:
-                pickwalk = weightPaintUtils.pickWalkSkinClusterInfluenceList("down")
-                if pickwalk == True:
-                    return True
-
+        
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.AltModifier:
             self.getBoneUnderMouse = False
