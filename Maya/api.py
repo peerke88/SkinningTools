@@ -7,9 +7,9 @@ while leaving room for other packages to implement features.
 import functools
 
 from Maya.tools import shared
-from maya import cmds, mel
-
+from Maya.tools import weightPaintUtils
 from Maya.tools.shared import mayaToolsWindow
+from maya import cmds, mel
 
 
 def selectedObjectVertexList(includeObjects=False):
@@ -85,3 +85,55 @@ def selectVertices(meshVertexPairs):
 
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
     mel.eval('doMenuComponentSelection("%s", "%s");' % (meshVertexPairs[0][0].split('.')[0], "vertex"))
+
+
+def _eventFilterTargets():
+    # We must return all widgets that receive strong focus that we want to tap into
+    # such as the main window or 3D viewports that are not simple Qt widgets.
+
+    from UI.qt_util import wrapinstance, QMainWindow, QObject
+    from maya.OpenMayaUI import MQtUtil, M3dView
+
+    mainWin = wrapinstance(int(MQtUtil.mainWindow()), QMainWindow)
+
+    active_view = M3dView.active3dView()
+    active_view_ptr = active_view.widget()
+    qt_active_view = wrapinstance(int(active_view_ptr), QObject)
+
+    return mainWin, qt_active_view
+
+
+from UI.qt_util import QObject
+
+
+class _EventFilter(QObject):
+    _singleton = None
+
+    @staticmethod
+    def singleton():
+        if _EventFilter._singleton is None:
+            _EventFilter._singleton = _EventFilter()
+
+    def eventFilter(self, obj, event):
+        from UI.qt_util import Qt, QEvent
+        _arrows = {Qt.Key_Up: "up", Qt.Key_Down: "down"}
+        if event.type() == QEvent.KeyPress and event.key() in _arrows.keys():
+            return weightPaintUtils.pickWalkSkinClusterInfluenceList(_arrows[event.key()])
+        return False
+
+def dccInstallEventFilter():
+    eventFilterTargets = _cleanEventFilter()
+    for eventFilterTarget in eventFilterTargets:
+        eventFilterTarget.installEventFilter(_EventFilter.singleton())
+
+
+def _cleanEventFilter():
+    # joint MarkingMenu filter
+    widgets = _eventFilterTargets()
+    for widget in widgets:
+        try:
+            widget.removeEventFilter(_EventFilter.singleton())
+        except:
+            pass
+    return widgets
+

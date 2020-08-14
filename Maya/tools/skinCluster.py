@@ -1023,3 +1023,61 @@ def hardSkinSelectionShells(selection, progressBar=False):
     if progressBar:
         progressBar.setValue(100.0)
     return selection
+
+
+def comparejointInfluences(skinObjects, query=False):
+    # @todo make this one smarter!
+    # for each skincluster grab joints
+    # add all joints together in a set
+    # then compare current  joints with set, add joints that are not in there yet
+    # use the add joint feature or somethign like this:
+    #
+    # add = []
+    #     for influence in inInfluences:
+    #         if influence not in outInfluences:
+    #             add.append(influence)
+    #     if add:
+    #         cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
+    #
+    '''makes sure that given skinobjects have the same joints influencing, its a safety measure when copying weights between different objects'''
+    compareLists = []
+    for skinObject in skinObjects:
+        skinClusterName = skinCluster(skinObject, True)
+        if skinClusterName == None:
+            continue
+
+        joints = cmds.skinCluster(skinClusterName, q=True, inf=True)
+        compareLists.append([skinObject, joints])
+
+    if len(compareLists) < 2:
+        cmds.error("please select at least 2 objects with skinclusters")
+    totalCompares = len(compareLists)
+    missingJointsList = []
+    for i in range(totalCompares):
+        for list in compareLists:
+            if list == compareLists[i]:
+                continue
+            missedjoints = []
+            for match in list[1]:
+                if not any(match in value for value in compareLists[i][1]):
+                    missedjoints.append(match)
+
+            missingJointsList.append([compareLists[i][0], missedjoints])
+    if query == True:
+        joints = []
+        for missingList in missingJointsList:
+            for joint in missingList[1]:
+                joints.append(joint)
+        if len(joints) == 0:
+            return None
+        else:
+            return True
+    else:
+        for missingJoints in missingJointsList:
+            skinClusterName = skinCluster(missingJoints[0], True)
+            for joint in missingJoints[1]:
+                try:
+                    cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=joint)
+                except:
+                    pass
+    return True

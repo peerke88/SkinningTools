@@ -5,6 +5,8 @@ try:
     from PySide.QtGui import *
     from PySide.QtCore import *
     from PySide.QtCore import Signal as pyqtSignal
+    from PySide QtSvg
+    import *
     from PySide import QtGui
     from PySide.QtUiTools import *
     import sip
@@ -18,6 +20,8 @@ except Exception as e:
         from PySide2.QtCore import *
         from PySide2.QtWidgets import *
         from PySide2.QtCore import Signal as pyqtSignal
+        from PySide2 QtSvg
+        import *
         from PySide2 import QtGui
         from PySide2.QtUiTools import *
         import pyside2uic as pysideuic
@@ -30,6 +34,8 @@ except Exception as e:
         try:
             from PyQt4.QtCore import *
             from PyQt4.QtGui import *
+            from PyQt4 QtSvg
+            import *
             from PyQt4 import QtGui
             from PyQt4.QtUiTools import *
             import pysideuic, shiboken
@@ -72,4 +78,28 @@ import os
 
 nameRegExp = QRegExp('\\w+')
 
-JSONFILE = os.path.normpath(os.path.join(__file__, "../namer.json"))
+
+def wrapinstance(ptr, base=None):
+    '''workaround to be able to wrap objects with both PySide and PyQt4'''
+    # http://nathanhorne.com/?p=485'''
+    if ptr is None:
+        return None
+    ptr = int(ptr)
+    if globals().has_key('shiboken'):
+        if base is None:
+            qObj = shiboken.wrapInstance(int(ptr), QObject)
+            metaObj = qObj.metaObject()
+            cls = metaObj.className()
+            superCls = metaObj.superClass().className()
+            if hasattr(QtGui, cls):
+                base = getattr(QtGui, cls)
+            elif hasattr(QtGui, superCls):
+                base = getattr(QtGui, superCls)
+            else:
+                base = QWidget
+        return shiboken.wrapInstance(int(ptr), base)
+    elif globals().has_key('sip'):
+        base = QObject
+        return sip.wrapinstance(int(ptr), base)
+    else:
+        return None

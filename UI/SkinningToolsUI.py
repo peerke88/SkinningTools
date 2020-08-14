@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 from Maya import api
 from UI.utils import *
-from UI.qt_util import *
 from UI.tearOff.editableTab import EditableTabWidget
 from UI.tearOff.tearOffDialog import *
 from UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
 from UI.fallofCurveUI import BezierGraph
-from functools import partial
+from UI.messageProgressBar import MessageProgressBar
+from UI.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
 import tempfile, os
 
 __VERSION__ = "5.0.20200812"
+_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class SkinningTools(QMainWindow):
@@ -34,8 +35,13 @@ class SkinningTools(QMainWindow):
         mainLayout.addWidget(self.tabs)
 
         self.loadUIState()
+        self.progressBar = MessageProgressBar()
+        mainLayout.addWidget(self.progressBar)
+
+        api.dccInstallEventFilter()
 
     # ------------------------- defaults -------------------------------
+
     def __defaults(self):
         self.__graphSize = 60
         self.settings = QSettings("uiSkinSave", "SkinningTools")
@@ -43,24 +49,7 @@ class SkinningTools(QMainWindow):
         self.__notLiveIMG = QPixmap(":/enabled.png")
         self.BezierGraph = BezierGraph()
 
-    # ------------------------- contextMenu -------------------------------
-
-    def btnContextMenu(self, point):
-        popMenu = QMenu(self)
-        action = QAction(self.__lang['delete'], self)
-        popMenu.addAction(action)
-        action.triggered.connect(partial(self.deleteButton, self.sender()))
-        popMenu.exec_(self.sender().mapToGlobal(point))
-
-    def filterContextMenu(self, point):
-        popMenu = QMenu(self)
-        action = QAction(self.__lang['uncheck all'], self)
-        popMenu.addAction(action)
-        action.triggered.connect(self.unCheckFilters)
-        popMenu.exec_(self.sender().mapToGlobal(point))
-
-        # ------------------------- ui Setups ---------------------------------
-
+    # ------------------------- ui Setups ---------------------------------
     def __menuSetup(self):
         self.setMenuBar(QMenuBar())
         self.menuBar().setLayoutDirection(Qt.RightToLeft)
@@ -102,9 +91,7 @@ class SkinningTools(QMainWindow):
 
         filePath = self._updateGraph()
 
-        self.graph = toolButton(filePath)
-        self.graph.setFixedSize(QSize(self.__graphSize, self.__graphSize))
-        self.graph.setIconSize(QSize(self.__graphSize, self.__graphSize))
+        self.graph = toolButton(filePath, size=self.__graphSize)
         self.graph.clicked.connect(self._showGraph)
         self.BezierGraph.closed.connect(self._updateGraphButton)
         h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
@@ -115,6 +102,7 @@ class SkinningTools(QMainWindow):
         tab.view.frame.setLayout(v)
 
         self.__addVertNBoneFunc()
+        self.__addCopyRangeFunc()
         self.__addSimpleTools()
 
     def __addSimpleTools(self):
@@ -122,12 +110,50 @@ class SkinningTools(QMainWindow):
         v = nullVBoxLayout()
         tab.view.frame.setLayout(v)
         buttons = api.dccToolButtons()
-        for button in buttons:
-            v.addWidget(button)
+        for btn in buttons:
+            v.addWidget(btn)
         v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __addVertNBoneFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("Vertex & bone functions")
+        v = nullVBoxLayout()
+        g = nullGridLayout()
+        v.addLayout(g)
+        tab.view.frame.setLayout(v)
+
+        AvarageWeightButton = svgButton("AvarageVerts", os.path.join(_DIR, "Icons/AvarageVerts.svg"), size=60)
+        Cop2MultVert = svgButton("copy2Mult", os.path.join(_DIR, "Icons/copy2Mult.svg"), size=60)
+        Bone2BoneSwitchButton = svgButton("Bone2Boneswitch", os.path.join(_DIR, "Icons/Bone2Boneswitch.svg"), size=60)
+        Copy2BoneButton = svgButton("Bone2Bone", os.path.join(_DIR, "Icons/Bone2Bone.svg"), size=60)
+        ShowInfluencedButton = svgButton("bone2verts", os.path.join(_DIR, "Icons/selectinfl.svg"), size=60)
+        switchVertexWeightButton = svgButton("vert2vert", os.path.join(_DIR, "Icons/vert2vert.svg"), size=60)
+        jointLabelButton = svgButton("jointLabel", os.path.join(_DIR, "Icons/jointLabel.svg"), size=60)
+        deleteBoneButton = svgButton("BoneDelete", os.path.join(_DIR, "Icons/jointDelete.svg"), size=60)
+        selectInflJoints = svgButton("selectinfl", os.path.join(_DIR, "Icons/selectJnts.svg"), size=60)
+        unifyJointsButton = svgButton("unify", os.path.join(_DIR, "Icons/unify.svg"), size=60)
+        SmoothButton = svgButton("smooth", os.path.join(_DIR, "Icons/smooth.svg"), size=60)
+        transfermayaskinbutton = svgButton("skinToSkin", os.path.join(_DIR, "Icons/skinToSkin.svg"), size=60)
+        TransferPoseButton = svgButton("skinToPose", os.path.join(_DIR, "Icons/skinToPose.svg"), size=60)
+        addinflbutton = svgButton("add", os.path.join(_DIR, "Icons/addJoint.svg"), size=60)
+
+        for index, btn in enumerate([AvarageWeightButton, Cop2MultVert, Bone2BoneSwitchButton, Copy2BoneButton, ShowInfluencedButton,
+                                     switchVertexWeightButton, jointLabelButton, deleteBoneButton, selectInflJoints, unifyJointsButton,
+                                     SmoothButton, transfermayaskinbutton, TransferPoseButton, addinflbutton]):
+            row = index / 8
+            g.addWidget(btn, index - (row * 8), row)
+
+        v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
+    def __addCopyRangeFunc(self):
+        tab = self.mayaToolsTab.addGraphicsTab("copy functions")
+        v = nullVBoxLayout()
+        tab.view.frame.setLayout(v)
+
+        closest = ClosestVertexWeightWidget()
+        transfer = TransferWeightsWidget()
+        for w in [closest, transfer]:
+            v.addWidget(w)
+        v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")

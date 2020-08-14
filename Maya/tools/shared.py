@@ -95,13 +95,16 @@ def shortest_path(graph, origin, destination):
 
 # ------------------------------------------------------------------------------
 # @note: make sure that all objects return full path
-
-def skinCluster(object, silent=False):
-    object = getParentShape(object)
-    skinCluster = mel.eval('findRelatedSkinCluster("%s");' % object)
+def skinCluster(inObject=None, silent=False):
+    if inObject is None:
+        inObject = cmds.ls(sl=1, l=1)
+    if not inObject:
+        return None
+    inObject = getParentShape(inObject)
+    skinCluster = mel.eval('findRelatedSkinCluster("%s");' % inObject)
     if not skinCluster:
         if silent == False:
-            cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % object, button=['Ok'],
+            cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % inObject, button=['Ok'],
                                defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
         else:
             skinCluster = None
@@ -135,42 +138,42 @@ def doCorrectSelectionVisualization(skinMesh):
         mel.eval('doMenuComponentSelection("%s", "vertex");' % skinMesh)
 
 
-def convertToVertexList(object):
-    checkObject = object
-    if isinstance(object, list):
-        checkObject = object[0]
+def convertToVertexList(inObject):
+    checkObject = inObject
+    if isinstance(inObject, list):
+        checkObject = inObject[0]
     objType = cmds.objectType(checkObject)
     checkType = checkObject
     if objType == "transform":
-        shapes = cmds.listRelatives(object, ad=1, s=1)
+        shapes = cmds.listRelatives(inObject, ad=1, s=1)
         if not shapes == []:
-            checkType = object
+            checkType = inObject
         checkType = shapes[0]
 
     objType = cmds.objectType(checkType)
     if objType == 'mesh':
-        convertedVertices = cmds.polyListComponentConversion(object, tv=True)
+        convertedVertices = cmds.polyListComponentConversion(inObject, tv=True)
         return cmds.filterExpand(convertedVertices, sm=31)
 
     if objType == "nurbsCurve" or objType == "nurbsSurface":
-        if isinstance(object, list) and ".cv" in object[0]:
-            return cmds.filterExpand(object, sm=28)
-        elif isinstance(object, list):
-            return cmds.filterExpand('%s.cv[*]' % object[0], sm=28)
-        elif ".cv" in object:
-            return cmds.filterExpand(object, sm=28)
+        if isinstance(inObject, list) and ".cv" in inObject[0]:
+            return cmds.filterExpand(inObject, sm=28)
+        elif isinstance(inObject, list):
+            return cmds.filterExpand('%s.cv[*]' % inObject[0], sm=28)
+        elif ".cv" in inObject:
+            return cmds.filterExpand(inObject, sm=28)
         else:
-            return cmds.filterExpand('%s.cv[*]' % object, sm=28)
+            return cmds.filterExpand('%s.cv[*]' % inObject, sm=28)
 
     if objType == "lattice":
-        if isinstance(object, list) and ".pt" in object[0]:
-            return cmds.filterExpand(object, sm=46)
-        elif isinstance(object, list):
-            return cmds.filterExpand('%s.pt[*]' % object[0], sm=46)
-        elif ".pt" in object:
-            return cmds.filterExpand(object, sm=46)
+        if isinstance(inObject, list) and ".pt" in inObject[0]:
+            return cmds.filterExpand(inObject, sm=46)
+        elif isinstance(inObject, list):
+            return cmds.filterExpand('%s.pt[*]' % inObject[0], sm=46)
+        elif ".pt" in inObject:
+            return cmds.filterExpand(inObject, sm=46)
         else:
-            return cmds.filterExpand('%s.pt[*]' % object, sm=46)
+            return cmds.filterExpand('%s.pt[*]' % inObject, sm=46)
 
 
 # -------------maya ui tools----------------
@@ -212,3 +215,67 @@ def mayaToolsWindow():
     mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
+
+
+# --- vertex island functions ---
+
+def getConnectedVerts(mesh, vtxSelectionSet):
+    mObject = OpenMaya.MGlobal.getSelectionListByName(mesh).getDependNode(0)
+    iterVertLoop = OpenMaya.MItMeshVertex(mObject)
+
+    talkedToNeighbours = set()
+
+    districtDict = collections.defaultdict(list)
+    districtNr = 0
+
+    for currentIndex in vtxSelectionSet:
+        districtHouses = set()
+
+        if not currentIndex in talkedToNeighbours:
+            districtHouses.add(currentIndex)
+            currentNeighbours = getNeighbours(iterVertLoop, currentIndex)
+
+            while currentNeighbours:
+                newNeighbours = set()
+                for neighbour in currentNeighbours:
+                    if neighbour in vtxSelectionSet and not neighbour in talkedToNeighbours:
+                        talkedToNeighbours.add(neighbour)
+                        districtHouses.add(neighbour)
+                        newNeighbours = newNeighbours.union(getNeighbours(iterVertLoop, neighbour))
+
+                currentNeighbours = newNeighbours
+            districtDict[districtNr] = districtHouses
+            districtNr += 1
+
+        iterVertLoop.setIndex(currentIndex)
+        iterVertLoop.next()
+
+    return districtDict
+
+
+def getNeighbours(mVtxItter, index):
+    intArray = mVtxItter.getConnectedVertices(index)
+    return set(int(x) for x in intArray)
+
+
+def growLatticePoints(points):
+    base = points[0].split('.')[0]
+    allPoints = cmds.filterExpand("%s.pt[*]" % base, sm=46)
+
+    extras = []
+    for j in points:
+        extras.append(j)
+        a = int(j.split("[")[1].split("]")[0])
+        b = int(j.split("[")[2].split("]")[0])
+        c = int(j.split("[")[3].split("]")[0])
+        for i in [-1, 1]:
+            growa = "%s.pt[%s][%s][%s]" % (base, a + i, b, c)
+            growb = "%s.pt[%s][%s][%s]" % (base, a, b + i, c)
+            growc = "%s.pt[%s][%s][%s]" % (base, a, b, c + i)
+            if growa in allPoints:
+                extras.append(growa)
+            if growb in allPoints:
+                extras.append(growb)
+            if growc in allPoints:
+                extras.append(growc)
+    return extras

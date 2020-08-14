@@ -16,6 +16,12 @@ def nullHBoxLayout(parent=None, size=0):
     return h
 
 
+def nullGridLayout(parent=None, size=0):
+    h = QGridLayout()
+    h.setContentsMargins(size, size, size, size)
+    return h
+
+
 def buttonsToAttach(name, command, *args):
     button = QPushButton()
 
@@ -26,17 +32,35 @@ def buttonsToAttach(name, command, *args):
     button.setMinimumHeight(23)
     return button
 
+def svgButton(name = '', pixmap = '', size = None):
+    btn = QPushButton(name)
+    if name != '':
+        btn.setLayoutDirection(Qt.LeftToRight)
+        btn.setStyleSheet("QPushButton { text-align: left; }")
+    if isinstance(pixmap, str):
+        pixmap = QPixmap(pixmap)
+    btn.setIcon( QIcon(pixmap) )
+    btn.setFocusPolicy(Qt.NoFocus)
+    if size is not None:
+        _size = QSize(size, size)
+        # btn.setFixedSize(_size)
+        btn.setIconSize(_size)
+    return btn
 
-def toolButton(pixmap='', orientation=0):
+
+def toolButton(pixmap='', orientation=0, size=None):
     btn = QToolButton()
     if isinstance(pixmap, str):
         pixmap = QPixmap(pixmap)
-    if orientation != 0:
+    if orientation != 0 and not _isSVG:
         transform = QTransform().rotate(orientation, Qt.ZAxis)
         pixmap = pixmap.transformed(transform, Qt.SmoothTransformation)
     btn.setIcon(QIcon(pixmap))
     btn.setFocusPolicy(Qt.NoFocus)
     btn.setStyleSheet('border: 0px;')
+    if size is not None:
+        btn.setFixedSize(QSize(size, size))
+        btn.setIconSize(QSize(size, size))
     return btn
 
 
