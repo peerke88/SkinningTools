@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from ..qt_util import *
+from SkinningTools.UI.qt_util import *
 
 from functools import partial
-from .abstractControl import AbstractControl
-from .slider import Slider
+from SkinningTools.UI.ControlSlider.abstractControl import AbstractControl
+from SkinningTools.UI.ControlSlider.slider import Slider
 
 
 class SliderControl(AbstractControl):

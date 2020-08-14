@@ -1,4 +1,4 @@
-from .qt_util import *
+from SkinningTools.UI.qt_util import *
 
 #@note: add warning messages or error messages in the progressbar? change color?
 

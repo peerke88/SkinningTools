@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from Maya import api
-from UI.utils import *
-from UI.tearOff.editableTab import EditableTabWidget
-from UI.tearOff.tearOffDialog import *
-from UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
-from UI.fallofCurveUI import BezierGraph
-from UI.messageProgressBar import MessageProgressBar
-from UI.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
+from SkinningTools.Maya import api
+from SkinningTools.UI.utils import *
+from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
+from SkinningTools.UI.tearOff.tearOffDialog import *
+from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
+from SkinningTools.UI.fallofCurveUI import BezierGraph
+from SkinningTools.UI.messageProgressBar import MessageProgressBar
+from SkinningTools.UI.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
 import tempfile, os
 
 __VERSION__ = "5.0.20200812"

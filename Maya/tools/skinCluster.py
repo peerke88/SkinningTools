@@ -1,17 +1,16 @@
-from py23 import *
 import math
 from decimal import Decimal
 from heapq import nsmallest
 
-from Maya.tools import shared, joints
-from Maya.tools.joints import comparejointInfluences, removeBindPoses
-from Maya.tools.mesh import edgesToSmooth, shortestPolySurfaceCurvePathAverage
-from ThirdParty.kdtree import KDTree
-from UI.qt_util import *
-from maya import cmds, mel
-from Maya.tools.shared import convertToVertexList, dec_undo
-from UI.SkinningToolsUI import SkinningTools
+from SkinningTools.py23 import *
+from SkinningTools.Maya.tools import shared, joints
+from SkinningTools.Maya.tools.joints import comparejointInfluences, removeBindPoses
+from SkinningTools.Maya.tools.mesh import edgesToSmooth, shortestPolySurfaceCurvePathAverage
+from SkinningTools.Maya.tools.shared import convertToVertexList, dec_undo
+from SkinningTools.ThirdParty.kdtree import KDTree
+from SkinningTools.UI.qt_util import *
 
+from maya import cmds, mel
 
 def getVertOverMaxInfluence(singleObject=None, MaxInfluenceValue=8, notSelect=False, progressBar=None):
     '''select all vertices that have more influences then the set Maximum'''

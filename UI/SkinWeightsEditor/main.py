@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from Maya import api
-from UI.qt_util import *
-from UI.SkinWeightsEditor import widget
-from UI.SkinWeightsEditor import model
+from SkinningTools.Maya import api
+from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.SkinWeightsEditor import widget
+from SkinningTools.UI.SkinWeightsEditor import model
 
 
 class SkinWeightsEditor(QWidget):

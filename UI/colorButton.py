@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from UI.qt_util import *
+from SkinningTools.UI.qt_util import *
 
 
 class QColorButton(QPushButton):

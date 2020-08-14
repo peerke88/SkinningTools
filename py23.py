@@ -7,3 +7,4 @@ if sys.version_info.major == 3:
     OrderedDict.iteritems = OrderedDict.items
     dict.iteritems = dict.items
     unicode = str
+    from io import StringIO as cStringIO

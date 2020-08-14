@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..qt_util import *
+from SkinningTools.UI.qt_util import *
 
 
 class AbstractControl(QWidget):

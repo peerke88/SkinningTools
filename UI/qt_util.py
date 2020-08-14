@@ -5,8 +5,7 @@ try:
     from PySide.QtGui import *
     from PySide.QtCore import *
     from PySide.QtCore import Signal as pyqtSignal
-    from PySide QtSvg
-    import *
+    from PySide.QtSvg import *
     from PySide import QtGui
     from PySide.QtUiTools import *
     import sip
@@ -20,8 +19,7 @@ except Exception as e:
         from PySide2.QtCore import *
         from PySide2.QtWidgets import *
         from PySide2.QtCore import Signal as pyqtSignal
-        from PySide2 QtSvg
-        import *
+        from PySide2.QtSvg import *
         from PySide2 import QtGui
         from PySide2.QtUiTools import *
         import pyside2uic as pysideuic
@@ -34,8 +32,7 @@ except Exception as e:
         try:
             from PyQt4.QtCore import *
             from PyQt4.QtGui import *
-            from PyQt4 QtSvg
-            import *
+            from PyQt4.QtSvg import *
             from PyQt4 import QtGui
             from PyQt4.QtUiTools import *
             import pysideuic, shiboken

@@ -2,9 +2,9 @@ from maya import cmds
 from maya.OpenMaya import MVector
 from shared import *
 
-from Maya.tools import shared
-from Maya.tools.shared import convertToVertexList, Graph, shortest_path
-from UI.fallofCurveUI import BezierFunctions
+from SkinningTools.Maya.tools import shared
+from SkinningTools.Maya.tools.shared import convertToVertexList, Graph, shortest_path
+from SkinningTools.UI.fallofCurveUI import BezierFunctions
 
 
 def shortestPolySurfaceCurvePathAverage(selection, skinClusterName, useDistance, diagonal=False, weightWindow=None):

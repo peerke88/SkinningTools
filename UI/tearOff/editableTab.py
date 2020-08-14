@@ -1,7 +1,7 @@
-from UI.utils import getNumericName
-from py23 import *
-from UI.qt_util import *
-from UI.tearOff.tearOffTabBar import TearoffTabBar, EditableTabBar
+from SkinningTools.UI.utils import getNumericName
+from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.tearOff.tearOffTabBar import TearoffTabBar, EditableTabBar
+from SkinningTools.py23 import *
 
 
 class TabWidget(QTabWidget):

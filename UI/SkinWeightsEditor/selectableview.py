@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from UI.SkinWeightsEditor.view import SkinWeightsViewport, SkinWeightsView
-from UI.qt_util import *
+from SkinningTools.UI.SkinWeightsEditor.view import SkinWeightsViewport, SkinWeightsView
+from SkinningTools.UI.qt_util import *
 from functools import partial
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from Maya import api
-from UI.qt_util import *
-from py23 import *
+from SkinningTools.Maya import api
+from SkinningTools.UI.qt_util import *
+from SkinningTools.py23 import *
 
 """
 When using cmds.skinPercent we can set only 1 row at a time

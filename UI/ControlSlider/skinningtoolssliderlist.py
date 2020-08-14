@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from Maya import api
-from UI.qt_util import *
-from .vertexinfluenceeditor import VertexInfluenceEditor
+from SkinningTools.Maya import api
+from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.ControlSlider.vertexinfluenceeditor import VertexInfluenceEditor
 
 
 class SkinningToolsSliderList(QWidget):

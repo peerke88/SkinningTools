@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from py23 import *
+from SkinningTools.py23 import *
 import re
-from UI.qt_util import *
+from SkinningTools.UI.qt_util import *
 
 
 def nullVBoxLayout(parent=None, size=0):

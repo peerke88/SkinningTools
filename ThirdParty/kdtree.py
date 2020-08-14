@@ -13,7 +13,7 @@ Matej Drame [matej.drame@gmail.com]
 __version__ = "1r11.1.2010"
 __all__ = ["KDTree"]
 
-from py23 import *
+from SkinningTools.py23 import *
 
 
 def square_distance(pointA, pointB):

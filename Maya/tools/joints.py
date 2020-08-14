@@ -1,9 +1,8 @@
 # @note: also import qt here for the connection with progressbar?
-from py23 import *
-from ThirdParty.kdtree import KDTree
-from UI.SkinningToolsUI import SkinningTools
-from UI.qt_util import qApp, QApplication
-from Maya.tools import shared
+from SkinningTools.py23 import *
+from SkinningTools.ThirdParty.kdtree import KDTree
+from SkinningTools.UI.qt_util import qApp, QApplication
+from SkinningTools.Maya.tools import shared
 from maya import cmds
 
 

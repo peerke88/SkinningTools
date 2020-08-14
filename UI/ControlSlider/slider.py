@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from ..qt_util import *
-from py23 import *
+from SkinningTools.UI.qt_util import *
+from SkinningTools.py23 import *
 
 
 class Slider(QWidget):

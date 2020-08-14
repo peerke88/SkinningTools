@@ -6,9 +6,10 @@ while leaving room for other packages to implement features.
 """
 import functools
 
-from Maya.tools import shared
-from Maya.tools import weightPaintUtils
-from Maya.tools.shared import mayaToolsWindow
+from SkinningTools.Maya.tools import shared
+from SkinningTools.Maya.tools import weightPaintUtils
+from SkinningTools.Maya.tools.shared import mayaToolsWindow
+from SkinningTools.UI.qt_util import QObject
 from maya import cmds, mel
 
 
@@ -91,7 +92,7 @@ def _eventFilterTargets():
     # We must return all widgets that receive strong focus that we want to tap into
     # such as the main window or 3D viewports that are not simple Qt widgets.
 
-    from UI.qt_util import wrapinstance, QMainWindow, QObject
+    from SkinningTools.UI.qt_util import wrapinstance, QMainWindow, QObject
     from maya.OpenMayaUI import MQtUtil, M3dView
 
     mainWin = wrapinstance(int(MQtUtil.mainWindow()), QMainWindow)
@@ -101,9 +102,6 @@ def _eventFilterTargets():
     qt_active_view = wrapinstance(int(active_view_ptr), QObject)
 
     return mainWin, qt_active_view
-
-
-from UI.qt_util import QObject
 
 
 class _EventFilter(QObject):

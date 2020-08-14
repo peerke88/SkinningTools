@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-try:
-    import cStringIO
-except:
-    import io as cStringIO
+from SkinningTools.py23 import *
 from maya import cmds, mel
 
 '''

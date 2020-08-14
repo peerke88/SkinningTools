@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import functools, re
-from Maya import api
-from py23 import *
-from ..qt_util import *
-from .sliderControl import SliderControl
+from SkinningTools.Maya import api
+from SkinningTools.py23 import *
+from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 
 
 class VertexInfluenceEditor(QGroupBox):

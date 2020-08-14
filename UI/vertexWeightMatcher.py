@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from .qt_util import *
-from .utils import *
 from functools import partial
-from ..Maya.tools.shared import *
-from ..Maya.tools.skinCluster import comparejointInfluences, execCopySourceTarget
+from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.utils import *
+from SkinningTools.Maya.tools.shared import *
+from SkinningTools.Maya.tools.skinCluster import comparejointInfluences, execCopySourceTarget
 
 class TransferWeightsWidget(QWidget):
     def __init__(self, parent=None):

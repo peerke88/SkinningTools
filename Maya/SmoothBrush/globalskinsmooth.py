@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .brushtoolbase import BrushToolBase
+from SkinningTools.Maya.SmoothBrush.brushtoolbase import BrushToolBase
 from maya import cmds
 
 

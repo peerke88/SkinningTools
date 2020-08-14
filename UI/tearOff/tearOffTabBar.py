@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
-from UI.utils import *
-from UI.qt_util import *
+from SkinningTools.UI.utils import *
+from SkinningTools.UI.qt_util import *
 
 
 class TearoffTabBar(QTabBar):
