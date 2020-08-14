@@ -125,7 +125,7 @@ class radialMenu(QMainWindow):
     def __init__(self, parent=None, inputObjects = [], parentObject = None, flags=Qt.FramelessWindowHint):
         super(radialMenu, self).__init__(parent, flags)
         self.setFixedSize(800, 800)
-        self.checkState = False
+        self.checkState = cmds.softSelect(q=True, softSelectFalloff= True)
         self.inputObjects = inputObjects
         self.scene = QGraphicsScene()
         self.parentObject = parentObject
@@ -135,6 +135,8 @@ class radialMenu(QMainWindow):
         self.setAttribute(  Qt.WA_TranslucentBackground , True)
         self.setStyleSheet("QWidget{background-color: rgba(100,0, 0, 50);background : transparent; border : none}")# 
         
+        #@note: add painter to get center position and position under mouse to draw line!
+
         nPen = QPen()
         nPen.setStyle( Qt.DotLine )
         nPen.setWidth( 2 )
@@ -159,6 +161,8 @@ class radialMenu(QMainWindow):
         positionList = []
         [positionList.append(self.rotateVec(origin, basePos, (i - denom)*angle)) for i in xrange(_availableSpaces)]
 
+
+        # ---- label -----
         item = QLabel(self.inputObjects[1])
         item.setAlignment(Qt.AlignCenter)
         w = QPainter().fontMetrics( ).width( item.text()) + 10
@@ -166,32 +170,40 @@ class radialMenu(QMainWindow):
         self.scene.addWidget(item)
 
 
-        # add buttons based on free positions above
-        # create button: item = QPushButton(space)
-        # get value from button text: w = QPainter().fontMetrics( ).width( item.text()) + 10
-        # set the button in space with: item.setGeometry(position.x-(w*.5),position.y-10.5, w, 21)
-        # add to scene: self.scene.addWidget(item)
+        # ---- surfaceAware -----
+        item = QCheckBox("surface aware")
+        item.setChecked(self.checkState)
+        w = QPainter().fontMetrics( ).width( "surface aware") + 20
+        item.setGeometry(positionList[5].x-(w*.5),positionList[5].y-11.5, w, 23)
+        item.stateChanged.connect(self._setCheckState)
 
-        ##@not these may be not necessary as the widget closes on release!
-        # w = QPainter().fontMetrics( ).width("X") + 10
-        # item = QPushButton("X")
-        # item.setGeometry(-(w*.5),-11.5, w, 23)
-        # self.scene.addWidget(item)
-        # item.clicked.connect(self.close)
+        self.scene.addWidget(item)
 
-        ## the following adds a button under the current radial menu
-        # nPos = basePos *-1.5
-        # text = "add keyFrames"
-        # item = QCheckBox(text)
-        # item.setChecked(self.parentObject.isChecked)
-        # w = QPainter().fontMetrics( ).width( text) + 20
-        # item.setGeometry(nPos.x-(w*.5),nPos.y-11.5, w, 23)
-        # item.stateChanged.connect(self._setCheckState)
-        # self.scene.addWidget(item)
+        # ----- setVal -----
+        _dict = {2:1, 3:.5, 6:0}
+        for key, val in _dict.iteritems():
+            item = QLabel("set weight: %s"%val)
+            item.setAlignment(Qt.AlignCenter)
+            w = QPainter().fontMetrics( ).width( item.text()) + 10
+            item.setGeometry(positionList[key].x-(w*.5),positionList[key].y-10.5, w, 21)
+            self.scene.addWidget(item)
 
+        # #move this over to the main menu?
+        # # ---- incrementalVal ---
+        # for i in xrange(9):
+        #     item = QLabel("increment: %s"%(.1*(i+1)))
+        #     item.setAlignment(Qt.AlignCenter)
+        #     w = QPainter().fontMetrics( ).width( item.text()) + 10
+        #     item.setGeometry(positionList[4].x-(w*.5),positionList[4].y-10.5, w, 21)
+        #     self.scene.addWidget(item)
+        #     positionList[4] += OpenMaya.MVector(0,23,0)
 
     def __funcPressed(self, *args):
         print self.sender().text()
+
+    def _setCheckState(self):
+        self.checkState = self.sender().isChecked()
+        cmds.softSelect(e=True, softSelectFalloff= self.checkState)
 
     def mousePressEvent(self, event):
         # @todo: find a way to close the ui when transparent layer is pressed
