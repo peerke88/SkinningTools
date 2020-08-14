@@ -27,11 +27,10 @@
 #
 # See http://www.gnu.org/licenses/gpl.html for a copy of the GNU General
 # Public License.
-#--------------------------------------------------------------------------------------
-from ..qtUtil import *
+# --------------------------------------------------------------------------------------
+from UI.SkinWeightsEditor.selectableview import SkinWeightsSelectable, SkinWeightsTable
+from UI.qt_util import *
 
-from skinningTool.SkinWeightsEditor import selectableview
-from skinningTool.SkinWeightsEditor import model
 
 class _DoubleSpinBoxDelegate(QDoubleSpinBox):
     submitted = pyqtSignal(float)
@@ -55,7 +54,7 @@ class _DoubleSpinBoxDelegate(QDoubleSpinBox):
         return False
 
 
-class SkinWeightsEditor(selectableview.SkinWeightsSelectable):
+class SkinWeightsEditor(SkinWeightsSelectable):
     def __init__(self, *args):
         super(SkinWeightsEditor, self).__init__(*args)
         self.__editor = _DoubleSpinBoxDelegate(self)
@@ -82,10 +81,9 @@ class SkinWeightsEditor(selectableview.SkinWeightsSelectable):
         self.__editor.setValue(self.model().value(c, r))
 
         self.popupEditor(QRect(c * self.CELL_WIDTH,
-                           r * self.CELL_HEIGHT,
-                           self.CELL_WIDTH,
-                           self.CELL_HEIGHT))
-
+                               r * self.CELL_HEIGHT,
+                               self.CELL_WIDTH,
+                               self.CELL_HEIGHT))
 
     def __setSelectedValues(self, value):
         cols = range(self._selectionArea[0], self._selectionArea[2] + 1)
@@ -101,7 +99,7 @@ class SkinWeightsEditor(selectableview.SkinWeightsSelectable):
         self.__editor.selectAll()
 
 
-class SkinWeightsWidget(selectableview.SkinWeightsTable):
+class SkinWeightsWidget(SkinWeightsTable):
     def _initView(self, model):
         self._view = SkinWeightsEditor(model)
         self.setMouseTracking(True)
@@ -116,6 +114,6 @@ class SkinWeightsWidget(selectableview.SkinWeightsTable):
         c = min(max(c, self._selectColumnLeft), right)
         # open editor at cell
         self._view.popupEditor(QRect(c * self._view.CELL_WIDTH,
-                           r * self._view.CELL_HEIGHT,
-                           self._view.CELL_WIDTH,
-                           self._view.CELL_HEIGHT))
+                                     r * self._view.CELL_HEIGHT,
+                                     self._view.CELL_WIDTH,
+                                     self._view.CELL_HEIGHT))

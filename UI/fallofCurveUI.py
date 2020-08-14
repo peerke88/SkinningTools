@@ -1,55 +1,62 @@
 # -*- coding: utf-8 -*-
-
-import sys, math, re
+from py23 import *
+import math
 from .qt_util import *
 
+
 class BezierFunctions(object):
-    def binomial(self, i, n):
+    @staticmethod
+    def binomial(i, n):
         return math.factorial(n) / float(
             math.factorial(i) * math.factorial(n - i))
 
-    def bernstein(self, t, i, n):
-        return self.binomial(i, n) * (t ** i) * ((1 - t) ** (n - i))
+    @staticmethod
+    def bernstein(t, i, n):
+        return BezierFunctions.binomial(i, n) * (t ** i) * ((1 - t) ** (n - i))
 
-    def bezier(self, t, points):
+    @staticmethod
+    def bezier(t, points):
         n = len(points) - 1
         x = y = 0
         for i, pos in enumerate(points):
-            bern = self.bernstein(t, i, n)
+            bern = BezierFunctions.bernstein(t, i, n)
             x += pos[0] * bern
             y += pos[1] * bern
         return x, y
 
-    def bezierCurveYfromX(self, inX, points):
+    @staticmethod
+    def bezierCurveYfromX(inX, points):
         fullList = {}
-        for i in range(101):
-            x,y = self.bezier(i*0.01, points)
+        for i in xrange(101):
+            x, y = BezierFunctions.bezier(i * 0.01, points)
 
             fullList[x] = y
 
         if inX in fullList.keys():
             return fullList[inX]
 
-        takeClosest = lambda num,collection:min(collection,key=lambda x:abs(x-num))
+        takeClosest = lambda num, collection: min(collection, key=lambda x: abs(x - num))
         nv = takeClosest(inX, fullList.keys())
         return fullList[nv]
 
-
-    def bezier_curve_range(self, n, points):
+    @staticmethod
+    def bezier_curve_range(n, points):
         for i in xrange(n):
             t = i / float(n - 1)
-            yield self.bezier(t, points)
+            yield BezierFunctions.bezier(t, points)
 
-    def getDataOnPercentage(self, percentage, npts):
+    @staticmethod
+    def getDataOnPercentage(percentage, npts):
         baseSize = npts[-1][0]
-        t, v = self.bezier(percentage, npts)
-        return (self.bezierCurveYfromX(percentage*baseSize, npts) / baseSize)
+        t, v = BezierFunctions.bezier(percentage, npts)
+        return (BezierFunctions.bezierCurveYfromX(percentage * baseSize, npts) / baseSize)
+
 
 class BezierCurve(QGraphicsPathItem):
-    pen =QPen(Qt.green, 2, Qt.SolidLine)
+    pen = QPen(Qt.green, 2, Qt.SolidLine)
 
-    def __init__(self, parent = None):
-        super(BezierCurve, self).__init__(parent)  
+    def __init__(self, parent=None):
+        super(BezierCurve, self).__init__(parent)
         self.setZValue(-1)
         self._rect = QRectF()
         self._boundingRect = None
@@ -83,11 +90,12 @@ class NodeMoveCommand(QUndoCommand):
         super(NodeMoveCommand, self).redo()
         self.__node.setPos(self.__newPosition)
         self.__scene.updateCurve()
-       
+
     def undo(self):
         super(NodeMoveCommand, self).undo()
         self.__node.setPos(self.__oldPosition)
         self.__scene.updateCurve()
+
 
 class NodeSwitchCommand(QUndoCommand):
     def __init__(self, scene, oldPositions, newPositions, description=None, parent=None):
@@ -99,20 +107,21 @@ class NodeSwitchCommand(QUndoCommand):
     def redo(self):
         super(NodeSwitchCommand, self).redo()
         self.__scene.setPointPositions(self.__newPositions)
-       
+
     def undo(self):
         super(NodeSwitchCommand, self).undo()
         self.__scene.setPointPositions(self.__oldPositions)
 
+
 class NodeItem(QGraphicsItem):
     width = 10
-    gradient = QRadialGradient(width*.75, width*.75, width*.75, width*.75, width*.75)
+    gradient = QRadialGradient(width * .75, width * .75, width * .75, width * .75, width * .75)
     gradient.setColorAt(0, QColor.fromRgbF(1, .5, .01, 1))
     gradient.setColorAt(1, QColor.fromRgbF(1, .6, .06, 1));
-    
+
     brush = QBrush(gradient)
     brush.setStyle(Qt.RadialGradientPattern)
-    
+
     pen = QPen()
     pen.setStyle(Qt.SolidLine)
     pen.setWidth(2)
@@ -123,14 +132,14 @@ class NodeItem(QGraphicsItem):
     selPen.setWidth(2)
     selPen.setColor(QColor(67, 255, 163, 255))  # outline selected
 
-    def __init__(self, rect=None, parent = None):
+    def __init__(self, rect=None, parent=None):
         super(NodeItem, self).__init__(parent)
         self.setFlag(QGraphicsItem.ItemIsMovable)
-        self.setFlag( QGraphicsItem.ItemIsSelectable )
+        self.setFlag(QGraphicsItem.ItemIsSelectable)
         if rect != None:
             self.setRect(rect)
-        else:    
-            self.setRect(QRect(0,0,10,10))
+        else:
+            self.setRect(QRect(0, 0, 10, 10))
         self.lockXPos = False
 
         self.snap = False
@@ -138,7 +147,7 @@ class NodeItem(QGraphicsItem):
     def setSnap(self, snapValue):
         self.snap = snapValue
 
-    def setRect( self, rect ):
+    def setRect(self, rect):
         self.rect = rect
         self.update()
 
@@ -148,29 +157,30 @@ class NodeItem(QGraphicsItem):
             painter.setPen(self.selPen)
         else:
             painter.setPen(self.pen)
-        painter.drawEllipse( self.rect )
+        painter.drawEllipse(self.rect)
 
     def boundingRect(self):
-        return QRectF(0,0,20,20)
+        return QRectF(0, 0, 20, 20)
 
     def setLockXPos(self, inPos):
         self.lockXPos = inPos
 
-    def mousePressEvent( self, event ):
+    def mousePressEvent(self, event):
         self.currentPos = self.pos()
-        super( NodeItem, self ).mousePressEvent( event )
+        super(NodeItem, self).mousePressEvent(event)
 
-    def mouseMoveEvent( self, event ):
-        super( NodeItem, self ).mouseMoveEvent( event )
-        curOffset = -self.width*.5
-        scX = min(max(event.scenePos().x(), curOffset), self.scene().baseSize+curOffset)
-        scY = min(max(event.scenePos().y(), curOffset), self.scene().baseSize+curOffset)
+    def mouseMoveEvent(self, event):
+        super(NodeItem, self).mouseMoveEvent(event)
+        curOffset = -self.width * .5
+        scX = min(max(event.scenePos().x(), curOffset), self.scene().baseSize + curOffset)
+        scY = min(max(event.scenePos().y(), curOffset), self.scene().baseSize + curOffset)
         if self.lockXPos != False:
             scX = self.lockXPos
-        
+
         if self.snap != False:
-            def convert( input, snapValue):
-                return round((float(input)/snapValue)) * snapValue
+            def convert(input, snapValue):
+                return round((float(input) / snapValue)) * snapValue
+
             scX = convert(scX, self.snap)
             scY = convert(scY, self.snap)
 
@@ -178,17 +188,18 @@ class NodeItem(QGraphicsItem):
         self.setPos(self.newPos)
         self.scene().updateCurve()
 
-    def mouseReleaseEvent( self, event ):
-        super( NodeItem, self ).mouseReleaseEvent( event )
-        
+    def mouseReleaseEvent(self, event):
+        super(NodeItem, self).mouseReleaseEvent(event)
+
         if self.newPos == None:
-            return 
+            return
         self.scene().getUndoStack().push(NodeMoveCommand(self.scene(), self, self.currentPos, self.newPos))
         self.newPos = None
 
-class NodeScene( QGraphicsScene ):
-    def __init__( self, baseRect ):
-        super( NodeScene, self ).__init__()
+
+class NodeScene(QGraphicsScene):
+    def __init__(self, baseRect):
+        super(NodeScene, self).__init__()
 
         self.__undoStack = QUndoStack()
 
@@ -196,10 +207,10 @@ class NodeScene( QGraphicsScene ):
         self.bezier = None
         self.baseSize = 300
         self.baseRect = baseRect
-        self.setSceneRect( baseRect )
+        self.setSceneRect(baseRect)
 
-        self.undoAction = self.getUndoStack().createUndoAction( self ) 
-        self.redoAction = self.getUndoStack().createRedoAction( self )
+        self.undoAction = self.getUndoStack().createUndoAction(self)
+        self.redoAction = self.getUndoStack().createRedoAction(self)
         # @note: add action to buttons! as these will take precedence when ui has focus
         # self.undoAction.setShortcut( QKeySequence( Qt.CTRL + Qt.Key_Z ) )
         # self.redoAction.setShortcuts( ( QKeySequence( Qt.CTRL + Qt.Key_Y ),
@@ -209,37 +220,37 @@ class NodeScene( QGraphicsScene ):
         self.createGrid(10, Qt.black, Qt.DotLine)
         self.createControls()
 
-    def createGrid(self, divider = 4, color = Qt.darkGray, line = Qt.DashLine):
-        pos = float(self.baseSize)/ divider
+    def createGrid(self, divider=4, color=Qt.darkGray, line=Qt.DashLine):
+        pos = float(self.baseSize) / divider
         for div in xrange(divider):
             if div == 0:
                 continue
-            lineItem = QGraphicsLineItem( 0, pos*div, self.baseSize, pos*div)
+            lineItem = QGraphicsLineItem(0, pos * div, self.baseSize, pos * div)
             lineItem.setZValue(-1)
-            lineItem.setPen(QPen( color, 1, line ))
+            lineItem.setPen(QPen(color, 1, line))
             self.addItem(lineItem)
 
-            lineItem = QGraphicsLineItem( pos*div, 0, pos*div, self.baseSize)
+            lineItem = QGraphicsLineItem(pos * div, 0, pos * div, self.baseSize)
             lineItem.setZValue(-1)
-            lineItem.setPen(QPen( color, 1, line ))
+            lineItem.setPen(QPen(color, 1, line))
             self.addItem(lineItem)
 
-        pen = QPen(Qt.black,1,Qt.SolidLine)
+        pen = QPen(Qt.black, 1, Qt.SolidLine)
         rect = QGraphicsRectItem(self.baseRect)
         rect.setZValue(-1)
         self.addItem(rect)
-    
+
     def createControls(self):
         self.controlPoints = []
-        pts = [QPoint(0,0),QPoint(self.baseSize/4.0,0),QPoint(self.baseSize - (self.baseSize/4.0),self.baseSize),QPoint(self.baseSize ,self.baseSize )]
+        pts = [QPoint(0, 0), QPoint(self.baseSize / 4.0, 0), QPoint(self.baseSize - (self.baseSize / 4.0), self.baseSize), QPoint(self.baseSize, self.baseSize)]
         for point in pts:
             controlPoint = NodeItem()
             self.addItem(controlPoint)
-            controlPoint.setPos(point - QPoint(5,5))
+            controlPoint.setPos(point - QPoint(5, 5))
             self.controlPoints.append(controlPoint)
             self.addPoints(controlPoint)
         self.controlPoints[0].setLockXPos(-5.0)
-        self.controlPoints[-1].setLockXPos(self.baseSize-5.0)
+        self.controlPoints[-1].setLockXPos(self.baseSize - 5.0)
         self.bCurve = BezierCurve()
         self.bCurve._updatePath(pts)
         self.setBezier(self.bCurve)
@@ -260,7 +271,7 @@ class NodeScene( QGraphicsScene ):
             elif event.key() == Qt.Key_Y:
                 self.redoAction.trigger()
 
-    def getUndoStack( self ):
+    def getUndoStack(self):
         return self.__undoStack
 
     def setPoints(self, inPointObjects):
@@ -268,19 +279,19 @@ class NodeScene( QGraphicsScene ):
 
     def setPointPositions(self, inpts):
         for i, pt in enumerate(inpts):
-            self.pointObjects[i].setPos(pt - QPoint(5,5))
+            self.pointObjects[i].setPos(pt - QPoint(5, 5))
         self.updateCurve()
 
     def getPoints(self):
         pts = []
         for obj in self.pointObjects:
-            pt = QPointF(obj.pos().x()+5, obj.pos().y()+5)
+            pt = QPointF(obj.pos().x() + 5, obj.pos().y() + 5)
             pts.append(pt)
         return pts
 
     def addPoints(self, inPointObject):
         self.pointObjects.append(inPointObject)
-    
+
     def setBezier(self, inBezier):
         self.bezier = inBezier
 
@@ -290,7 +301,8 @@ class NodeScene( QGraphicsScene ):
 
     def setBaseSize(self, inSize):
         self.baseSize = inSize
-        
+
+
 class NodeView(QGraphicsView):
     def __init__(self, parent=None):
         super(NodeView, self).__init__(parent)
@@ -303,21 +315,23 @@ class NodeView(QGraphicsView):
         windowCss = '''background-color: rgb(60,60,60); border: 1px solid rgb(90,70,30);'''
         self.setStyleSheet(windowCss)
 
+
 class BezierGraph(QMainWindow):
     closed = pyqtSignal()
 
     def __init__(self):
         super(BezierGraph, self).__init__()
         self.widget = QWidget()
-        self.setCentralWidget( self.widget )
-        layout = QVBoxLayout( self.widget )
-        self.BezierDict = {'bezier': [QPoint(0, 0), QPoint(75, 0), QPoint(225, 300), QPoint(300, 300)], 'linear': [QPointF(0.000000, 0.000000), QPointF(75.000000, 75.000000), QPointF(225.000000, 225.000000), QPointF(300.000000, 300.000000)]}
+        self.setCentralWidget(self.widget)
+        layout = QVBoxLayout(self.widget)
+        self.BezierDict = {'bezier': [QPoint(0, 0), QPoint(75, 0), QPoint(225, 300), QPoint(300, 300)],
+                           'linear': [QPointF(0.000000, 0.000000), QPointF(75.000000, 75.000000), QPointF(225.000000, 225.000000), QPointF(300.000000, 300.000000)]}
 
-        self.settings = QSettings( "bezierGraph" , "graphPoints" )
+        self.settings = QSettings("bezierGraph", "graphPoints")
 
         self.baseSize = 300
-        baseRect = QRect(0,0,self.baseSize,self.baseSize)
-        self.scene= NodeScene( baseRect )
+        baseRect = QRect(0, 0, self.baseSize, self.baseSize)
+        self.scene = NodeScene(baseRect)
         self.scene.setBaseSize(self.baseSize)
 
         self.view = NodeView(self)
@@ -325,12 +339,12 @@ class BezierGraph(QMainWindow):
         self.view.setGeometry(baseRect)
         layout.addWidget(self.view)
 
-        self.setMenuBar( QMenuBar() )
-        undo = self.menuBar().addAction( self.scene.undoAction )
-        redo = self.menuBar().addAction( self.scene.redoAction )
+        self.setMenuBar(QMenuBar())
+        undo = self.menuBar().addAction(self.scene.undoAction)
+        redo = self.menuBar().addAction(self.scene.redoAction)
 
         lay1 = QHBoxLayout()
-        lay1.setContentsMargins(0,0,0,0)
+        lay1.setContentsMargins(0, 0, 0, 0)
         self.cbox = QComboBox()
         self.cbox.setMinimumWidth(80)
         self.cbox.currentIndexChanged.connect(self.changeCurve)
@@ -345,12 +359,12 @@ class BezierGraph(QMainWindow):
         for qb in [self.cbox, self.line1, self.but1]:
             qb.setMinimumHeight(23)
             lay1.addWidget(qb)
-        
+
         lay1.addWidget(check)
         layout.addLayout(lay1)
-        
+
         self.__qt_normal_color = QPalette(self.line1.palette()).color(QPalette.Base)
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         # self.show()
@@ -366,15 +380,15 @@ class BezierGraph(QMainWindow):
         if self.sender().isChecked():
             self.scene.setSnap(5)
 
-    def __lineEdit_FalseFolderCharacters(self, inLineEdit):                                                                    
+    def __lineEdit_FalseFolderCharacters(self, inLineEdit):
         return re.search(r'[\\/:<>"!@#$%^&-.]', inLineEdit) or re.search(r'[*?|]', inLineEdit) or re.match(r'[0-9]', inLineEdit)
-    
-    def __lineEdit_Color(self, inLineEdit, inColor):                                                                        
+
+    def __lineEdit_Color(self, inLineEdit, inColor):
         PalleteColor = QPalette(inLineEdit.palette())
-        PalleteColor.setColor(QPalette.Base,QColor(inColor))
+        PalleteColor.setColor(QPalette.Base, QColor(inColor))
         inLineEdit.setPalette(PalleteColor)
-    
-    def __lineEdit_FieldEditted(self,*args):
+
+    def __lineEdit_FieldEditted(self, *args):
         Controller_name_text = self.line1.displayText()
         if self.__lineEdit_FalseFolderCharacters(Controller_name_text) != None:
             self.__lineEdit_Color(self.line1, 'red')
@@ -394,53 +408,53 @@ class BezierGraph(QMainWindow):
 
     def _loadCBox(self):
         self.cbox.clear()
-        inDict = self.settings.value( "graphPos", {} )
-        if len(inDict) > 2: 
+        inDict = self.settings.value("graphPos", {})
+        if len(inDict) > 2:
             self.BezierDict = inDict
         for key, value in self.BezierDict.iteritems():
             self.cbox.addItem(key)
-        
+
         self.scene.getUndoStack().clear()
 
     def changeCurve(self):
         cp = self.BezierDict[self.cbox.currentText()]
         self.scene.getUndoStack().push(NodeSwitchCommand(self.scene, self.scene.getPoints(), cp))
-        
+
     def curveAsPoints(self):
         pts = self.scene.bCurve.points
-        
+
         npts = []
         for pt in pts:
             npts.append([pt.x(), pt.y()])
         return npts
 
-    def getDivisionData(self, divisions = 11):
-        percentage = 1/(divisions-1.0)
+    def getDivisionData(self, divisions=11):
+        percentage = 1 / (divisions - 1.0)
         l = []
         for i in xrange(divisions):
-            l.append(i*percentage)
-        return self.getDataOnPoints(l)            
+            l.append(i * percentage)
+        return self.getDataOnPoints(l)
 
     def getDataOnPerc(self, percentage, npts=None):
-        if npts==None:
+        if npts == None:
             npts = self.curveAsPoints()
-        
-        return BezierFunctions().getDataOnPercentage(percentage, npts)
-        
-    def getDataOnPoints(self, inList=[0.0, 0.2, 0.25,0.5,0.6,0.66,0.8,1.0]):
+
+        return BezierFunctions.getDataOnPercentage(percentage, npts)
+
+    def getDataOnPoints(self, inList=[0.0, 0.2, 0.25, 0.5, 0.6, 0.66, 0.8, 1.0]):
         npts = self.curveAsPoints()
         percentageList = []
         for i in inList:
             percentageList.append(self.getDataOnPerc(i))
         return percentageList
-       
-    def resizeEvent(self,event):
-        super(BezierGraph, self ).resizeEvent( event )
+
+    def resizeEvent(self, event):
+        super(BezierGraph, self).resizeEvent(event)
         self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
 
     def hideEvent(self, event):
         self.closed.emit()
-        super(BezierGraph, self ).hideEvent( event )
+        super(BezierGraph, self).hideEvent(event)
 
     ## @note: possibly add animation that looks like it pops out of the button?
     # def showEvent(self, event):

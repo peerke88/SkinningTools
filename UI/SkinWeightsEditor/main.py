@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
+from Maya import api
+from UI.qt_util import *
+from UI.SkinWeightsEditor import widget
+from UI.SkinWeightsEditor import model
 
-import re
-from maya import cmds
-
-from ..qtUtil import *
-
-from skinningTool.SkinWeightsEditor import widget
-from skinningTool.SkinWeightsEditor import model
-from skinningTool.skinningTools     import SkinningTools
 
 class SkinWeightsEditor(QWidget):
     def __init__(self, *args):
@@ -26,7 +22,7 @@ class SkinWeightsEditor(QWidget):
         self.__meshLabel = QLabel('')
 
         l1 = QHBoxLayout()
-        
+
         l1.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
         l1.addWidget(self.hideZero)
         # l1.addWidget(self.__hideLocked)
@@ -47,7 +43,8 @@ class SkinWeightsEditor(QWidget):
 
     def __del__(self):
         if self.__scriptJob is not None:
-            cmds.scriptJob(kill=self.__scriptJob, force=True)
+            api.disconnectCallback(self.__scriptJob)
+            self.__scriptJob = None
 
     def __setLive(self, state=True):
         # alter UI
@@ -58,20 +55,20 @@ class SkinWeightsEditor(QWidget):
 
         # alter state
         if self.__scriptJob is not None:
-            if state == False:
-                cmds.scriptJob(kill=self.__scriptJob, force=True)
+            if not state:
+                api.disconnectCallback(self.__scriptJob)
                 self.__scriptJob = None
             return
-        if state == True:
-            self.__scriptJob = cmds.scriptJob(e=('SelectionChanged', self._refresh))
+        if state:
+            self.__scriptJob = api.connectSelectionChangedCallback(self._refresh)
 
     def getScriptJob(self):
         return self.__scriptJob
 
     def __selectedVertexIds(self, mesh):
-        vertices = SkinningTools().convertToVertexList(cmds.ls(sl=True, l=True))
-        allVtx=  SkinningTools().convertToVertexList(mesh)
-        self.__model.setVertList(allVtx) 
+        vertices = api.selectedObjectVertexList()
+        allVtx = api.meshVertexList(mesh)
+        self.__model.setVertList(allVtx)
         if len(vertices) != len(allVtx):
             ids = []
             for vtx in vertices:
@@ -80,19 +77,9 @@ class SkinWeightsEditor(QWidget):
             return ids
         return None
 
-    def __selectedMeshes(self):
-        m = []
-        try:
-        	#added to try except statment as maya older then 2016 do not allow listrelatives on empty list
-            m = cmds.listRelatives(cmds.ls(sl=True, l=True, o=True, type='transform') or [], c=True, f=True) or []
-        except:
-            pass
-        m.extend(cmds.ls(sl=True, l=True, o=True) or [])
-        skinnedMeshes = []
-        for i in cmds.ls(type = "skinCluster"):
-            skinnedMeshes.extend(cmds.ls(cmds.skinCluster(i, q=True, g=True) or [], l=True))
-
-        return list(set(m) & set(skinnedMeshes))
+    @staticmethod
+    def __selectedMeshes():
+        return api.selectedSkinnedShapes()
 
     def setHideZeroColumns(self, state):
         self.__model.setHideZeroColumns(state)
@@ -104,7 +91,6 @@ class SkinWeightsEditor(QWidget):
         self.__widget._view.repaint()
         self.__widget._view.updateGeometry()
 
-    
     def setLive(self, state=True):
         # alter UI
         self.__setLive(self.liveBtn.isChecked())
@@ -116,7 +102,7 @@ class SkinWeightsEditor(QWidget):
             self.__widget._view.repaint()
             self.__widget._view.updateGeometry()
             return
-       
+
         self.__model.setGeometry(mesh[0])
         self.__meshLabel.setText(str(mesh[0].split('|')[-1]))
         ids = self.__selectedVertexIds(mesh)
