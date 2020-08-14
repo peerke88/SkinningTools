@@ -95,11 +95,9 @@ class TransferWeightsWidget(QWidget):
         if not expandedVertices:
             cmds.error('Must select vertices to copy weights for')
         
-        #get input data
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
         inInfluences = cmds.skinCluster(source, q=True, influence=True)
         
-
         add = []
         for influence in inInfluences:
             if influence not in outInfluences:
@@ -107,7 +105,6 @@ class TransferWeightsWidget(QWidget):
         if add:
             cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
         
-        #get output data
         inWeights = cmds.SkinWeights(cmds.skinCluster(source, q=True, g=True)[0], source, q=True)
         outWeights = cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, q=True)
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
@@ -119,16 +116,13 @@ class TransferWeightsWidget(QWidget):
             percentage = 99.0/len(expandedVertices) 
             self.__loadBar.message = "transfering weights from %s >> %s"%(source, target)
         
-        #copy input data to output
         for iteration, vertex in enumerate(expandedVertices):
             id = int(vertex.rsplit('[',1)[-1].split(']',1)[0])
-            #zero out
             if not self.additive.isChecked():
                 outWeights[id * numOutInf : (id + 1) * numOutInf] = [0]*numOutInf
             for i in range(numInInf):
                 offset = outInfluences.index(inInfluences[i])
                 outWeights[id * numOutInf + offset] += inWeights[id * numInInf + i]
-            #normalize
             tw = 0
             for i in range(numOutInf):
                 tw += outWeights[id * numOutInf + i]

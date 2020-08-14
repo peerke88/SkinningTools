@@ -200,7 +200,7 @@ def mayaToolsWindow():
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
 
-
+# ------------------ vertex island functions ------------------------
             
 def getConnectedVerts( mesh, vtxSelectionSet):
     mObject = OpenMaya.MGlobal.getSelectionListByName(mesh).getDependNode(0)
