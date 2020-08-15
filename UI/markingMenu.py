@@ -111,6 +111,36 @@ class ToolTipFilter(QObject):
             self.popup = None
             return True
 
+class radialScene(QGraphicsScene):
+    def __init__(self):
+        super(radialScene, self).__init__()
+        self.OrigPoint = QPoint(0,0)   
+        baseColor = QColor(80, 230, 80, 255)
+        pen = QPen()
+        pen.setStyle(Qt.SolidLine)
+        pen.setWidth(2)
+        pen.setColor(baseColor)
+        
+        brush = QBrush()
+        brush.setStyle(Qt.SolidPattern)
+        brush.setColor(baseColor) 
+
+        self.itemToDraw = QGraphicsLineItem()
+        self.itemToDraw.setPen(pen)
+        self.itemToDraw.setPos(self.OrigPoint)
+        
+        self.addItem(self.itemToDraw)
+
+    def mouseMoveEvent(self, event):
+        print "mouse move"
+        print event.scenePos()
+        
+        self.itemToDraw.setLine(0,0, event.scenePos().x(), event.scenePos().y())
+        super(radialScene, self).mouseMoveEvent(event)
+
+        
+
+
 class radialMenu(QMainWindow):
     brush = QBrush()
     brush.setStyle( Qt.SolidPattern )
@@ -125,11 +155,13 @@ class radialMenu(QMainWindow):
     def __init__(self, parent=None, inputObjects = [], parentObject = None, flags=Qt.FramelessWindowHint):
         super(radialMenu, self).__init__(parent, flags)
         self.setFixedSize(800, 800)
+        # self.setMouseTracking(True)
         self.checkState = cmds.softSelect(q=True, softSelectFalloff= True)
         self.inputObjects = inputObjects
-        self.scene = QGraphicsScene()
+        self.scene = radialScene()
         self.parentObject = parentObject
         self.graphicsView = QGraphicsView(self.scene )
+        self.graphicsView.setMouseTracking(True)
         self.setCentralWidget(self.graphicsView)
         self.graphicsView.setMouseTracking(True)
         self.setAttribute(  Qt.WA_TranslucentBackground , True)
@@ -197,6 +229,8 @@ class radialMenu(QMainWindow):
         #     item.setGeometry(positionList[4].x-(w*.5),positionList[4].y-10.5, w, 21)
         #     self.scene.addWidget(item)
         #     positionList[4] += OpenMaya.MVector(0,23,0)
+
+    
 
     def __funcPressed(self, *args):
         print self.sender().text()
