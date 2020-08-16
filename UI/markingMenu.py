@@ -71,6 +71,7 @@ class ToolTipFilter(QObject):
         self.MenuName = name  
         self.popup = None 
         self.getBoneUnderMouse = False
+        # self.setMouseTracking(True)
         print "test"
     
     def eventFilter(self, obj, event):
@@ -79,6 +80,7 @@ class ToolTipFilter(QObject):
             self.getBoneUnderMouse = False
             return False
 
+        
         if ( event.type() == QEvent.MouseButtonPress and event.button() == 4):
             print "mousePressed"
             foundObjects = objectUnderMouse()
@@ -93,6 +95,10 @@ class ToolTipFilter(QObject):
             self.popup = radialMenu(mainWin, foundObjects, self)
             self.popup.showAtMousePos()
             return True
+        
+        if self.popup is not None:
+            # print QCursor.pos()
+            self.popup.updateLine(QCursor.pos())
 
         # do this on mouse press, show the menu and kill it when released, activate button under mouse!
         if (event.type() == QEvent.MouseButtonRelease and event.button() == 4): 
@@ -111,35 +117,6 @@ class ToolTipFilter(QObject):
             self.popup = None
             return True
 
-class radialScene(QGraphicsScene):
-    def __init__(self):
-        super(radialScene, self).__init__()
-        self.OrigPoint = QPoint(0,0)   
-        baseColor = QColor(80, 230, 80, 255)
-        pen = QPen()
-        pen.setStyle(Qt.SolidLine)
-        pen.setWidth(2)
-        pen.setColor(baseColor)
-        
-        brush = QBrush()
-        brush.setStyle(Qt.SolidPattern)
-        brush.setColor(baseColor) 
-
-        self.itemToDraw = QGraphicsLineItem()
-        self.itemToDraw.setPen(pen)
-        self.itemToDraw.setPos(self.OrigPoint)
-        
-        self.addItem(self.itemToDraw)
-
-    def mouseMoveEvent(self, event):
-        print "mouse move"
-        print event.scenePos()
-        
-        self.itemToDraw.setLine(0,0, event.scenePos().x(), event.scenePos().y())
-        super(radialScene, self).mouseMoveEvent(event)
-
-        
-
 
 class radialMenu(QMainWindow):
     brush = QBrush()
@@ -154,28 +131,53 @@ class radialMenu(QMainWindow):
     __radius = 70
     def __init__(self, parent=None, inputObjects = [], parentObject = None, flags=Qt.FramelessWindowHint):
         super(radialMenu, self).__init__(parent, flags)
-        self.setFixedSize(800, 800)
-        # self.setMouseTracking(True)
+        self.__geoSize = 800
+        self.OrigPos = QPoint()
+        self.mappingPos = QPoint(self.__geoSize*.5, self.__geoSize*.5)
+        self.setFixedSize(self.__geoSize, self.__geoSize)
         self.checkState = cmds.softSelect(q=True, softSelectFalloff= True)
         self.inputObjects = inputObjects
-        self.scene = radialScene()
+        self.scene = QGraphicsScene()
         self.parentObject = parentObject
-        self.graphicsView = QGraphicsView(self.scene )
-        self.graphicsView.setMouseTracking(True)
+        self.graphicsView = QGraphicsView()
+        self.graphicsView.setScene( self.scene )
+        self.graphicsView.setSceneRect(self.frameGeometry())
+        self.graphicsView.setHorizontalScrollBarPolicy( Qt.ScrollBarAlwaysOff )
+        self.graphicsView.setVerticalScrollBarPolicy( Qt.ScrollBarAlwaysOff )
         self.setCentralWidget(self.graphicsView)
         self.graphicsView.setMouseTracking(True)
         self.setAttribute(  Qt.WA_TranslucentBackground , True)
-        self.setStyleSheet("QWidget{background-color: rgba(100,0, 0, 50);background : transparent; border : none}")# 
-        
-        #@note: add painter to get center position and position under mouse to draw line!
+        self.setStyleSheet("QWidget{background-color: rgba(100,0, 0, 50);background : transparent; border : none}")
 
         nPen = QPen()
         nPen.setStyle( Qt.DotLine )
         nPen.setWidth( 2 )
         nPen.setColor( QColor( 208, 52, 52, 255 ) ) 
-        item = QGraphicsEllipseItem(-self.__radius,-self.__radius,self.__radius*2,self.__radius*2)
+        item = QGraphicsEllipseItem(-self.__radius + self.mappingPos.x(),-self.__radius + self.mappingPos.y(),self.__radius*2,self.__radius*2)
         item.setPen(nPen)
         self.scene.addItem(item)
+        
+        self._buildButtons()
+
+        baseColor = QColor(80, 230, 80, 255)
+        pen = QPen()
+        pen.setStyle(Qt.SolidLine)
+        pen.setWidth(5)
+        pen.setColor(baseColor)
+    
+        brush = QBrush()
+        brush.setStyle(Qt.SolidPattern)
+        brush.setColor(baseColor) 
+
+        self.itemToDraw = QGraphicsLineItem()
+        self.itemToDraw.setPen(pen)
+        self.itemToDraw.setPos(QPoint(0,0))
+        self.scene.addItem(self.itemToDraw)
+
+    def updateLine(self, pos):
+        self.itemToDraw.setLine(self.mappingPos.x(),self.mappingPos.y(), 
+                                pos.x() - self.OrigPos.x()+ self.mappingPos.x(), 
+                                pos.y() - self.OrigPos.y()+ self.mappingPos.y())
 
     def rotateVec(self, origin, point, angle):
         qx = origin.x + cos(angle) * (point.x - origin.x) - sin(angle) * (point.y - origin.y)
@@ -188,10 +190,10 @@ class radialMenu(QMainWindow):
         angle = (pi/(_availableSpaces))*2
         origin = OpenMaya.MVector()
         basePos = OpenMaya.MVector(0,-self.__radius,0)
-
+        offset = OpenMaya.MVector(self.mappingPos.x(), self.mappingPos.y(),0)
         denom = 0
         positionList = []
-        [positionList.append(self.rotateVec(origin, basePos, (i - denom)*angle)) for i in xrange(_availableSpaces)]
+        [positionList.append(self.rotateVec(origin, basePos, (i - denom)*angle) + offset) for i in xrange(_availableSpaces)]
 
 
         # ---- label -----
@@ -229,8 +231,7 @@ class radialMenu(QMainWindow):
         #     item.setGeometry(positionList[4].x-(w*.5),positionList[4].y-10.5, w, 21)
         #     self.scene.addWidget(item)
         #     positionList[4] += OpenMaya.MVector(0,23,0)
-
-    
+        return True
 
     def __funcPressed(self, *args):
         print self.sender().text()
@@ -239,16 +240,11 @@ class radialMenu(QMainWindow):
         self.checkState = self.sender().isChecked()
         cmds.softSelect(e=True, softSelectFalloff= self.checkState)
 
-    def mousePressEvent(self, event):
-        # @todo: find a way to close the ui when transparent layer is pressed
-
-        print("pressed!")
-
     def showAtMousePos(self):
-        pos = QCursor.pos()
-        self.move(pos.x()-(self.width() * .5), pos.y()- (self.height()*0.5))
+        self.OrigPos = QCursor.pos()
+        self.move(self.OrigPos.x()-(self.width() * .5), self.OrigPos.y()- (self.height()*0.5))
         self.show()
-        self._buildButtons()
+        return True
 
 # to test the functions
 def forceInstallFilter():
@@ -269,66 +265,7 @@ def forceInstallFilter():
 
 # @note: original Code:
 """
-    def boneUnderMouse(self):
-        def selectFromScreenApi(x, y, x_rect=None, y_rect=None):
-            # find object under mouse, (silently select the object using api and clear selection)
-            sel = OpenMaya.MSelectionList()
-            OpenMaya.MGlobal.getActiveSelectionList(sel)
-            
-            args = [x, y]
-            if x_rect!=None and y_rect!=None:
-                OpenMaya.MGlobal.selectFromScreen(x, y, x_rect, y_rect, OpenMaya.MGlobal.kReplaceList)
-            else:
-                OpenMaya.MGlobal.selectFromScreen(x, y, OpenMaya.MGlobal.kReplaceList)
-            objects = OpenMaya.MSelectionList()
-            OpenMaya.MGlobal.getActiveSelectionList(objects)
-            
-            OpenMaya.MGlobal.setActiveSelectionList(sel, OpenMaya.MGlobal.kReplaceList)
-            
-            fromScreen = []
-            objects.getSelectionStrings(fromScreen)
-            return fromScreen
-
-        def getSelectionModeIcons():
-            # fix if anything other then object selection is used
-            if cmds.selectMode(q=1, object=1):
-                selectmode = "object"
-            elif cmds.selectMode(q=1, component=1):
-                selectmode = "component"
-            elif cmds.selectMode(q=1, hierarchical=1):
-                selectmode = "hierarchical"
-            return selectmode
-        
-        active_view = OpenMayaUI.M3dView.active3dView()
-        pos = QCursor.pos()
-        widget = qApp.widgetAt(pos)
-        
-        try:
-            relpos = widget.mapFromGlobal(pos)
-        except:
-            return False
-
-        margin = 4
-        maskOn = cmds.selectType( q=True, joint=True )
-        sm = getSelectionModeIcons()    
-        mel.eval("changeSelectMode -object;")
-        cmds.selectType( joint=True )
-        foundObjects = selectFromScreenApi( relpos.x()-margin, 
-                                            active_view.portHeight() - relpos.y()-margin, 
-                                            relpos.x()+margin, 
-                                            active_view.portHeight() - relpos.y()+margin )
-        cmds.selectType( joint=maskOn )
-        mel.eval("changeSelectMode -%s;"%sm)
-
-        foundBone = False
-        boneName = ''
-        for fobj in foundObjects:
-            if cmds.objectType(fobj) == "joint":
-                foundBone = True
-                boneName = fobj
-                break
-        return foundBone, boneName
-
+ 
     def eventFilter(self, obj, event):
         '''middle mouse event to apply skin weight values through a custom marking menu'''
         def cleanupContext():
@@ -373,71 +310,7 @@ def forceInstallFilter():
             self.getBoneUnderMouse = False
             
         return False
-        
-    def valueMenu(self, inputVal = None, *args):
-        ''' seperate def for the ability to change the value increment of the marking menu'''
-        SkinningToolsUI.skinPercentValue = inputVal
 
-    def valueAddition(self, inputVal = None, *args):
-        SkinningToolsUI.skinPercentValue += inputVal  
-    def getItem(self, jntName, *args):
-        ''' find the bone wo work with if all conditions are met and create the marking menu'''
-
-        hitFound      = cmds.dagObjectHit(mn= "ContextModModule")
-        popUpChildren = cmds.popupMenu("ContextModModule", q=True, itemArray=True)
-        if popUpChildren != None and len(popUpChildren) > 0:
-            cmds.popupMenu("ContextModModule",e =True, deleteAllItems=True)
-            self.__skinMarkingMenu( jntName, inItems = popUpChildren )
-            return
-
-    def __skinMarkingMenu(self, inObject, inItems=None, *args):
-        selectedObjects = cmds.ls(sl=True,fl=True)
-        if not selectedObjects:
-            return
-        mesh        = selectedObjects[0].split('.')[0]
-        skincluster = SkinningTools.skinCluster(mesh, True)
-        
-        try:
-            cmds.deleteUI(inItems)
-        except:
-            pass
-        cmds.menuItem( l = inObject, p = "ContextModModule",  rp = "N", en = False )
-        cmds.menuItem( l="set weight: 0",  p = "ContextModModule", rp="W",   c = functools.partial( self.applySkinValues, 0.0, selectedObjects, skincluster, inObject, 4 , mesh ) )
-        cmds.menuItem( l="set weight: 1",  p = "ContextModModule", rp="E",   c = functools.partial( self.applySkinValues, 1.0, selectedObjects, skincluster, inObject, 0 , mesh ) )
-        cmds.menuItem( l="set weight: %s"%SkinningToolsUI.skinPercentValue,  p = "ContextModModule", rp="SE", c = functools.partial( self.applySkinValues, SkinningToolsUI.skinPercentValue, selectedObjects, skincluster, inObject, 1 , mesh ) )
-        cmds.menuItem( l="Add Value %s"%SkinningToolsUI.skinPercentValue,    p = "ContextModModule", rp="NE", c = functools.partial( self.applySkinValues, SkinningToolsUI.skinPercentValue, selectedObjects, skincluster, inObject, 2 , mesh ) )
-        cmds.menuItem( l="Remove Value %s"%SkinningToolsUI.skinPercentValue, p = "ContextModModule", rp="NW", c = functools.partial( self.applySkinValues, -(SkinningToolsUI.skinPercentValue), selectedObjects, skincluster, inObject, 3 , mesh ) )
-        if cmds.softSelect( q=True, softSelectEnabled=True) == 1:
-            softSelectionMode = cmds.softSelect(q=True, softSelectFalloff= True)
-            checkboxValue = 0
-            if softSelectionMode == 1:
-                checkboxValue = 1
-            cmds.menuItem( l="surface Aware", p = "ContextModModule", rp="SW", cb=checkboxValue, c= self.setContentAware )
-        incrementMenu = cmds.menuItem( l= "increment Value Menu", sm=True,   p = "ContextModModule", rp="S" )
-        for i in range(1, 10, 1):
-            value = i / 10.0
-            cmds.menuItem( label='%s'%value, p = incrementMenu, c = functools.partial( self.valueMenu, value ) )
-        
-        subMenuEMenu = cmds.menuItem( l= "add 2f values", sm=True, p = incrementMenu, rp="NE" )
-        for i in range(-5, 5, 1):
-            value = i / 100.0
-            cmds.menuItem( label='%s'%value, p = subMenuEMenu, c = functools.partial( self.valueAddition, value ) )
-        
-        subMenuWMenu = cmds.menuItem( l= "add 3f values", sm=True, p = incrementMenu, rp="NW" )
-        for i in range(-5, 5, 1):
-            value = i / 1000.0
-            cmds.menuItem( label='%s'%value, p = subMenuWMenu, c = functools.partial( self.valueAddition, value ) )
-
-        SkinningTools.doCorrectSelectionVisualization(mesh)
-        return
-
-    def setContentAware( self, *args ):
-        ''' extra functionality that works with the smooth selection modifier in maya'''
-        softSelectionMode = cmds.softSelect(q=True, softSelectFalloff= True)
-        if softSelectionMode > 0:
-            cmds.softSelect(e=True, softSelectFalloff= 0)
-        else:
-            cmds.softSelect(e=True, softSelectFalloff= 1)
 
     def applySkinValues( self,skinValue, expandedVertices, skinCluster, inObject, operation, mesh,*args ):
         '''skin weight functions used in marking menu, currently using skinPercent (slow maya command) '''
