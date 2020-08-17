@@ -3,12 +3,9 @@ from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI.qt_util import qApp, QApplication
 from SkinningTools.Maya.tools import shared
-from maya import cmds
+from SkinningTools.Maya.tools import mathUtils
+from maya import cmds, mel
 
-
-## adds label to joints, forces maya to recognise joints that are on the exact same position
-# @param string inputLeft, string prefix to identify all joints that are on the left of the character
-# @param string inputRight, string prefix to identify all joints that are on the right of the character
 @shared.dec_undo
 def autoLabelJoints(inputLeft, inputRight, progressBar=None):
     def setprogress(iteration, progressBar):
@@ -18,24 +15,19 @@ def autoLabelJoints(inputLeft, inputRight, progressBar=None):
         qApp.processEvents()
 
     def SetAttrs(side, type, name):
-        try:
-            cmds.setAttr(bone + '.side', l=0)
-            cmds.setAttr(bone + '.type', l=0)
-            cmds.setAttr(bone + '.otherType', l=0)
-            cmds.setAttr(bone + '.drawLabel', l=0)
-        except:
-            pass
-
+        for attr in [ "side", "type", "otherType", "drawLabel"]:
+            cmds.setAttr("%s.%s"%(bone, attr), l=0)
+        
         cmds.setAttr(bone + '.side', side)
         cmds.setAttr(bone + '.type', type)
         cmds.setAttr(bone + '.otherType', name, type="string")
         cmds.setAttr(bone + '.drawLabel', 1)
 
     allJoints = cmds.ls(type="joint") or None
-    allFoundjoints = cmds.ls(type="joint") or None
     if allJoints == None:
         return
 
+    allFoundjoints = allJoints[::]
     percentage = 99.0 / len(allJoints)
     if not "*" in inputLeft:
         inputLeft = "*" + inputLeft + "*"
@@ -71,84 +63,79 @@ def autoLabelJoints(inputLeft, inputRight, progressBar=None):
 
     return True
 
-
-## reset the object back to bindpose without the need of the bindpose node!
-# calculates the bindpose through the prebind matrix of the joints
-# @param string object, mesh that should be reset to bindPost
 @shared.dec_undo
-def resetToBindPoseobject():
-    # @todo: convert to openMaya api 2.0
-    def getMayaMatrix(data):
-        from maya.OpenMaya import MMatrix, MScriptUtil
-        mMat = MMatrix()
-        MScriptUtil.createMatrixFromList(data, mMat)
-        return mMat
-
-    def mayaMatrixToList(mMatrix):
-        d = []
-        for x in xrange(4):
-            for y in xrange(4):
-                d.append(mMatrix(x, y))
-        return d
-
-    skinCluster = shared.skinCluster(object, silent=True)
+def resetToBindPoseobject(inObject):
+    skinCluster = shared.skinCluster(inObject, silent=True)
     if skinCluster == None:
         return
+    
+    infjnts = cmds.listConnections("%s.matrix"%skinCluster, source=True)
+    for i, joint in enumerate(infjnts):
+        prebindMatrix = cmds.getAttr("%s.bindPreMatrix[%s]"%(skinCluster, i))
 
-    infjnts = cmds.skinCluster(skinCluster, q=True, inf=True)
-    bindPoseNode = cmds.dagPose(infjnts[0], q=True, bindPose=True)
-    if bindPoseNode != None:
-        cmds.select(object)
-        from maya import mel
-        mel.eval("gotoBindPose;")
-    else:
-        for i, joint in enumerate(infjnts):
-            prebindMatrix = cmds.getAttr(skinCluster + ".bindPreMatrix[%s]" % i)
-
-            matrix = mayaMatrixToList(getMayaMatrix(prebindMatrix).inverse())
-            cmds.xform(joint, ws=True, m=matrix)
+        matrix = mathUtils.matrixToFloatList(mathUtils.floatToMatrix(prebindMatrix).inverse())
+        cmds.xform(joint, ws=True, m=matrix)
 
     return True
 
-
-## recomputes all prebind matrices in this pose, joints will stay in place while the mesh goes back to bindpose
-# http://leftbulb.blogspot.nl/2012/09/resetting-skin-deformation-for-joint.html
-# @param list joints, list of joints to recompute matrix
-# @param string skincluster, skincluster object to reset
 @shared.dec_undo
-def resetSkinnedJoints(joints, skinCluster=None):
+def resetSkinnedJoints(inJoints = None, inSkinCluster=None):
+    joints = inJoints
+    if joints == None:
+        joints = cmds.ls(sl=0, type= "joint")
+
     for joint in joints:
-        skinClusterPlugs = cmds.listConnections(joint + ".worldMatrix[0]", type="skinCluster", p=1)
-        if skinCluster is not None and skinClusterPlugs is not None:
+        skinClusterPlugs = cmds.listConnections("%s.worldMatrix[0]"%joint, type="skinCluster", p=1)
+        if inSkinCluster is not None and skinClusterPlugs is not None:
+            _notFound = True
             for sc in skinClusterPlugs:
-                if skinCluster in sc:
+                if inSkinCluster in sc:
                     skinClusterPlugs = [sc]
+                    _notFound = False
+            if _notFound:
+                skinClusterPlugs = []
 
         if skinClusterPlugs:
             for skinClstPlug in skinClusterPlugs:
                 index = skinClstPlug[skinClstPlug.index("[") + 1: -1]
                 skinCluster = skinClstPlug[: skinClstPlug.index(".")]
-                curInvMat = cmds.getAttr(joint + ".worldInverseMatrix")
-                cmds.setAttr(skinCluster + ".bindPreMatrix[%s]" % index, type="matrix", *curInvMat)
+                curInvMat = cmds.getAttr("%s.worldInverseMatrix"%joint)
+                cmds.setAttr("%s.bindPreMatrix[%s]"%(skinCluster, index), type="matrix", *curInvMat)
             try:
                 cmds.skinCluster(skinCluster, e=True, recacheBindMatrices=True)
             except RuntimeError:
                 pass
         else:
-            print("no skinCluster attached to %s!" % joint)
+            if inSkinCluster is not None and inJoints is not None:
+                print("%s not attached to %s!" %(joint, inSkinCluster))
     return True
 
-
-@shared.dec_undo
-def freezeSkinnedJoints(joints):
-    '''cleanup joint orient of skinned/constrained bones'''
+def freezeScale(joints):
+    wms = []
     for joint in joints:
+        wm = cmds.xform(joint, q=1, ws=1, m=1)
+        mm = mathUtils.floatToMatrix(wm)
+        x = mathUtils.getVectorFromMatrix(mm, 0).normal()
+        y = mathUtils.getVectorFromMatrix(mm, 1).normal()
+        z  = x ^ y
+        pos = mathUtils.getVectorFromMatrix(mm, 3)
+        nm = mathUtils.vectorsToMatrix([x,y,z, pos])
+        wms.append(nm)
+
+    for index, jnt in enumerate(joints):
+        fm = mathUtils.matrixToFloatList(wms[index])
+        cmds.xform(jnt, ws=1, m = fm)
+
+def freezeRotate(joints):
+    for joint in joints:
+        if cmds.objectType(joint) != "joint":
+            continue
         dup = cmds.duplicate(joint, rc=1)[0]
         ch = cmds.listRelatives(dup, children=1, f=1)
         if ch:
             cmds.delete(ch)
 
-        cmds.makeIdentity(dup, apply=1, t=1, r=1, s=1)
+        cmds.makeIdentity(dup, apply=1, t=0, r=1, s=0)
         jo = cmds.getAttr(dup + '.jo')[0]
 
         cmds.setAttr(joint + '.jo', jo[0], jo[1], jo[2])
@@ -159,73 +146,21 @@ def freezeSkinnedJoints(joints):
         except:
             pass
 
-        try:
-            shared.resetSkinnedJoints([joint])
-        except:
-            pass
-
     return joints
 
-
 @shared.dec_undo
-def freezeSkinnedJointsFull(joints):
-    # @todo have another look at this with skinned joints and joints part of ik-spline
-    info = OrderedDict()
-    parentInfo = OrderedDict()
-    newTransforms = []
-    forcedReparent = []
-    for jnt in joints:
-        children = cmds.listRelatives(jnt, c=1)
-        info[jnt] = children
-        parents = cmds.listRelatives(jnt, p=1, f=1)
-        if parents is None or parents == []:
-            continue
-        parentlist = parents[0].split("|")[::-1]
-
-        for index, obj in enumerate(parentlist):
-            if obj != '' and cmds.objectType(obj) != "joint":
-                forcedReparent.append(jnt)
-            elif obj != '' and cmds.objectType(obj) == "joint":
-                parentInfo[jnt] = obj
-                break
-
-    for jnt in joints:
-        pos = cmds.xform(jnt, q=1, ws=1, t=1)
-        dup = cmds.duplicate(jnt, rc=1)[0]
-        ch = cmds.listRelatives(dup, children=1, f=1)
-        if ch:
-            cmds.delete(ch)
-
-        cmds.makeIdentity(dup, apply=1, t=1, r=1, s=1)
-        jo = cmds.getAttr(dup + '.jo')[0]
-
-        cmds.setAttr(jnt + '.jo', jo[0], jo[1], jo[2])
-        cmds.setAttr(jnt + '.r', 0, 0, 0)
-        cmds.parent(jnt, world=True)
-        parent = cmds.listRelatives(jnt, parent=1)
-        if parent is not None and parent != []:
-            cmds.setAttr(parent[0] + '.s', 1, 1, 1)
-            newTransforms.append(parent[0])
-            cmds.xform(jnt, ws=1, t=pos)
-        cmds.setAttr(jnt + '.s', 1, 1, 1)
-        cmds.delete(dup)
-
-    for key, value in info.iteritems():
-        if value is not None:
-            cmds.parent(value, key)
-
-    for jnt in forcedReparent:
-        if jnt in parentInfo.keys():
-            cmds.parent(jnt, parentInfo[jnt])
-
-    cmds.delete(newTransforms)
-    resetSkinnedJoints(info.keys())
-    return info.keys()
-
+def freezeSkinnedJoints(joints, rotate = 1, scale = 1):
+    #@note: this will not work when joints are connected through ik-handle!
+    if len(joints) == 1:
+        joints = shared.selectHierarchy(joints)
+    if rotate:
+        freezeRotate(joints)
+    if scale:
+        freezeScale(joints)
+    resetSkinnedJoints(joints)
 
 @shared.dec_undo
 def removeBindPoses(self):
-    '''deletes all bindpose nodes from current scene'''
     dagPoses = cmds.ls(type="dagPose")
     for dagPose in dagPoses:
         if not cmds.getAttr("%s.bindPose" % dagPose):
@@ -233,117 +168,124 @@ def removeBindPoses(self):
         cmds.delete(dagPose)
     return True
 
-
 @shared.dec_undo
-def addUnlockedZeroInfl(joints, mesh):
-    '''adds joints to the current mesh without altering the weights, and makes sure that the joints are unlocked
-    @param joints: joints to be added to the mesh
-    @param mesh: mesh onto which the joints will be added as an influence'''
-    skinClusterName = SkinningTools.skinCluster(mesh, silent=True)
+def addCleanJoint(joints, mesh):
+    skinClusterName = shared.skinCluster(mesh, silent=True)
     if skinClusterName != None:
-        jointInfls = cmds.skinCluster(skinClusterName, q=True, inf=True)
+        jointInfls = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         for joint in joints:
             if joint in jointInfls:
                 continue
             cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=joint)
     return True
 
-
 @shared.dec_undo
-def BoneMove(bone1, bone2, skin):
-    '''transfer weights between 2 joints using the selected mesh'''
-    skinClusterName = SkinningTools.skinCluster(skin, True)
-    infjnts = cmds.skinCluster(skinClusterName, q=True, inf=True)
-
-    if not bone1 in infjnts:
-        cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=bone1)
-    if not bone2 in infjnts:
-        cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=bone2)
-
-    meshShapeName = cmds.listRelatives(skin, s=True)[0]
+def BoneMove(joint1, joint2, skin):
+    skinClusterName = shared.skinCluster(skin, True)
+    infjnts = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
+    addCleanJoint([joint1, joint2], skin)
+    
+    meshShapeName = cmds.listRelatives(skin, s=True, f=1)[0]
     outInfluencesArray = cmds.SkinWeights([meshShapeName, skinClusterName], q=True)
 
-    # get bone1 position and bone2 position in list
     infLengt = len(infjnts)
-    bone1Pos = 0
-    bone2Pos = 0
-    for i in xrange(infLengt):
-        if infjnts[i] == bone1:
-            bone1Pos = i
-        if infjnts[i] == bone2:
-            bone2Pos = i
+    pos1 = infjnts.index(joint1)
+    pos2 = infjnts.index(joint2)
 
     lenOutInfArray = len(outInfluencesArray)
     amountToLoop = (lenOutInfArray / infLengt)
 
     for j in xrange(amountToLoop):
-        newValue = outInfluencesArray[(j * infLengt) + bone2Pos] + outInfluencesArray[(j * infLengt) + bone1Pos]
-        outInfluencesArray[(j * infLengt) + bone2Pos] = newValue
-        outInfluencesArray[(j * infLengt) + bone1Pos] = 0.0
+        newValue = outInfluencesArray[(j * infLengt) + pos2] + outInfluencesArray[(j * infLengt) + pos1]
+        outInfluencesArray[(j * infLengt) + pos2] = newValue
+        outInfluencesArray[(j * infLengt) + pos1] = 0.0
 
     cmds.SkinWeights([meshShapeName, skinClusterName], nwt=outInfluencesArray)
     return True
 
-
 @shared.dec_undo
 def BoneSwitch(joint1, joint2, skin):
-    '''switch bone influences by reconnecting matrices in the skincluster plugs
-    really fast, downside: only applicable in bindpose'''
+    skinClusterName = shared.skinCluster(skin, True)
+    addCleanJoint([joint1, joint2], skin)
 
-    skinClusterName = SkinningTools.skinCluster(skin, True)
-    connection1 = cmds.listConnections(joint1 + '.worldMatrix', s=0, d=1, c=1, p=1, type="skinCluster")
-    connection2 = cmds.listConnections(joint2 + '.worldMatrix', s=0, d=1, c=1, p=1, type="skinCluster")
+    _connectDict = shared.getJointIndexMap(skinClusterName)
+    for key, val in _connectDict.iteritems():
+        cmds.disconnectAttr('%s.worldMatrix'%key, '%s.matrix[%i]'%(skinClusterName,val))
+        cmds.disconnectAttr("%s.lockInfluenceWeights"%key, "%s.lockWeights[%s]" % (skinClusterName, val))
 
-    sameCluster1 = False
-    sameCluster2 = False
-    currentConnection1 = ''
-    currentConnection2 = ''
-    for conn1 in connection1:
-        if conn1.split('.')[0] == skinClusterName:
-            sameCluster1 = True
-            currentConnection1 = conn1
-    for conn2 in connection2:
-        if conn2.split('.')[0] == skinClusterName:
-            sameCluster2 = True
-            currentConnection2 = conn2
+    cmds.connectAttr(joint1 + '.worldMatrix', '%s.matrix[%i]'%(skinClusterName,_connectDict[joint2]), f=1)
+    cmds.connectAttr(joint2 + '.worldMatrix', '%s.matrix[%i]'%(skinClusterName,_connectDict[joint1]), f=1)
+    cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights[%s]" % (skinClusterName, _connectDict[joint2]), f=1)
+    cmds.connectAttr("%s.lockInfluenceWeights" % joint2, "%s.lockWeights[%s]" % (skinClusterName, _connectDict[joint1]), f=1)
 
-    if sameCluster1 == False or sameCluster2 == False:
-        cmds.warning("bones not part of the same skincluster!")
-    try:
-        origConnection1 = currentConnection1.split('matrix')[-1]
-        origConnection2 = currentConnection2.split('matrix')[-1]
-
-        cmds.disconnectAttr(joint1 + '.worldMatrix', currentConnection1)
-        cmds.disconnectAttr(joint2 + '.worldMatrix', currentConnection2)
-        cmds.disconnectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights%s" % (skinClusterName, origConnection1))
-        cmds.disconnectAttr("%s.lockInfluenceWeights" % joint2, "%s.lockWeights%s" % (skinClusterName, origConnection2))
-
-        cmds.connectAttr(joint1 + '.worldMatrix', currentConnection2, f=1)
-        cmds.connectAttr(joint2 + '.worldMatrix', currentConnection1, f=1)
-        cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights%s" % (skinClusterName, origConnection2),
-                         f=1)
-        cmds.connectAttr("%s.lockInfluenceWeights" % joint2, "%s.lockWeights%s" % (skinClusterName, origConnection1),
-                         f=1)
-
-        resetSkinnedJoints([joint1, joint2], skinClusterName)
-    except Exception as e:
-        cmds.warning(e)
-        return False
+    resetSkinnedJoints([joint1, joint2], skinClusterName)
     return True
 
 
 @shared.dec_undo
-def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=False, progressBar=None):
-    '''stores joint weight information on another joint before it gets removed
-    @param skinObjects: all objects from which joints need to be removed
-    @param jointsToRemove: all joints that need to be removed:
-    @param useParent: if true it will store current weight information of joint to be removed on the parent
-                    if False it will look for the closest joint using a pointcloud system to make sure all joint information is stored propperly
-    just deleting joints will give problems in the skincluster this method makes it safer to remove joints that are not necessary'''
-    from Maya.tools.skinCluster import ShowInfluencedVerts  # cyclic dependency
+def ShowInfluencedVerts(inMesh, joints, progressBar=None):
+    percentage = 100.0 / len(joints)
+    sc = shared.skinCluster(inMesh, True)
+    
+    vtxWeigths = cmds.getAttr("%s.weightList[:]"%sc)
+    vtxCount = len(vtxWeigths )
+    _connectDict = shared.getJointIndexMap(sc)
 
-    if len(skinObjects) == 0:
-        cmds.error('mesh needs to be selected for this operation to work!')
+    toSelect = []
+    for index, jnt in enumerate(joints): 
+        if jnt not in _connectDict.keys():
+            continue
+        w = cmds.getAttr("%s.weightList[0:%i].weights[%i]"%(sc, vtxCount - 1, _connectDict[jnt]))
+        res = [idx for idx, val in enumerate(w) if val > 0.0] 
+        for i in res:
+            toSelect.append("%s.vtx[%i]"%("body_low", i))
+
+        if progressBar != None:
+            progressBar.setValue(percentage * index)
+            QApplication.processEvents()
+
+    if progressBar != None:
+        progressBar.setValue(100)
+        QApplication.processEvents()
+
+    cmds.select(toSelect, r=1)
+    shared.doCorrectSelectionVisualization(inMesh)
+    return toSelect
+
+@shared.dec_undo
+def removeJointBySkinPercent(skinObject, jointsToRemove, skinClusterName, progressBar = None):
+    verts = ShowInfluencedVerts(skinObject, jointsToRemove, progressBar=None)
+    if verts == None or len(verts) == 0:
+        return
+
+    jnts = []
+    for jnt in jointsToRemove:
+        if not jnt in jointsAttached:
+            continue
+        jnts.append((jnt, 0.0))
+
+    cmds.select(verts, r=1)
+    cmds.skinPercent(skinClusterName, tv=jnts, normalize=True)
+
+    if progressBar != None:
+        progressBar.setValue((skinIter * skinPercentage))
+        QApplication.processEvents()
+
+@shared.dec_undo
+def deleteJointSmart(jointsToRemove):
+    for jnt in jointsToRemove:
+        childJoints = cmds.listRelatives(jnt, c=1) or None
+        parent = cmds.listRelatives(jnt, p=1) or None
+        if childJoints is None:
+            continue
+        if parent is None:
+            cmds.parent(childJoints, w=1)
+            continue
+        cmds.parent(childJoints, parent)
+    cmds.delete(jointsToRemove)
+
+@shared.dec_undo
+def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=False, progressBar=None):
     skinClusters = []
     skinPercentage = 100.0 / len(skinObjects)
 
@@ -352,70 +294,57 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         if skinClusterName == None:
             continue
 
-        jointsAttached = cmds.skinCluster(skinClusterName, q=True, inf=True)
+        jointsAttached = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         if fast:
-            verts = ShowInfluencedVerts(skinObject, jointsToRemove, progressBar=None)
-            if verts == None or len(verts) == 0:
-                continue
-
-            jnts = []
-            for jnt in jointsToRemove:
-                if not jnt in jointsAttached:
-                    continue
-                jnts.append((jnt, 0.0))
-
-            cmds.select(verts, r=1)
-            cmds.skinPercent(skinClusterName, tv=jnts, normalize=True)
-
-            if progressBar != None:
-                progressBar.setValue((skinIter * skinPercentage))
-                QApplication.processEvents()
+            removeJointBySkinPercent(skinObject, jointsToRemove, skinClusterName, progressBar)
             skinClusters.append(skinClusterName)
+            continue
 
-        else:
-            if not useParent:
-                for rjnt in jointsToRemove:
-                    if rjnt in jointsAttached:
-                        jointsAttached.remove(rjnt)
+        if not useParent:
+            toSearch = []
+            for jnt in jointsAttached:
+                if jnt in jointsToRemove:
+                    continue
+                toSearch.append(jnt) 
+            
+            sourcePositions = []
+            sourceJoints = []
+            for joint in toSearch:
+                pos = cmds.xform(joint, q=True, ws=True, t=True)
+                sourcePositions.append(pos)
+                sourceJoints.append([joint, pos])
 
-                sourcePositions = []
-                sourceJoints = []
-                for joint in jointsAttached:
-                    pos = cmds.xform(joint, q=True, ws=True, t=True)
-                    sourcePositions.append(pos)
-                    sourceJoints.append([joint, pos])
+            sourceKDTree = KDTree.construct_from_data(sourcePositions)
 
-                sourceKDTree = KDTree.construct_from_data(sourcePositions)
-
-            jntPercentage = skinPercentage / len(jointsToRemove)
-            for jntIter, jnt in enumerate(jointsToRemove):
-                bone1 = jnt
-                if useParent:
-                    bone2 = cmds.listRelatives(jnt, parent=True)[0] or None
-                    if bone2 == None:
-                        removePos = cmds.xform(jnt, q=True, ws=True, t=True)
-                        pts = sourceKDTree.query(query_point=removePos, t=1)
-                        for index, position in enumerate(sourceJoints):
-                            if position[1] != pts[0]:
-                                continue
-                            bone2 = position[0]
-                else:
+        jntPercentage = skinPercentage / len(jointsToRemove)
+        for jntIter, jnt in enumerate(jointsToRemove):
+            bone1 = jnt
+            if useParent:
+                bone2 = cmds.listRelatives(jnt, parent=True)[0] or None
+                if bone2 == None:
                     removePos = cmds.xform(jnt, q=True, ws=True, t=True)
                     pts = sourceKDTree.query(query_point=removePos, t=1)
                     for index, position in enumerate(sourceJoints):
                         if position[1] != pts[0]:
                             continue
                         bone2 = position[0]
+            else:
+                removePos = cmds.xform(jnt, q=True, ws=True, t=True)
+                pts = sourceKDTree.query(query_point=removePos, t=1)
+                for index, position in enumerate(sourceJoints):
+                    if position[1] != pts[0]:
+                        continue
+                    bone2 = position[0]
 
-                BoneMove(bone1, bone2, skinObject)
+            BoneMove(bone1, bone2, skinObject)
 
-                if progressBar != None:
-                    progressBar.setValue(((jntIter + 1) * jntPercentage) + (skinIter * skinPercentage))
-                    QApplication.processEvents()
-            skinClusters.append(skinClusterName)
+            if progressBar != None:
+                progressBar.setValue(((jntIter + 1) * jntPercentage) + (skinIter * skinPercentage))
+                QApplication.processEvents()
+        skinClusters.append(skinClusterName)
 
     for skinClusterName in skinClusters:
-        jointsAttached = cmds.skinCluster(skinClusterName, q=True, inf=True)
+        jointsAttached = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         for jnt in jointsToRemove:
             if not jnt in jointsAttached:
                 continue
@@ -423,16 +352,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
 
     print("removed these joints from influence: ", jointsToRemove)
     if delete:
-        for jnt in jointsToRemove:
-            childJoints = cmds.listRelatives(jnt, c=1)
-            parent = cmds.listRelatives(jnt, p=1)
-            if childJoints == None or len(childJoints) == 0:
-                continue
-            if parent == None or len(parent) == 0:
-                cmds.parent(childJoints, w=1)
-                continue
-            cmds.parent(childJoints, parent)
-        cmds.delete(jointsToRemove)
+        deleteJointSmart(jointsToRemove)
 
     if progressBar != None:
         progressBar.setValue(100)
@@ -440,73 +360,45 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
 
     return True
 
-
 def comparejointInfluences(skinObjects, query=False):
-    '''makes sure that given skinobjects have the same joints influencing, its a safety measure when copying weights between different objects'''
-    compareLists = []
-    for skinObject in skinObjects:
-        skinClusterName = SkinningTools.skinCluster(skinObject, True)
-        if skinClusterName == None:
-            continue
+    objs = cmds.ls(sl=1)
+    joints = []
+    for obj in skinObjects:
+        skinClusterName = shared.skinCluster(obj, True)
+        jnt = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
+        joints.append(jnt)
 
-        joints = cmds.skinCluster(skinClusterName, q=True, inf=True)
-        compareLists.append([skinObject, joints])
+    setList = []
+    for i, s in enumerate(joints):
+        setList.append(set(joints[i]).difference(*(joints[:i] + joints[i+1:])))
+    
+    joints = []
+    for jntSet in setList:
+        joints.extend(list(jntSet))
 
-    if len(compareLists) < 2:
-        cmds.error("please select at least 2 objects with skinclusters")
-    totalCompares = len(compareLists)
-    missingJointsList = []
-    for i in xrange(totalCompares):
-        for list in compareLists:
-            if list == compareLists[i]:
-                continue
-            missedjoints = []
-            for match in list[1]:
-                if not any(match in value for value in compareLists[i][1]):
-                    missedjoints.append(match)
-
-            missingJointsList.append([compareLists[i][0], missedjoints])
     if query == True:
-        joints = []
-        for missingList in missingJointsList:
-            for joint in missingList[1]:
-                joints.append(joint)
-        if len(joints) == 0:
-            return None
-        else:
-            return True
-    else:
-        for missingJoints in missingJointsList:
-            skinClusterName = SkinningTools.skinCluster(missingJoints[0], True)
-            for joint in missingJoints[1]:
-                try:
-                    cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=joint)
-                except:
-                    pass
+        if joints:
+            return joints
+        return None
+
+    for obj in skinObjects:
+        addCleanJoint(joints, obj)
     return True
 
-
 def getMeshesInfluencedByJoint(currentJoints):
-    '''returns all meshes that have any skincluster attachemt with given joints'''
     allSkinClusters = cmds.ls(type="skinCluster")
-
-    attachedSkinCluster = []
-    for scl in allSkinClusters:
-        joints = cmds.skinCluster(scl, q=True, inf=True)
-        for jnt in currentJoints:
-            if jnt in joints and not scl in attachedSkinCluster:
-                attachedSkinCluster.append(scl)
     meshes = []
-    for scl in attachedSkinCluster:
+    for scl in allSkinClusters:
+        joints = cmds.listConnections("%s.matrix"%scl, source=True)
         geo = cmds.skinCluster(scl, q=1, g=1)[0]
-        meshes.append(geo)
-
+        for jnt in currentJoints:
+            if jnt in joints and not geo in meshes:
+                meshes.append(geo)
+    
     return meshes
 
-
 def getInfluencingJoints(object):
-    '''returns all the joints that influence the mesh'''
     skinClusterName = SkinningTools.skinCluster(object, silent=True)
     if skinClusterName != None:
-        jointInfls = cmds.skinCluster(skinClusterName, q=True, inf=True)
+        jointInfls = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         return jointInfls

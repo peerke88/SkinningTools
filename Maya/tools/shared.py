@@ -175,6 +175,20 @@ def convertToVertexList(inObject):
         else:
             return cmds.filterExpand('%s.pt[*]' % inObject, sm=46)
 
+def selectHierarchy(node):
+    ad = cmds.listRelatives(node, ad=1, f=1)
+    ad.append(node)
+    return ad[::-1]
+
+def getJointIndexMap(inSkinCluster):
+    inConns = cmds.listConnections('%s.matrix'%inSkinCluster, s=1, d=0,c=1, type="joint")
+    indices =[]
+    _connectDict = {}
+    for i in inConns[::2]:
+        indices.append(int(i[i.index("[") + 1: -1]))
+    for index, conn in enumerate(inConns[1::2]):
+        _connectDict[conn] = indices[index]
+    return _connectDict
 
 # -------------maya ui tools----------------
 
