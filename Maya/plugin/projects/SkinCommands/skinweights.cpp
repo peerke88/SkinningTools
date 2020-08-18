@@ -7,6 +7,47 @@ const char* kWeightShort = "nwt";
 const char* kWeightLong = "newWeights";
 
 
+/*
+@Note update this with latest information from openmaya:
+from maya import cmds
+
+def get_skin_cluster(object):
+    skinCluster= cmds.ls(cmds.listHistory(object), type="skinCluster")
+    if not skinCluster:
+        return None
+    return skinCluster[0]
+
+mesh = cmds.ls(sl=1)[0]
+sc = get_skin_cluster(mesh)
+shape = cmds.listRelatives(mesh, s=1)[0]
+
+def getNode( name ):
+    sellist = OpenMaya.MGlobal.getSelectionListByName( name )
+    try:
+        return sellist.getDagPath(0)
+    except:
+        return sellist.getDependNode(0)
+
+skinNode = getNode( sc )       
+skinFn = MFnSkinCluster(skinNode)
+meshPath = getNode( shape )
+meshNode = meshPath.node()
+
+meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
+indices = range( meshVerItFn.count() )
+
+singleIdComp = OpenMaya.MFnSingleIndexedComponent()
+vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
+singleIdComp.addElements( indices )
+
+infDags = skinFn.influenceObjects()
+infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
+for x in xrange( len( infDags ) ):
+    infIndexes[x] = int( skinFn.indexForInfluenceObject( infDags[x] ) )
+
+weightData = skinFn.getWeights( meshPath , vertexComp, infIndexes )
+*/
+
 SkinWeights::SkinWeights()
 {
 	isQueryInstance = false; 

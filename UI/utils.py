@@ -110,3 +110,11 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
     if inText == "":
         return False
     return True
+
+
+def setProgress(inValue, progressBar, inText = ''):
+    progressbar.message = inText
+    if progressBar == None:
+        return
+    progressBar.setValue(inValue)
+    QApplication.processEvents()
