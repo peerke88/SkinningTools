@@ -420,3 +420,24 @@ def getInfluencingJoints(object, progressBar=None):
         jointInfls = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         utils.setprogress(100, progressBar, "get influencing joints")
         return jointInfls
+
+@shared.dec_undo
+def removeUnusedInfluences(inObject, progressBar = None):
+    # @note: this will only remove the current connection with joints
+    # check if we can remap the nodes index connections in weights, influenceColor, lockweights and matrix inputs
+    sc = shared.skinCluster(inObject)
+    jointInfls = cmds.listConnections("%s.matrix"%sc, source=True)
+    weightedInfls = cmds.skinCluster(sc, q=1, wi=1)
+
+    toRemove = list(set(jointInfls)-set(weightedInfls))
+
+    nodeState= cmds.getAttr("%s.nodeState"%sc)
+    cmds.setAttr("%s.nodeState"%sc, 1)
+    percentage = 99.0 / len(toRemove)
+    for index, jnt in enumerate(toRemove):
+        cmds.skinCluster(sc, e=1, ri = jnt)
+        utils.setprogress(index * percentage, progressBar, "removing joint %s from mesh"%jnt)
+
+    cmds.setAttr("%s.nodeState"%sc, nodeState)
+    utils.setprogress(100, progressBar, "removed %i joints from influence"%(index+1))
+

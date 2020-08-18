@@ -4,275 +4,230 @@ from heapq import nsmallest
 
 from SkinningTools.py23 import *
 from SkinningTools.Maya.tools import shared, joints
-from SkinningTools.Maya.tools.joints import comparejointInfluences, removeBindPoses
 from SkinningTools.Maya.tools.mesh import edgesToSmooth, shortestPolySurfaceCurvePathAverage
-from SkinningTools.Maya.tools.shared import convertToVertexList, dec_undo
+from SkinningTools.Maya.tools.shared import convertToVertexList
+from SkinningTools.Maya.tools import shared 
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI.qt_util import *
+from SkinningTools.UI import utils 
 
 from maya import cmds, mel
 
-def getVertOverMaxInfluence(singleObject=None, MaxInfluenceValue=8, notSelect=False, progressBar=None):
-    '''select all vertices that have more influences then the set Maximum'''
-    if not notSelect:
-        cmds.undoInfo(ock=True)
-    allVerticesOverMaxInfluence = []
+def checkBasePose(skinCluster):
+    bp = cmds.listConnections("%s.bindPose"%skinCluster, source=True) or None
+    if bp:
+        return cmds.dagPose(bp[0], q=True, atPose=True) is not None
+    jointMap = shared.getJointIndexMap(skinCluster)
+    
+    for key, val in jointMap.iteritems():
+        #@note: only compare worldspace translate values as precision might be difficult here
+        prebind = cmds.getAttr("%s.bindPreMatrix[%s]"%(skinCluster, val))[-4:-1]
+        curInvMat = cmds.getAttr("%s.worldInverseMatrix"%key)[-4:-1]
+        if not utils.compare_vec3(prebind, curInvMat):
+        # if not utils.round_compare(prebind, curInvMat):
+            return False
+    return True
 
-    cmds.select(singleObject, r=True)
-    try:
-        mel.eval('doPruneSkinClusterWeightsArgList 1 { "0.001" };')
-    except:
-        pass
+def getVertOverMaxInfluence(inObject, maxInfValue = 8, notSelect=False, progressBar=None ):
+    sc = shared.skinCluster(inObject, True)
+    vtxWeights = cmds.getAttr("%s.weightList[:]"%sc)
+    vtxCount = len(vtxWeights)
 
-    expandedVertices = convertToVertexList(singleObject)
-    skinClusterName = SkinningTools.skinCluster(singleObject)
-    bones = cmds.skinCluster(skinClusterName, q=True, inf=None)
+    percentage = 99.0/vtxCount
+    indexOverMap={}
+    namedIndex= []
+    for i in xrange(vtxCount):
+        amount = len(cmds.getAttr("%s.weightList[%i].weights"%(sc, i))[0])
+        if  amount > maxInfValue:
+            indexOverMap[i] = amount
+            namedIndex.append("%s.vtx[%i]"%(inObject, i))
+        utils.setprogress(i * percentage, progressBar, "checking vertices")
+    utils.setprogress(100, progressBar, "vertices checked on %s"%inObject)
+    return namedIndex, indexOverMap
 
-    if progressBar:
-        totalVertices = len(expandedVertices)
-        percentage = 99.0 / totalVertices
-        iteration = 1
+@shared.dec_undo
+def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
+    toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue) or None
+    if toMuchinfls is None:
+        return
 
-    for vert in expandedVertices:
-        # faster way then iteration over values
-        numOfVertInfluences = len(cmds.skinPercent(skinClusterName, vert, q=True, value=True, ignoreBelow=0.001))
-        if numOfVertInfluences > MaxInfluenceValue:
-            allVerticesOverMaxInfluence.append(vert)
+    sc = shared.skinCluster(inObject, True)
+    shape = cmds.listRelatives(inObject, s=True)[0]
 
-        if progressBar:
-            progressBar.setValue(percentage * iteration)
-            qApp.processEvents()
-            iteration += 1
+    outInfluencesArray = cmds.SkinWeights([meshShapeName, skinClusterName], q=True)
 
-    if progressBar:
-        progressBar.setValue(100)
+    infjnts = cmds.listConnections("%s.matrix"%sc, source=True)
+    infLengt = len(infjnts)
 
-    if not notSelect:
-        cmds.undoInfo(cck=True)
+    lenOutInfArray = len(outInfluencesArray)
 
-    return allVerticesOverMaxInfluence
+    percentage = 99.0/len(toMuchinfls)
+    for index, vertex in enumerate(toMuchinfls):
+        values = cmds.skinPercent(skinClusterName, vertex, q=1, v=1, ib=float(Decimal('1.0e-17')))
+        curAmountValues = len(values)
+        toPrune = curAmountValues - maxInfValue
 
+        pruneFix = max(nsmallest(toPrune, values)) + 0.001
+        cmds.skinPercent(skinClusterName, vertex, pruneWeights=pruneFix)
+        utils.setprogress(index * percentage, progressBar, "removing influences")
 
-@dec_undo
-def setMaxJointInfluences(objects=None, MaxInfluenceValue=8, progressBar=None):
-    '''function that forces each vertex to have a maximum number of influences, pruning lowest values untill maximum is reached'''
-    objectAmount = len(objects)
-    fullPercentage = 99.0 / objectAmount
-    for percentIteration, singleObject in enumerate(objects):
-        toMuchinfls = getVertOverMaxInfluence(singleObject=singleObject, MaxInfluenceValue=MaxInfluenceValue,
-                                              notSelect=True)  # returns the vertices that have too much influences
-        if toMuchinfls == None or len(toMuchinfls) == 0:
-            cmds.warning("no vertices over limit on: ", singleObject)
-            continue
+    cmds.skinCluster(skinClusterName, e=True, fnw=1)
 
-        if progressBar:
-            totalVertices = len(toMuchinfls)
-            percentage = fullPercentage / totalVertices
-            iteration = 1;
+    cmds.setAttr("%s.maxInfluences" % skinClusterName, maxInfValue)
+    cmds.setAttr("%s.maintainMaxInfluences" % skinClusterName, 1)
 
-        skin = toMuchinfls[0].split('.')[0]
-        skinClusterName = SkinningTools.skinCluster(skin)
-        meshShapeName = cmds.listRelatives(skin, s=True)[0]
-        outInfluencesArray = cmds.SkinWeights([meshShapeName, skinClusterName], q=True)
-
-        infjnts = cmds.skinCluster(skinClusterName, q=True, inf=True)
-        infLengt = len(infjnts)
-        if outInfluencesArray == None:
-            print("please check '%s' again!" % singleObject)
-            continue
-
-        lenOutInfArray = len(outInfluencesArray)
-
-        for vertex in toMuchinfls:
-            values = cmds.skinPercent(skinClusterName, vertex, q=1, v=1, ib=float(Decimal('1.0e-17')))
-            curAmountValues = len(values)
-            toPrune = curAmountValues - MaxInfluenceValue
-
-            pruneFix = max(nsmallest(toPrune, values)) + 0.001
-            cmds.skinPercent(skinClusterName, vertex, pruneWeights=pruneFix)
-
-            if progressBar:
-                progressBar.setValue((percentIteration * fullPercentage) + percentage * iteration)
-                qApp.processEvents()
-                iteration += 1;
-
-        cmds.skinCluster(skinClusterName, e=True, fnw=1)
-
-        cmds.setAttr("%s.maxInfluences" % skinClusterName, MaxInfluenceValue)
-        cmds.setAttr("%s.maintainMaxInfluences" % skinClusterName, 1)
-
-    if progressBar:
-        progressBar.setValue(100)
+    utils.setprogress(100, progressBar, "set maximum influences")
 
     return True
 
+def forceCompareInfluences(meshes):
+    compared = joints.comparejointInfluences(meshes, True)
+    outOfPose = False
+    for mesh in meshes:
+        shared.skinCluster(mesh, True)
+        if checkBasePose(skinClusterName):
+            continue
+        outOfPose = True
 
-@dec_undo
-def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, SourceSelection, smoothValue=1,
-                         progressBar=None, amount=1):
+    if compared is None:
+        return True
+
+    if not outOfPose:
+        joints.comparejointInfluences(meshes)
+        return True
+
+    result = cmds.confirmDialog(title='Confirm',
+                                message='object is not in BindPose,\ndo you want to continue out of bindpose?\npressing "No" will exit the operation! ',
+                                button=['Yes', 'No'],
+                                defaultButton='Yes',
+                                cancelButton='No',
+                                dismissString='No')
+    if result == "Yes":
+        joints.comparejointInfluences(meshes)
+        return True
+    return False
+    
+@shared.dec_undo
+def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, SourceSelection, smoothValue=1, progressBar=None):
     '''copy skincluster information from 1 object to another using closest amount of vertices based on selection'''
+
+    targetMesh = TargetSelection[0].split('.')[0]
+    sourceMesh = SourceSelection[0].split('.')[0]
+    
+    if targetMesh != sourceMesh:
+        result = forceCompareInfluences([targetMesh, sourceMesh])
+        if not result:
+            return
+
+    targetJoints = joints.getInfluencingJoints(targetMesh)
+    sourceJoints = joints.getInfluencingJoints(sourceMesh)
+    jointAmount = len(sourceJoints)
+    skinClusterName = shared.skinCluster(targetMesh, True)
+    
+    targetInflArray = cmds.SkinWeights([targetMesh, TargetSkinCluster], q=True)
+    sourceInflArray = cmds.SkinWeights([sourceMesh, SourceSkinCluster], q=True)
+    
+    allVerticesSource = convertToVertexList(sourceMesh)
+    allVerticesTarget = convertToVertexList(targetMesh)
+
     sourcePoints = []
     sourcePointPos = []
-    succeeded = True
-    try:
-        # make sure that both objects have the same joints
-        mesh1 = TargetSelection[0].split('.')[0]
-        mesh2 = SourceSelection[0].split('.')[0]
-        joint = cmds.skinCluster(SourceSkinCluster, q=True, inf=True)
-        joint1 = cmds.skinCluster(TargetSkinCluster, q=True, inf=True)
-        jointAmount = len(joint)
-        skinClusterName = SkinningTools.skinCluster(mesh1, True)
-        bindPoseNode = cmds.dagPose(joint[0], q=True, bindPose=True)
-        if bindPoseNode:
-            outOfPose = cmds.dagPose(bindPoseNode, q=True, atPose=True)
+    for sourceVert in SourceSelection:
+        pos = cmds.xform(sourceVert, q=True, ws=True, t=True)
+        sourcePoints.append(pos)
+        sourcePointPos.append([sourceVert, pos])
+    sourceKDTree = KDTree.construct_from_data(sourcePoints)
 
-        sourceInflArray = cmds.SkinWeights([mesh2, SourceSkinCluster], q=True)
-        targetInflArray = cmds.SkinWeights([mesh1, TargetSkinCluster], q=True)
+    percentage = 99.0 / len(TargetSelection)
+    weightlist = []
+    for tIndex, targetVertex in enumerate(TargetSelection):
+        pos = cmds.xform(targetVertex, q=True, ws=True, t=True)
+        pts = sourceKDTree.query(query_point=pos, t=smoothValue)
 
-        sameMesh = True
-        if mesh1 != mesh2:
-            sameMesh = False
-            compared = comparejointInfluences([mesh1, mesh2], True)
-            if compared != None:
-                if outOfPose != None:
-                    result = cmds.confirmDialog(title='Confirm',
-                                                message='object is not in BindPose,\ndo you want to continue out of bindpose?\npressing "No" will exit the operation! ',
-                                                button=['Yes', 'No'],
-                                                defaultButton='Yes',
-                                                cancelButton='No',
-                                                dismissString='No')
-                    if result == "Yes":
-                        comparejointInfluences([mesh1, mesh2])
-                    else:
-                        return
-                else:
-                    comparejointInfluences([mesh1, mesh2])
-
-        allVerticesSource = convertToVertexList(mesh2)
-        allVerticesTarget = convertToVertexList(mesh1)
-
-        for sourceVert in SourceSelection:
-            pos = cmds.xform(sourceVert, q=True, ws=True, t=True)
-            sourcePoints.append(pos)
-            sourcePointPos.append([sourceVert, pos])
-        sourceKDTree = KDTree.construct_from_data(sourcePoints)
-
-        if progressBar:
-            oldValue = progressBar.value()
-            if oldValue == 100:
-                oldValue = 0
-            totalVertices = len(TargetSelection)
-            percentage = (99.0 / totalVertices) / amount
-            iteration = 1;
-
-        weightlist = []
-        for targetVertex in TargetSelection:
-            pos = cmds.xform(targetVertex, q=True, ws=True, t=True)
-            pts = sourceKDTree.query(query_point=pos, t=smoothValue)
-
-            weights = []
-            distanceWeightsArray = []
-            totalDistanceWeights = 0
-            for positionList in sourcePointPos:
-                for index in xrange(smoothValue):
-                    if pts[index] != positionList[1]:
-                        continue
-                    length = math.sqrt(pow((pos[0] - pts[index][0]), 2) +
-                                       pow((pos[1] - pts[index][1]), 2) +
-                                       pow((pos[2] - pts[index][2]), 2))
-
-                    distanceWeight = (1.0 / (1.0 + length))
-                    distanceWeightsArray.append(distanceWeight)
-                    totalDistanceWeights += distanceWeight
-
-                    weight = []
-                    indexing = allVerticesSource.index(positionList[0])
-                    for i in xrange(jointAmount):
-                        weight.append(sourceInflArray[(indexing * jointAmount) + i])
-                    weights.append(weight)
-
-            newWeights = []
+        weights = []
+        distanceWeightsArray = []
+        totalDistanceWeights = 0
+        for positionList in sourcePointPos:
             for index in xrange(smoothValue):
-                for i, wght in enumerate(weights[index]):
-                    # distance/totalDistance is weight of the distance caluclated
-                    weights[index][i] = (distanceWeightsArray[index] / totalDistanceWeights) * wght
+                if pts[index] != positionList[1]:
+                    continue
+                length = math.sqrt(pow((pos[0] - pts[index][0]), 2) +
+                                   pow((pos[1] - pts[index][1]), 2) +
+                                   pow((pos[2] - pts[index][2]), 2))
 
-                if len(newWeights) == 0:
-                    newWeights = list(range(len(weights[index])))
-                    for j in xrange(len(newWeights)):
-                        newWeights[j] = 0.0
+                distanceWeight = (1.0 / (1.0 + length))
+                distanceWeightsArray.append(distanceWeight)
+                totalDistanceWeights += distanceWeight
 
-                for j in xrange(len(weights[index])):
-                    newWeights[j] = newWeights[j] + weights[index][j]
+                weight = []
+                indexing = allVerticesSource.index(positionList[0])
+                for i in xrange(jointAmount):
+                    weight.append(sourceInflArray[(indexing * jointAmount) + i])
+                weights.append(weight)
 
-            divider = 0.0
-            for wght in newWeights:
-                divider = divider + wght
-            weightsCreation = []
-            for jnt in joint1:
-                for count, skinJoint in enumerate(joint):
-                    if jnt != skinJoint:
-                        continue
-                    weightsCreation.append((newWeights[count] / divider))
-            weightlist.extend(weightsCreation)
+        newWeights = []
+        for index in xrange(smoothValue):
+            for i, wght in enumerate(weights[index]):
+                # distance/totalDistance is weight of the distance caluclated
+                weights[index][i] = (distanceWeightsArray[index] / totalDistanceWeights) * wght
 
-            if progressBar:
-                progressBar.setValue(oldValue + (percentage * iteration))
-                qApp.processEvents()
-                iteration += 1;
+            if len(newWeights) == 0:
+                newWeights = list(range(len(weights[index])))
+                for j in xrange(len(newWeights)):
+                    newWeights[j] = 0.0
 
-        index = 0
-        for vertex in TargetSelection:
-            number = allVerticesTarget.index(vertex)
-            for jointIndex in xrange(jointAmount):
-                weightindex = (number * jointAmount) + jointIndex
-                targetInflArray[weightindex] = weightlist[index]
-                index += 1
+            for j in xrange(len(weights[index])):
+                newWeights[j] = newWeights[j] + weights[index][j]
 
-        cmds.SkinWeights([mesh1, TargetSkinCluster], nwt=targetInflArray)
-    except Exception as e:
-        succeeded = False
-        cmds.warning(e)
-    finally:
-        if progressBar:
-            if amount == 1:
-                progressBar.setValue(100)
+        divider = 0.0
+        for wght in newWeights:
+            divider = divider + wght
+        weightsCreation = []
+        for jnt in targetJoints:
+            for count, skinJoint in enumerate(sourceJoints):
+                if jnt != skinJoint:
+                    continue
+                weightsCreation.append((newWeights[count] / divider))
+        weightlist.extend(weightsCreation)
+
+        utils.setprogress(tIndex * percentage, progressBar, "copy source > target vtx")
+
+    index = 0
+    for vertex in TargetSelection:
+        number = allVerticesTarget.index(vertex)
+        for jointIndex in xrange(jointAmount):
+            weightindex = (number * jointAmount) + jointIndex
+            targetInflArray[weightindex] = weightlist[index]
+            index += 1
+
+    cmds.SkinWeights([targetMesh, TargetSkinCluster], nwt=targetInflArray)
+
+    utils.setprogress(100, progressBar, "copy from Source to Target")
 
     return succeeded
 
-
-@dec_undo
+@shared.dec_undo
 def transferClosestSkinning(objects, smoothValue, progressBar):
-    '''copy skincluster information from 1 object to another using closest amount of vertices'''
-    object1 = objects[0]
-    skinCluster = shared.skinCluster(object1)
-    baseJoints = cmds.skinCluster(skinCluster, q=True, inf=True)
-    amount = len(objects) - 1
+    baseObject = objects[0]
+    origSkinCluster = shared.skinCluster(baseObject)
+    origJoints = cmds.listConnections("%s.matrix"%origSkinCluster, source=True)
 
-    percentage = 100.0 / amount
-    for iteration, object in enumerate(objects):
-        if object == object1:
+    percentage = 99.0 / len(objects)
+    for iteration, currentObj in enumerate(objects):
+        if currentObj == baseObject:
             continue
 
-        skinCluster1 = skinCluster(object, silent=True)
-        if skinCluster1 == None:
-            skinCluster1 = cmds.skinCluster(object, baseJoints)[0]
+        newSkinCluster = shared.skinCluster(currentObj, silent=True)
+        if newSkinCluster is None:
+            newSkinCluster = cmds.skinCluster(currentObj, origJoints)[0]
         else:
-            comparejointInfluences([object1, object])
+            joints.comparejointInfluences([baseObject, currentObj])
 
-        execCopySourceTarget(skinCluster1, skinCluster, convertToVertexList(object), convertToVertexList(object1),
-                             smoothValue, progressBar, amount)
-        if progressBar:
-            progressBar.setValue(percentage * iteration)
-            qApp.processEvents()
-
-    if progressBar:
-        progressBar.setValue(100)
-
+        execCopySourceTarget(newSkinCluster, origSkinCluster, convertToVertexList(object), convertToVertexList(object1), smoothValue, progressBar)
+      
     return True
 
-
-@dec_undo
+@shared.dec_undo
 def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False):
     '''using native maya copyskinweight to generate similar weight values
     @param baseSkin: mesh to copy skinning information from
@@ -283,24 +238,24 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
     if skinclusterBase == None:
         return
 
+    surfaceAssociation = "closestPoint"
     if sAs:
         surfaceAssociation = "closestComponent"
-    else:
-        surfaceAssociation = "closestPoint"
-
-    for skin in otherSkins:
+    
+    for toSkinMesh in otherSkins:
         if inPlace:
-            cmds.delete(skin, ch=True)
+            cmds.delete(toSkinMesh, ch=True)
         else:
-            skincluster = shared.skinCluster(skin, silent=False)
+            skincluster = shared.skinCluster(toSkinMesh, silent=False)
             if skincluster == None:
                 continue
             cmds.skinCluster(skincluster, e=True, ub=True)
 
-        jointInfls = cmds.skinCluster(skinclusterBase, q=True, inf=True)
+        
+        jointInfls = cmds.listConnections("%s.matrix"%skinClusterBase, source=True)
         maxInfls = cmds.skinCluster(skinclusterBase, q=True, mi=True)
         joints.removeBindPoses()
-        newSkinCl = cmds.skinCluster(jointInfls, skin, mi=maxInfls)
+        newSkinCl = cmds.skinCluster(jointInfls, toSkinMesh, mi=maxInfls)
         if uvSpace:
             cmds.copySkinWeights(ss=skinclusterBase, ds=newSkinCl[0], nm=True, surfaceAssociation=surfaceAssociation,
                                  uv=["map1", "map1"], influenceAssociation=["label", "oneToOne", "name"],
@@ -309,6 +264,55 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
             cmds.copySkinWeights(ss=skinclusterBase, ds=newSkinCl[0], nm=True, surfaceAssociation=surfaceAssociation,
                                  influenceAssociation=["label", "oneToOne", "name"], normalize=True)
     return True
+
+@shared.dec_undo
+def Copy2MultVertex(selection, lastSelected):
+    index = int(lastSelected.split("[")[-1].split("]")[0])
+    mesh = lastSelected.split('.')[0]
+    sc = shared.skinCluster(mesh, True)
+
+    infJoints =  cmds.listConnections("%s.matrix"%sc, source=True)
+    currentValues = cmds.skinPercent(sc, "%s.vtx[%i]"%(mesh, index), q=1, value=1)
+    
+    transformValueList = []
+    for i, jnt in enumerate(infJoints):
+        transformValueList.append([jnt, currentValues[i]])
+
+    cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize = 0,zeroRemainingInfluences = True )
+
+    return True
+
+@shared.dec_undo
+def hammerVerts(inSelection, needsReturn=True):
+    mesh = inSelection[0].split('.')[0]
+    sc = shared.skinCluster(mesh, True)
+    maxInfls = cmds.skinCluster(sc, q=True, mi=True)
+
+    cmds.skinCluster(sc, e=1, sw = 0.0, swi= 5, omi = True, forceNormalizeWeights = True)
+    if needsReturn:
+        return convertToVertexList(inSelection)
+    return True
+
+@shared.dec_undo
+def switchVertexWeight(vertex1, vertex2):
+    mesh = vertex1.split('.')[0]
+    sc = shared.skinCluster(mesh)
+    cmds.skinCluster(mesh, e=True, nw=1)
+    listBoneInfluence =  cmds.listConnections("%s.matrix"%sc, source=True)
+
+    pointWeights1 = cmds.skinPercent(skinClusterName, vertex1, q=True, value=True)
+    pointWeights2 = cmds.skinPercent(skinClusterName, vertex2, q=True, value=True)
+
+    pointsWeightsList1 = []
+    pointsWeightsList2 = []
+    for j, bone in enumerate(listBoneInfluence):
+        pointsWeightsList1.append(bone, pointWeights1[j])
+        pointsWeightsList2.append(bone, pointWeights2[j])
+
+    cmds.skinPercent(skinClusterName, vertex1, transformValue=pointsWeightsList2)
+    cmds.skinPercent(skinClusterName, vertex2, transformValue=pointsWeightsList1)
+    return True
+
 
 
 def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=None):
@@ -417,37 +421,10 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
     return succeeded
 
 
-def Copy2MultVertex(selection, secondSelection=False):
-    ''' copy vertex informaton from 1 vetex to the rest of the selection, making sure all weights are the same'''
-    if not len(selection) >= 2:
-        cmds.error("please select more then 2 components!")
-    lastSelected = selection[-1]
-    if secondSelection:
-        lastSelected = selection[1]
-    pointList = [x for x in selection if x != lastSelected]
-    baseMesh = lastSelected.split('.')[0]
-    meshShapeName = cmds.listRelatives(baseMesh, s=True)[0]
-    skinClusterName = SkinningTools.skinCluster(baseMesh, True)
-
-    SkinWeightCopyInfluences = cmds.skinCluster(skinClusterName, q=True, inf=True)
-    SkinWeightCopyWeights = cmds.skinPercent(skinClusterName, lastSelected, query=True, value=True)
-
-    # using selection is faster then going through for loop ... thank you maya!
-    cmds.select(pointList)
-    command = cStringIO.StringIO()
-    command.write('cmds.skinPercent("%s", transformValue=[' % (skinClusterName))
-
-    for count, skinJoint in enumerate(SkinWeightCopyInfluences):
-        command.write('("%s", %s)' % (skinJoint, SkinWeightCopyWeights[count]))
-        if not count == len(SkinWeightCopyInfluences) - 1:
-            command.write(', ')
-    command.write('], normalize=False, zeroRemainingInfluences=True)')
-    eval(command.getvalue())
-
-    return True
 
 
-@dec_undo
+
+@shared.dec_undo
 def neighbourAverage(components, warningPopup=True):
     '''similar to hammer skinweights, more brute force, smooths current weights according to nearest neighbour'''
     expandedVertices = convertToVertexList(components)
@@ -476,200 +453,81 @@ def neighbourAverage(components, warningPopup=True):
     return True
 
 
-@dec_undo
-def hammerVerts(input, needsReturn=True):
-    ''' simple call for the weight hammer mel command + added functionality to return vertices'''
-    cmds.select(input, r=1)
-    mel.eval("weightHammerVerts")
-    if needsReturn:
-        return convertToVertexList(input)
-    return True
 
 
-@dec_undo
-def BoneMove(bone1, bone2, skin):
-    '''transfer weights between 2 joints using the selected mesh'''
-    skinClusterName = SkinningTools.skinCluster(skin, True)
-    infjnts = cmds.skinCluster(skinClusterName, q=True, inf=True)
-
-    if not bone1 in infjnts:
-        cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=bone1)
-    if not bone2 in infjnts:
-        cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=bone2)
-
-    meshShapeName = cmds.listRelatives(skin, s=True)[0]
-    outInfluencesArray = cmds.SkinWeights([meshShapeName, skinClusterName], q=True)
-
-    # get bone1 position and bone2 position in list
-    infLengt = len(infjnts)
-    bone1Pos = 0
-    bone2Pos = 0
-    for i in xrange(infLengt):
-        if infjnts[i] == bone1:
-            bone1Pos = i
-        if infjnts[i] == bone2:
-            bone2Pos = i
-
-    lenOutInfArray = len(outInfluencesArray)
-    amountToLoop = (lenOutInfArray / infLengt)
-
-    for j in xrange(amountToLoop):
-        newValue = outInfluencesArray[(j * infLengt) + bone2Pos] + outInfluencesArray[(j * infLengt) + bone1Pos]
-        outInfluencesArray[(j * infLengt) + bone2Pos] = newValue
-        outInfluencesArray[(j * infLengt) + bone1Pos] = 0.0
-
-    cmds.SkinWeights([meshShapeName, skinClusterName], nwt=outInfluencesArray)
-    return True
-
-
-@dec_undo
-def BoneSwitch(joint1, joint2, skin):
-    '''switch bone influences by reconnecting matrices in the skincluster plugs
-    really fast, downside: only applicable in bindpose'''
-
-    skinClusterName = SkinningTools.skinCluster(skin, True)
-    connection1 = cmds.listConnections(joint1 + '.worldMatrix', s=0, d=1, c=1, p=1, type="skinCluster")
-    connection2 = cmds.listConnections(joint2 + '.worldMatrix', s=0, d=1, c=1, p=1, type="skinCluster")
-
-    sameCluster1 = False
-    sameCluster2 = False
-    currentConnection1 = ''
-    currentConnection2 = ''
-    for conn1 in connection1:
-        if conn1.split('.')[0] == skinClusterName:
-            sameCluster1 = True
-            currentConnection1 = conn1
-    for conn2 in connection2:
-        if conn2.split('.')[0] == skinClusterName:
-            sameCluster2 = True
-            currentConnection2 = conn2
-
-    if sameCluster1 == False or sameCluster2 == False:
-        cmds.warning("bones not part of the same skincluster!")
-    try:
-        origConnection1 = currentConnection1.split('matrix')[-1]
-        origConnection2 = currentConnection2.split('matrix')[-1]
-
-        cmds.disconnectAttr(joint1 + '.worldMatrix', currentConnection1)
-        cmds.disconnectAttr(joint2 + '.worldMatrix', currentConnection2)
-        cmds.disconnectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights%s" % (skinClusterName, origConnection1))
-        cmds.disconnectAttr("%s.lockInfluenceWeights" % joint2, "%s.lockWeights%s" % (skinClusterName, origConnection2))
-
-        cmds.connectAttr(joint1 + '.worldMatrix', currentConnection2, f=1)
-        cmds.connectAttr(joint2 + '.worldMatrix', currentConnection1, f=1)
-        cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights%s" % (skinClusterName, origConnection2),
-                         f=1)
-        cmds.connectAttr("%s.lockInfluenceWeights" % joint2, "%s.lockWeights%s" % (skinClusterName, origConnection1),
-                         f=1)
-
-        SkinningTools().resetSkinnedJoints([joint1, joint2], skinClusterName)
-    except Exception as e:
-        cmds.warning(e)
-        return False
-    return True
-
-
-@dec_undo
-def ShowInfluencedVerts(skin, bones, progressBar=None):
-    ''' management to show and select all vertices that are influenced by the given bones. 
-    even a small influence (for example: "1.0e-17") will be shown '''
-    selection = []
-    percentage = 100.0 / len(bones)
-
-    skinClusterName = SkinningTools.skinCluster(skin, True)
-    for iteration, bone in enumerate(bones):
-        # pymel version is cleaner as it doesnt do unecesary selections in between
-        if _pymel:
-            jointsAttached = cmds.skinCluster(skinClusterName, q=True, inf=True)
-            if not bone in jointsAttached:
-                continue
-            skinNode = PyNode(skinClusterName)
-            vert_list, values = skinNode.getPointsAffectedByInfluence(bone)
-            foundVerts = vert_list.getSelectionStrings()
-            if len(foundVerts) == 0:
-                continue
-            expandedVertices = convertToVertexList(foundVerts)
-        else:
-            cmds.select(cl=True)
-            cmds.skinCluster(skin, e=True, nw=1)
-            cmds.select(bone, d=True)
-            SkinningTools.doCorrectSelectionVisualization(skin)
-            cmds.select(cl=True)
-            cmds.skinCluster(skinClusterName, e=True, siv=bone)
-            expandedVertices = cmds.ls(sl=True, fl=True)
-        if expandedVertices == None or len(expandedVertices) == 0:
-            continue
-        for select in expandedVertices:
-            if not "." in select:
-                continue
-            selection.append(select)
-
-        if progressBar != None:
-            progressBar.setValue(percentage * iteration)
-            QApplication.processEvents()
-    if progressBar != None:
-        progressBar.setValue(100)
-        QApplication.processEvents()
-
-    SkinningTools.doCorrectSelectionVisualization(skin)
-    return selection
-
-
-@dec_undo
-def switchVertexWeight(vertex1, vertex2):
-    '''switches weight infromation between 2 vertices'''
-    mesh = vertex1.split('.')[0]
-    skinClusterName = SkinningTools.skinCluster(mesh)
-    cmds.skinCluster(mesh, e=True, nw=1)
-    listBoneInfluence = cmds.skinCluster(mesh, q=True, influence=True)
-
-    boneAmount = len(listBoneInfluence)
-
-    pointWeights1 = cmds.skinPercent(skinClusterName, vertex1, q=True, value=True)
-    pointWeights2 = cmds.skinPercent(skinClusterName, vertex2, q=True, value=True)
-
-    pointsWeightsList1 = [None] * boneAmount
-    pointsWeightsList2 = [None] * boneAmount
-    for j, bone in enumerate(listBoneInfluence):
-        pointsWeightsList1[j] = (bone, pointWeights1[j])
-        pointsWeightsList2[j] = (bone, pointWeights2[j])
-
-    cmds.skinPercent(skinClusterName, vertex1, transformValue=pointsWeightsList2)
-    cmds.skinPercent(skinClusterName, vertex2, transformValue=pointsWeightsList1)
-    return True
-
-
-@dec_undo
+@shared.dec_undo
 def smoothAndSmoothNeighbours(input, both=False, growing=False):
     '''will hammer the weights of the selected region and then also hammer the edge of the selected region'''
-    expandedVertices = convertToVertexList(input)
-    meshes = {}
-    for expandedVert in expandedVertices:
-        mesh = expandedVert.split('.')[0]
-        if not mesh in meshes:
-            meshes[mesh] = [expandedVert]
-        else:
-            meshes[mesh].append(expandedVert)
-
-    for mesh in meshes:
-        skinClusterName = shared.skinCluster(mesh)
-        if both:
-            cmds.select(meshes[mesh], r=1)
-            cmds.skinCluster(skinClusterName, geometry=meshes[mesh], e=True, sw=0.000001, swi=5, omi=0,
-                             forceNormalizeWeights=1)
-        convertedFaces = cmds.polyListComponentConversion(meshes[mesh], tf=True)
-        expandedVertices1 = convertToVertexList(convertedFaces)
-        fixedList = list(set(expandedVertices1) ^ set(meshes[mesh]))
-        cmds.select(fixedList, r=1)
-        cmds.skinCluster(skinClusterName, geometry=fixedList, e=True, sw=0.000001, swi=5, omi=0,
-                         forceNormalizeWeights=1)
+    vertices = convertToVertexList(input)
+    mesh = vertices[0].split('.')[0]
+    
+    sc = shared.skinCluster(mesh)
+    if both:
+        cmds.select(vertices, r=1)
+        cmds.skinCluster(sc, geometry=vertices, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
+    
+    grown = convertToVertexList(cmds.polyListComponentConversion(vertices, tf=True))
+    fixedList = list(set(grown) ^ set(vertices))
+    cmds.select(fixedList, r=1)
+    cmds.skinCluster(sc, geometry=fixedList, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
 
     if not growing or both == False:
         return expandedVertices
+
     return fixedList
 
+# @note: different ways to grow selection:
+'''
+from maya.api import OpenMaya
+from maya import cmds
+import time
 
-@dec_undo
+# possible quick qay to get neighbours??
+
+start = time.time()
+vertices = cmds.ls(sl=1, fl=1)
+mesh  = vertices[0].split(".")[0]
+
+def convertToVertexList(inObject):
+    convertedVertices = cmds.polyListComponentConversion(inObject, tv=True)
+    return cmds.filterExpand(convertedVertices, sm=31)
+grown = convertToVertexList(cmds.polyListComponentConversion(vertices, tf=True))
+fixedList = list(set(grown) ^ set(vertices))
+cmds.select(fixedList)
+print time.time() -start
+
+
+start = time.time()
+vertices = cmds.ls(sl=1, fl=1)
+mesh  = vertices[0].split(".")[0]
+
+def n( name ):
+    sellist = OpenMaya.MGlobal.getSelectionListByName( name )
+    try:
+        return sellist.getDagPath(0)
+    except:
+        return sellist.getDependNode(0)
+shape = cmds.listRelatives(mesh, s=1)[0]
+meshPath = n( shape )
+meshNode = meshPath.node()
+
+meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
+
+nbs = []
+for vert in vertices:
+    index = int(vert.split("[")[-1].split("]")[0])
+    meshVerItFn.setIndex(index)
+    nbs.extend(meshVerItFn.getConnectedVertices())
+    
+sel = []
+for nb in nbs:
+    sel.append("%s.vtx[%i]"%(mesh,nb))
+cmds.select(sel)
+print time.time() -start
+'''
+
+
+@shared.dec_undo
 def removeUnusedInfluences(objects, progressBar=None):
     percentage = 100.0 / len(objects)
     for index, obj in enumerate(objects):
@@ -705,7 +563,7 @@ def removeUnusedInfluences(objects, progressBar=None):
     return True
 
 
-@dec_undo
+@shared.dec_undo
 def transferUvToSkinnedObject(mesh_source, mesh_target):
     '''transfer uv's to intermediate shape instead of final shape. clean and no deformation with bind movement'''
     shapes = cmds.listRelatives(mesh_target, ad=True, type="mesh")
@@ -775,7 +633,7 @@ def freezeSkinnedMesh(meshes, progressBar=None):
     return meshes
 
 
-@dec_undo
+@shared.dec_undo
 def seperateSkinnedObject(meshes, progressBar=None):
     '''seperates mesh by polyshells and keeps skinning information intact
     @param meshes: all meshses that need to be seperated'''
@@ -840,7 +698,7 @@ def seperateSkinnedObject(meshes, progressBar=None):
     return True
 
 
-@dec_undo
+@shared.dec_undo
 def extractSkinnedShells(components):
     '''extracts selected components as a new mesh but keeps skininfo
     @param components: components needed to extract to include skinning, if no skincluster found only extracts mesh'''
@@ -874,7 +732,7 @@ def extractSkinnedShells(components):
     return dup
 
 
-@dec_undo
+@shared.dec_undo
 def combineSkinnedMeshes(meshes):
     '''combines meshes and keeps skin info in tact
     uses maya command for maya 2016+
@@ -946,7 +804,7 @@ def combineSkinnedMeshes(meshes):
     return newMesh
 
 
-@dec_undo
+@shared.dec_undo
 def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
     '''removes influences on selected component that are not selected in the jointsselection given
     @param fullSelection: component or mesh selection that needs te be cleaned
@@ -973,7 +831,7 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
     return True
 
 
-@dec_undo
+@shared.dec_undo
 def hardSkinSelectionShells(selection, progressBar=False):
     '''converts selection to shells, gathers weights from each shell and averages it out and give each vertex of the shell the new weights
     @param selection: input selection, any component selection will do'''
@@ -1024,59 +882,3 @@ def hardSkinSelectionShells(selection, progressBar=False):
     return selection
 
 
-def comparejointInfluences(skinObjects, query=False):
-    # @todo make this one smarter!
-    # for each skincluster grab joints
-    # add all joints together in a set
-    # then compare current  joints with set, add joints that are not in there yet
-    # use the add joint feature or somethign like this:
-    #
-    # add = []
-    #     for influence in inInfluences:
-    #         if influence not in outInfluences:
-    #             add.append(influence)
-    #     if add:
-    #         cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
-    #
-    '''makes sure that given skinobjects have the same joints influencing, its a safety measure when copying weights between different objects'''
-    compareLists = []
-    for skinObject in skinObjects:
-        skinClusterName = skinCluster(skinObject, True)
-        if skinClusterName == None:
-            continue
-
-        joints = cmds.skinCluster(skinClusterName, q=True, inf=True)
-        compareLists.append([skinObject, joints])
-
-    if len(compareLists) < 2:
-        cmds.error("please select at least 2 objects with skinclusters")
-    totalCompares = len(compareLists)
-    missingJointsList = []
-    for i in range(totalCompares):
-        for list in compareLists:
-            if list == compareLists[i]:
-                continue
-            missedjoints = []
-            for match in list[1]:
-                if not any(match in value for value in compareLists[i][1]):
-                    missedjoints.append(match)
-
-            missingJointsList.append([compareLists[i][0], missedjoints])
-    if query == True:
-        joints = []
-        for missingList in missingJointsList:
-            for joint in missingList[1]:
-                joints.append(joint)
-        if len(joints) == 0:
-            return None
-        else:
-            return True
-    else:
-        for missingJoints in missingJointsList:
-            skinClusterName = skinCluster(missingJoints[0], True)
-            for joint in missingJoints[1]:
-                try:
-                    cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=joint)
-                except:
-                    pass
-    return True

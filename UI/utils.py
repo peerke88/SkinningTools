@@ -118,3 +118,20 @@ def setProgress(inValue, progressBar, inText = ''):
         return
     progressBar.setValue(inValue)
     QApplication.processEvents()
+
+def smart_round(value, ndigits):
+    return int(value * (10 * ndigits)) / (10. * ndigits)
+
+def round_compare(vA, vB, debug = False):
+    for a, b in zip(vA, vB):
+        x = smart_round(a, 5)
+        y = smart_round(b, 5)
+        if not x == y:
+            if debug:
+                print(x)
+                print(y)
+            return False
+    return True
+
+def compare_vec3(a, b, epsilon=1e-5):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]) +abs(a[2] - b[2]) < epsilon
