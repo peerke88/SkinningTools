@@ -8,7 +8,6 @@ from maya.api import OpenMaya
 
 def dec_undo(func):
     '''undo decorator'''
-
     @wraps(func)
     def _undo_func(*args, **kwargs):
         try:
@@ -101,7 +100,7 @@ def skinCluster(inObject=None, silent=False):
     if not inObject:
         return None
     inObject = getParentShape(inObject)
-    skinCluster = mel.eval('findRelatedSkinCluster("%s");' % inObject)
+    skinCluster = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
     if not skinCluster:
         if silent == False:
             cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % inObject, button=['Ok'],
@@ -189,6 +188,43 @@ def getJointIndexMap(inSkinCluster):
     for index, conn in enumerate(inConns[1::2]):
         _connectDict[conn] = indices[index]
     return _connectDict
+
+def convertToIndexList(vertList):
+    indices = []
+    for i in vertList:
+        index = int(i[i.index("[") + 1: -1])
+        indices.append(index)
+    return indices
+
+def convertToCompList(indices, mesh, comp = "vtx"):
+    vertices = []
+    for i in list(indices):
+        vrt = "%s.%s[%s]" % (mesh,comp, i)
+
+        vertices.append(vrt)
+    return vertices
+
+def toToEdgeNumber(vtx):
+    toEdges = cmds.polyListComponentConversion(vtx, te=True)
+    edges = cmds.filterExpand(toEdges, sm=32)
+    en = []
+    for e in edges:
+        en.append(int(e[e.index("[") + 1: -1]))
+    return en
+
+def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength = 40):
+    e1n = toToEdgeNumber(vtx1)
+    e2n = toToEdgeNumber(vtx2)
+    found = []
+    combinations = list(itertools.product(e1n, e2n))
+    for e1, e2 in combinations:
+        edgeSel = cmds.polySelect(mesh, elp=[e1, e2], ns=True)
+        if edgeSel == None:
+            continue
+        loopSize = len(edgeSel)
+        if loopSize > maxLength and first:
+            continue
+        return loopSize
 
 # -------------maya ui tools----------------
 

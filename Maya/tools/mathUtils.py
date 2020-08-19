@@ -46,3 +46,8 @@ def getVectorFromMatrix(matrix, index):
     else:
         vec = toVec3([matrix.get(index, 0), matrix.get(index, 1), matrix.get(index, 2)])
     return vec
+
+def measureLength(object1, object2):
+    pos1 = MVector(*cmds.xform(object1, q=True, ws=True, t=True))
+    pos2 = MVector(*cmds.xform(object2, q=True, ws=True, t=True))
+    return (pos1 - pos2).length()

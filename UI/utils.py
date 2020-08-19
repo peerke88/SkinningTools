@@ -3,7 +3,6 @@ from SkinningTools.py23 import *
 import re
 from SkinningTools.UI.qt_util import *
 
-
 def nullVBoxLayout(parent=None, size=0):
     v = QVBoxLayout()
     v.setContentsMargins(size, size, size, size)
@@ -135,3 +134,17 @@ def round_compare(vA, vB, debug = False):
 
 def compare_vec3(a, b, epsilon=1e-5):
     return abs(a[0] - b[0]) + abs(a[1] - b[1]) +abs(a[2] - b[2]) < epsilon
+
+
+def lerp(a, b, t):
+    return a * (1 - t) + b * t
+
+def vLerp(start, end, percent):
+    return start + percent * (end - start)
+
+def invLerp(a, b, v):
+    return (v - a) / (b - a)
+
+def remap(iMin, iMax, oMin, oMax, v):
+    t = invLerp(iMin, iMax, v)
+    return lerp(oMin, oMax, t)
