@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import math, itertools
 from decimal import Decimal
 from heapq import nsmallest
