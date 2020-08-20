@@ -8,7 +8,7 @@ from maya import cmds, mel
 # @note all functions must have connection wiuth progressbar and sensible progress messages, 
 # look into warning messages later
 @shared.dec_undo
-def autoLabelJoints(inputLeft, inputRight, progressBar=None):
+def autoLabelJoints(inputLeft = "L_*", inputRight = "R_*", progressBar=None):
     def SetAttrs(side, type, name):
         for attr in [ "side", "type", "otherType", "drawLabel"]:
             cmds.setAttr("%s.%s"%(bone, attr), l=0)
@@ -38,21 +38,21 @@ def autoLabelJoints(inputLeft, inputRight, progressBar=None):
     for iteration1, bone in enumerate(leftJoints):
         SetAttrs(1, 18, str(bone).replace(str(inputLeft).strip("*"), ""))
         allJoints.remove(bone)
-        utils.setprogress((iteration1 + 1) * percentage, progressBar, "Setting left Side")
+        utils.setProgress((iteration1 + 1) * percentage, progressBar, "Setting left Side")
 
     for iteration2, bone in enumerate(rightJoints):
         SetAttrs(2, 18, str(bone).replace(str(inputRight).strip("*"), ""))
         allJoints.remove(bone)
-        utils.setprogress((iteration1 + iteration2) * percentage, progressBar, "Setting right Side")
+        utils.setProgress((iteration1 + iteration2) * percentage, progressBar, "Setting right Side")
 
     for iteration3, bone in enumerate(allJoints):
         SetAttrs(0, 18, str(bone))
-        utils.setprogress((iteration1 + iteration2 + iteration3) * percentage, progressBar, "Setting center")
+        utils.setProgress((iteration1 + iteration2 + iteration3) * percentage, progressBar, "Setting center")
 
     for bone in allFoundjoints:
         cmds.setAttr(bone + '.drawLabel', 0)
 
-    utils.setprogress(100, progressBar, "labeling joints")
+    utils.setProgress(100, progressBar, "labeling joints")
     return True
 
 @shared.dec_undo
@@ -68,9 +68,9 @@ def resetToBindPoseobject(inObject, progressBar = None):
 
         matrix = mathUtils.matrixToFloatList(mathUtils.floatToMatrix(prebindMatrix).inverse())
         cmds.xform(joint, ws=True, m=matrix)
-        utils.setprogress(i * percentage, progressBar, "rest pose on %s"%joint)
+        utils.setProgress(i * percentage, progressBar, "rest pose on %s"%joint)
     
-    utils.setprogress(100, progressBar, "bindposes reset")
+    utils.setProgress(100, progressBar, "bindposes reset")
     return True
 
 @shared.dec_undo
@@ -104,8 +104,8 @@ def resetSkinnedJoints(inJoints = None, inSkinCluster=None, progressBar = None):
         else:
             if inSkinCluster is not None and inJoints is not None:
                 print("%s not attached to %s!" %(joint, inSkinCluster))
-        utils.setprogress(i * percentage, progressBar, "resetting %s"%joint)
-    utils.setprogress(100, progressBar, "joints reset")
+        utils.setProgress(i * percentage, progressBar, "resetting %s"%joint)
+    utils.setProgress(100, progressBar, "joints reset")
     return True
 
 def freezeScale(joints, progressBar = None):
@@ -120,12 +120,12 @@ def freezeScale(joints, progressBar = None):
         pos = mathUtils.getVectorFromMatrix(mm, 3)
         nm = mathUtils.vectorsToMatrix([x,y,z, pos])
         wms.append(nm)
-        utils.setprogress(i * percentage, progressBar, "freeze scale on %s"%joint)
+        utils.setProgress(i * percentage, progressBar, "freeze scale on %s"%joint)
    
     for index, jnt in enumerate(joints):
         fm = mathUtils.matrixToFloatList(wms[index])
         cmds.xform(jnt, ws=1, m = fm)
-    utils.setprogress(100, progressBar, "scale frozen")
+    utils.setProgress(100, progressBar, "scale frozen")
 
 def freezeRotate(joints, progressBar = None):
     percentage = 99.0/len(joints)
@@ -147,8 +147,8 @@ def freezeRotate(joints, progressBar = None):
             cmds.setAttr(joint + '.r', 0, 0, 0)
         except:
             pass
-        utils.setprogress(i * percentage, progressBar, "freeze rotate on %s"%joint)
-    utils.setprogress(100, progressBar, "rotate frozen")
+        utils.setProgress(i * percentage, progressBar, "freeze rotate on %s"%joint)
+    utils.setProgress(100, progressBar, "rotate frozen")
     return joints
 
 @shared.dec_undo
@@ -158,12 +158,12 @@ def freezeSkinnedJoints(joints, rotate = 1, scale = 1, progressBar = None):
         joints = shared.selectHierarchy(joints)
     if rotate:
         freezeRotate(joints)
-        utils.setprogress(33, progressBar, "freezeRotate")
+        utils.setProgress(33, progressBar, "freezeRotate")
     if scale:
         freezeScale(joints)
-        utils.setprogress(66, progressBar, "freezeScale")
+        utils.setProgress(66, progressBar, "freezeScale")
     resetSkinnedJoints(joints)
-    utils.setprogress(100, progressBar, "freeze skinned joints")
+    utils.setProgress(100, progressBar, "freeze skinned joints")
 
 @shared.dec_undo
 def removeBindPoses(progressBar = None):
@@ -173,8 +173,8 @@ def removeBindPoses(progressBar = None):
         if not cmds.getAttr("%s.bindPose" % dagPose):
             continue
         cmds.delete(dagPose)
-        utils.setprogress(index * percentage, progressBar, "delete bindposes")
-    utils.setprogress(100, progressBar, "delete bindposes")
+        utils.setProgress(index * percentage, progressBar, "delete bindposes")
+    utils.setProgress(100, progressBar, "delete bindposes")
     return True
 
 @shared.dec_undo
@@ -187,8 +187,8 @@ def addCleanJoint(joints, mesh, progressBar = None):
             if joint in jointInfls:
                 continue
             cmds.skinCluster(skinClusterName, e=True, lw=False, wt=0.0, ai=joint)
-            utils.setprogress(index * percentage, progressBar, "adding joints")
-    utils.setprogress(100, progressBar, "adding joints")
+            utils.setProgress(index * percentage, progressBar, "adding joints")
+    utils.setProgress(100, progressBar, "adding joints")
     return True
 
 @shared.dec_undo
@@ -211,10 +211,10 @@ def BoneMove(joint1, joint2, skin, progressBar = None):
         newValue = outInfluencesArray[(j * infLengt) + pos2] + outInfluencesArray[(j * infLengt) + pos1]
         outInfluencesArray[(j * infLengt) + pos2] = newValue
         outInfluencesArray[(j * infLengt) + pos1] = 0.0
-        utils.setprogress(j * percentage, progressBar, "moving joint influences")
+        utils.setProgress(j * percentage, progressBar, "moving joint influences")
 
     cmds.SkinWeights([meshShapeName, skinClusterName], nwt=outInfluencesArray)
-    utils.setprogress(100, progressBar, "moved joint influences")
+    utils.setProgress(100, progressBar, "moved joint influences")
     return True
 
 @shared.dec_undo
@@ -226,16 +226,16 @@ def BoneSwitch(joint1, joint2, skin, progressBar = None):
     for key, val in _connectDict.iteritems():
         cmds.disconnectAttr('%s.worldMatrix'%key, '%s.matrix[%i]'%(skinClusterName,val))
         cmds.disconnectAttr("%s.lockInfluenceWeights"%key, "%s.lockWeights[%s]" % (skinClusterName, val))
-    utils.setprogress(33, progressBar, "get influence map")
+    utils.setProgress(33, progressBar, "get influence map")
 
     cmds.connectAttr(joint1 + '.worldMatrix', '%s.matrix[%i]'%(skinClusterName,_connectDict[joint2]), f=1)
     cmds.connectAttr(joint2 + '.worldMatrix', '%s.matrix[%i]'%(skinClusterName,_connectDict[joint1]), f=1)
     cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights[%s]" % (skinClusterName, _connectDict[joint2]), f=1)
     cmds.connectAttr("%s.lockInfluenceWeights" % joint2, "%s.lockWeights[%s]" % (skinClusterName, _connectDict[joint1]), f=1)
-    utils.setprogress(66, progressBar, "switch influences")
+    utils.setProgress(66, progressBar, "switch influences")
 
     resetSkinnedJoints([joint1, joint2], skinClusterName)
-    utils.setprogress(100, progressBar, "switched bones")
+    utils.setProgress(100, progressBar, "switched bones")
     return True
 
 @shared.dec_undo
@@ -255,11 +255,11 @@ def ShowInfluencedVerts(inMesh, joints, progressBar=None):
         res = [idx for idx, val in enumerate(w) if val > 0.0] 
         for i in res:
             toSelect.append("%s.vtx[%i]"%("body_low", i))
-        utils.setprogress(percentage * index, progressBar, "gather weight information")
+        utils.setProgress(percentage * index, progressBar, "gather weight information")
 
     cmds.select(toSelect, r=1)
     shared.doCorrectSelectionVisualization(inMesh)
-    utils.setprogress(100, progressBar, "show influenced vertices")
+    utils.setProgress(100, progressBar, "show influenced vertices")
     return toSelect
 
 @shared.dec_undo
@@ -274,11 +274,11 @@ def removeJointBySkinPercent(skinObject, jointsToRemove, skinClusterName, progre
         if not jnt in jointsAttached:
             continue
         jnts.append((jnt, 0.0))
-        utils.setprogress(index * percentage, progressBar, "removing joint weights")
+        utils.setProgress(index * percentage, progressBar, "removing joint weights")
 
     cmds.select(verts, r=1)
     cmds.skinPercent(skinClusterName, tv=jnts, normalize=True)
-    utils.setprogress(100, progressBar, "joint weights removed")
+    utils.setProgress(100, progressBar, "joint weights removed")
 
 @shared.dec_undo
 def deleteJointSmart(jointsToRemove, progressBar = None):
@@ -292,9 +292,9 @@ def deleteJointSmart(jointsToRemove, progressBar = None):
             cmds.parent(childJoints, w=1)
             continue
         cmds.parent(childJoints, parent)
-        utils.setprogress(index * percentage, progressBar, "reparenting joints")
+        utils.setProgress(index * percentage, progressBar, "reparenting joints")
     cmds.delete(jointsToRemove)
-    utils.setprogress(100, progressBar, "deleted joints")
+    utils.setProgress(100, progressBar, "deleted joints")
 
 @shared.dec_undo
 def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=False, progressBar=None):
@@ -310,7 +310,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         if fast:
             removeJointBySkinPercent(skinObject, jointsToRemove, skinClusterName, progressBar)
             skinClusters.append(skinClusterName)
-            utils.setprogress(skinIter * skinPercentage, progressBar, "removing influences")
+            utils.setProgress(skinIter * skinPercentage, progressBar, "removing influences")
             continue
 
         if not useParent:
@@ -351,7 +351,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
 
             BoneMove(bone1, bone2, skinObject)
 
-            utils.setprogress((jntIter + 1) * jntPercentage, progressBar, "remapping joints influences")
+            utils.setProgress((jntIter + 1) * jntPercentage, progressBar, "remapping joints influences")
 
         skinClusters.append(skinClusterName)
 
@@ -366,7 +366,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
     if delete:
         deleteJointSmart(jointsToRemove)
 
-    utils.setprogress(100, progressBar, "removed joints")
+    utils.setProgress(100, progressBar, "removed joints")
     
     return True
 
@@ -377,27 +377,27 @@ def comparejointInfluences(skinObjects, query=False, progressBar=None):
         skinClusterName = shared.skinCluster(obj, True)
         jnt = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         joints.append(jnt)
-    utils.setprogress(33, progressBar, "get joint maps")
+    utils.setProgress(33, progressBar, "get joint maps")
 
     setList = []
     for i, s in enumerate(joints):
         setList.append(set(joints[i]).difference(*(joints[:i] + joints[i+1:])))
 
-    utils.setprogress(66, progressBar, "find differences")
+    utils.setProgress(66, progressBar, "find differences")
     
     joints = []
     for jntSet in setList:
         joints.extend(list(jntSet))
 
     if query == True:
-        utils.setprogress(100, progressBar, "found missing influences")
+        utils.setProgress(100, progressBar, "found missing influences")
         if joints:
             return joints
         return None
 
     for obj in skinObjects:
         addCleanJoint(joints, obj)
-    utils.setprogress(100, progressBar, "unified joint maps")
+    utils.setProgress(100, progressBar, "unified joint maps")
     return True
 
 def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
@@ -410,15 +410,15 @@ def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
         for jnt in currentJoints:
             if jnt in joints and not geo in meshes:
                 meshes.append(geo)
-        utils.setprogress(index * percentage, progressBar, "listing connections")
-    utils.setprogress(100, progressBar, "gather mesh information")
+        utils.setProgress(index * percentage, progressBar, "listing connections")
+    utils.setProgress(100, progressBar, "gather mesh information")
     return meshes
 
 def getInfluencingJoints(object, progressBar=None):
     skinClusterName = SkinningTools.skinCluster(object, silent=True)
     if skinClusterName != None:
         jointInfls = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
-        utils.setprogress(100, progressBar, "get influencing joints")
+        utils.setProgress(100, progressBar, "get influencing joints")
         return jointInfls
 
 @shared.dec_undo
@@ -436,8 +436,8 @@ def removeUnusedInfluences(inObject, progressBar = None):
     percentage = 99.0 / len(toRemove)
     for index, jnt in enumerate(toRemove):
         cmds.skinCluster(sc, e=1, ri = jnt)
-        utils.setprogress(index * percentage, progressBar, "removing joint %s from mesh"%jnt)
+        utils.setProgress(index * percentage, progressBar, "removing joint %s from mesh"%jnt)
 
     cmds.setAttr("%s.nodeState"%sc, nodeState)
-    utils.setprogress(100, progressBar, "removed %i joints from influence"%(index+1))
+    utils.setProgress(100, progressBar, "removed %i joints from influence"%(index+1))
 

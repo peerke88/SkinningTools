@@ -3,7 +3,8 @@ from functools import partial
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.shared import *
-from SkinningTools.Maya.tools.skinCluster import comparejointInfluences, execCopySourceTarget
+from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget
+from SkinningTools.Maya.tools.joints import comparejointInfluences
 
 class TransferWeightsWidget(QWidget):
     def __init__(self, parent=None):

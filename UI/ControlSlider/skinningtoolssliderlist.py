@@ -27,7 +27,7 @@ class SkinningToolsSliderList(QWidget):
             return
 
         skinClusterCache = {}
-        for mesh, vertex in vertices[:20]:  # truncate the list to it will never cause a leak
+        for mesh, vertex in vertices[:20]:  # truncate the list so it will never cause a leak
             if mesh in skinClusterCache:
                 skinCluster, skinBones = skinClusterCache[mesh]
             else:
@@ -37,9 +37,7 @@ class SkinningToolsSliderList(QWidget):
                 skinBones = api.skinClusterInfluences(skinCluster)
                 skinClusterCache[mesh] = skinCluster, skinBones
 
-            weights = []
-            for bone in skinBones:
-                weights.append(api.getSingleVertexWeight(skinCluster, mesh, vertex, bone))
+            weights = api.getSingleVertexWeights(skinCluster, vertex)
 
             self.layout().addWidget(VertexInfluenceEditor(skinCluster, vertex, skinBones, weights))
 

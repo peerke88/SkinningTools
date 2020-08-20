@@ -4,6 +4,7 @@ from collections import defaultdict, deque
 from functools import wraps
 from maya import cmds, mel
 from maya.api import OpenMaya
+from SkinningTools.UI.qt_util import *
 
 
 def dec_undo(func):
@@ -20,8 +21,50 @@ def dec_undo(func):
             cmds.warning(traceback.format_exc())
         finally:
             cmds.undoInfo(cck=True)
+            return False
 
     return _undo_func
+
+#@note check if this works later!
+def dec_repeat(func):
+    '''repeat last decorator'''
+    @wraps(func)
+    def _repeat_func(*args, **kwargs):
+        ret = func(*args, **kwargs)
+        try:
+            modules = ''
+            arguments = args
+            if [x for x in ['cls', 'self'] if x in func.func_code.co_varnames]:
+                arguments = args[1:]
+                modules = '%s.' % args[0]
+
+            args_string = ''
+            for each in arguments:
+                if isinstance(each, QWidget):
+                    each = None
+                args_string += '%s, ' % each
+
+            kwargs_string = ''
+            for key, item in kwargs.iteritems():
+                if isinstance(item, QWidget):
+                    item = None
+                kwargs_string = '%s=%s, ' % (key, item)
+
+            
+            repeat_command = '%s%s(%s%s)' % (modules, func.__name__, args_string, kwargs_string)
+            if not '' in [args_string, kwargs_string]:
+                repeat_command = '%s%s(%s, %s)' % (modules, func.__name__, args_string, kwargs_string)
+
+            cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command, addCommandLabel=func.__name__)
+        except Exception as e:
+            print(e)
+            print(e.__class__)
+            print(sys.exc_info())
+            cmds.warning(traceback.format_exc())
+        finally:    
+            return ret
+
+    return _repeat_func
 
 
 class Graph(object):
@@ -107,7 +150,7 @@ def skinCluster(inObject=None, silent=False):
                                defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
         else:
             skinCluster = None
-    return skinCluster
+    return skinCluster[0]
 
 
 def getParentShape(object):
@@ -225,47 +268,6 @@ def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength = 40):
         if loopSize > maxLength and first:
             continue
         return loopSize
-
-# -------------maya ui tools----------------
-
-def mirrorSkinOptions():
-    cmds.optionVar(stringValue=("mirrorSkinAxis", "YZ"))
-    cmds.optionVar(intValue=("mirrorSkinWeightsSurfaceAssociationOption", 3))
-    cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption1", 3))
-    cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption2", 2))
-    cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption3", 1))
-    cmds.optionVar(intValue=("mirrorSkinNormalize", 1))
-    cmds.MirrorSkinWeightsOptions()
-
-
-def copySkinWeightsOptions():
-    cmds.optionVar(intValue=("copySkinWeightsSurfaceAssociationOption", 3))
-    cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption1", 4))
-    cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption2", 4))
-    cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption3", 6))
-    cmds.optionVar(intValue=("copySkinWeightsNormalize", 1))
-    cmds.CopySkinWeightsOptions()
-
-
-def uniteSkinned():
-    selection = cmds.ls(sl=True, l=1)
-    cmds.polyUniteSkinned(selection, ch=0, mergeUVSets=1)
-
-
-def mayaToolsWindow():
-    from ...UI.utils import buttonsToAttach
-
-    mb01 = buttonsToAttach('Smooth Bind', cmds.SmoothBindSkinOptions)
-    mb02 = buttonsToAttach('Rigid Bind', cmds.RigidBindSkinOptions)
-    mb03 = buttonsToAttach('Detach Skin', cmds.DetachSkinOptions)
-    mb04 = buttonsToAttach('Paint Skin Weights', cmds.ArtPaintSkinWeightsToolOptions)
-    mb05 = buttonsToAttach('Mirror Skin Weights', mirrorSkinOptions)
-    mb06 = buttonsToAttach('Copy Skin Weights', copySkinWeightsOptions)
-    mb07 = buttonsToAttach('Prune Weights', cmds.PruneSmallWeightsOptions)
-    mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
-
-    return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
-
 
 # --- vertex island functions ---
 

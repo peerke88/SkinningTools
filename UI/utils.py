@@ -2,6 +2,7 @@
 from SkinningTools.py23 import *
 import re
 from SkinningTools.UI.qt_util import *
+from SkinningTools.Maya import api
 
 def nullVBoxLayout(parent=None, size=0):
     v = QVBoxLayout()
@@ -110,11 +111,11 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
         return False
     return True
 
-
-def setProgress(inValue, progressBar, inText = ''):
-    progressbar.message = inText
+def setProgress(inValue, progressBar=None, inText = ''):
     if progressBar == None:
+        api.textProgressBar(inValue, inText)
         return
+    progressBar.message = inText
     progressBar.setValue(inValue)
     QApplication.processEvents()
 

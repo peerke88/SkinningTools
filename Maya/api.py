@@ -8,10 +8,18 @@ import functools
 
 from SkinningTools.Maya.tools import shared
 from SkinningTools.Maya.tools import weightPaintUtils
-from SkinningTools.Maya.tools.shared import mayaToolsWindow
-from SkinningTools.UI.qt_util import QObject
+from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
+from maya.api import OpenMaya
 
+def get_maya_window():
+    for widget in QApplication.allWidgets():
+        try:
+            if widget.objectName() == "MayaWindow":
+                return widget
+        except:
+            pass
+    return None
 
 def selectedObjectVertexList(includeObjects=False):
     step = cmds.ls(sl=True, l=True)
@@ -56,7 +64,7 @@ skinClusterForObjectHeadless = functools.partial(shared.skinCluster, silent=True
 
 
 def skinClusterInfluences(skinCluster):
-    return cmds.skinCluster(skinCluster, q=True, inf=True)
+    return cmds.listConnections("%s.matrix"%skinCluster, source=True)
 
 
 def getSkinWeights(geometry, skinCluster):
@@ -69,17 +77,18 @@ def setSkinWeights(geometry, skinCluster, weights, influenceIndices=None):
     else:
         cmds.SkinWeights(geometry, skinCluster, nwt=weights)
 
-
-def dccToolButtons():
-    return mayaToolsWindow()
-
-
-def getSingleVertexWeight(skinClusterHandle, meshHandle, vertexHandle, influenceHandle):
-    # given a skin, a skinned mesh, a vertex and a joint, return the weight
+def getSingleVertexWeight(skinClusterHandle, vertexHandle, influenceHandle):
+    # given a skin,  a vertex and a joint, return the weight
     # skin cluster can be obtained with skinClusterForObject
-    # mesh and vertex can be obtained with selectedObjectVertexList(True), joint can be obtained with skinClusterInfluences
-    return cmds.skinPercent(skinClusterHandle, meshHandle, vertexHandle, influenceHandle, q=True, value=True)
+    # mvertex can be obtained with selectedObjectVertexList(True), joint can be obtained with skinClusterInfluences
+    return cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, t=influenceHandle)
 
+
+def getSingleVertexWeights(skinClusterHandle, vertexHandle):
+    # given a skin and a vertex, return the weight
+    # skin cluster can be obtained with skinClusterForObject
+    # vertex can be obtained with selectedObjectVertexList(True)
+    return cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, v=True)
 
 def selectVertices(meshVertexPairs):
     cmds.select([v for m, v in meshVertexPairs[:20]])
@@ -123,7 +132,7 @@ def dccInstallEventFilter():
     eventFilterTargets = _cleanEventFilter()
     for eventFilterTarget in eventFilterTargets:
         eventFilterTarget.installEventFilter(_EventFilter.singleton())
-
+    return True
 
 def _cleanEventFilter():
     # joint MarkingMenu filter
@@ -135,3 +144,14 @@ def _cleanEventFilter():
             pass
     return widgets
 
+def textProgressBar(progress, message = ''):
+    barLength = 10 
+    status = ""
+    if progress <= 0:
+        progress = 0
+    progress = progress/100.0
+    if progress >= 1:
+        progress = 1
+    block = int(round(barLength*progress))
+    text = "[%s] %.1f%%, %s"%("#"*block + "-"*(barLength-block), progress*100, message)
+    OpenMaya.MGlobal.displayInfo(text)
