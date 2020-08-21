@@ -462,7 +462,7 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
     return True
 
 @shared.dec_undo
-def smoothAndSmoothNeighbours(input, both=False, growing=False, full = True):
+def smoothAndSmoothNeighbours(input, both=False, growing=False, full = True, progressBar = None):
     utils.setProgress(0, progressBar, "start smooth")
     vertices = shared.convertToVertexList(input)
     mesh = vertices[0].split('.')[0]
@@ -643,3 +643,54 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
 
     utils.setProgress(100, progressBar, "set neighbor average")
     return True
+
+#@note check what the operations do!
+def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operation):
+    mesh = expandedVertices[0].split('.')[0]
+    skinCluster = shared.skinCluster(mesh, True)
+    expandedVertices = shared.convertToVertexList(expandedVertices)
+    allBones = cmds.listConnections("%s.matrix"%skinCluster, source=True)
+    
+    if not inObject in allBones:
+        cmds.skinCluster( skinCluster, e=True, lw=False, wt = 0.0, ai= inObject )
+    
+    if operation == 1:
+        cmds.skinPercent( skinCluster, expandedVertices, tv =[ inObject, skinValue ], normalize=True)
+    elif operation == 4:
+        cmds.skinPercent( skinCluster, expandedVertices, tv =[ inObject, 0.0 ], normalize=True)
+    elif operation == 3:
+        # for loop assigning verts: little bit more costly operation but safe for removal of weight information
+        for index, obj in enumerate( expandedVertices ):
+            val = cmds.skinPercent( skinCluster, obj, transform = inObject, q=True, value=True )
+            newVal = val +  skinValue 
+            if newVal < 0.0:
+                newVal = 0.0
+            cmds.skinPercent( skinCluster, obj, tv =[ inObject, newVal ], normalize=True)
+    else:
+        cmds.skinPercent( skinCluster, expandedVertices, relative=True, tv =[ inObject, skinValue ], normalize=True)
+        
+    #@ note check if this needs to be split off from the main setup   
+    if cmds.softSelect( q=True, softSelectEnabled=True) == 1:
+        
+        expandedVertices, weights = mesh.softSelection()
+        percentage = 99.0/ len(expandedVertices)
+        for index, obj in enumerate( expandedVertices ):
+            if weights[index] == 1.0:
+                continue
+            val = cmds.skinPercent( skinCluster, obj, transform = inObject, q=True, value=True )
+            if operation == 0:
+                newVal = weights[ index ]
+            elif operation == 1:
+                newVal = ( skinValue * weights[ index ] )
+            elif operation == 2:
+                newVal = val + ( skinValue * weights[ index ] )
+                if newVal > 1.0:
+                    newVal = 1.0
+            elif operation == 3:
+                newVal = val + ( skinValue * weights[ index ] )
+                if newVal < 0.0:
+                    newVal = 0.0
+            else:
+                newVal = 0.0
+            cmds.skinPercent( skinCluster, obj, tv =[ inObject, newVal ])
+

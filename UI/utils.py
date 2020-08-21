@@ -33,16 +33,22 @@ def buttonsToAttach(name, command, *args):
     return button
 
 def svgButton(name = '', pixmap = '', size = None):
-    btn = QPushButton(name)
+    btn = QPushButton(name.lower())
     if name != '':
         btn.setLayoutDirection(Qt.LeftToRight)
         btn.setStyleSheet("QPushButton { text-align: left; }")
+    _empty = False
     if isinstance(pixmap, str):
+        if "empty" in pixmap.lower():
+            _empty = True        
         pixmap = QPixmap(pixmap)
     btn.setIcon( QIcon(pixmap) )
     btn.setFocusPolicy(Qt.NoFocus)
     if size is not None:
         _size = QSize(size, size)
+        # if _empty:
+        #     print name, "is empty"
+        #     _size = QSize(size, 1)
         # btn.setFixedSize(_size)
         btn.setIconSize(_size)
     return btn

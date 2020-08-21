@@ -441,3 +441,46 @@ def removeUnusedInfluences(inObject, progressBar = None):
     cmds.setAttr("%s.nodeState"%sc, nodeState)
     utils.setProgress(100, progressBar, "removed %i joints from influence"%(index+1))
 
+@shared.dec_undo
+def convertClusterToJoint(inObject, progressBar = None):
+    utils.setProgress(0, progressBar, "gather cluster data")
+    shape = cmds.listRelatives(inObject, s=1, type = "clusterHandle") or None
+    if shape == None:
+        return
+    clusterDeformer =  cmds.listConnections(shape,s=1, type = "cluster")[0]
+    clusterSet = cmds.listConnections( clusterDeformer, type="objectSet" )
+    allConnected = shared.convertToVertexList(cmds.sets(clusterSet, q=1))
+    indices = shared.convertToIndexList(allConnected)
+
+    jnt = cmds.createNode("joint", "temp%s"%(indices[0]))
+    cmds.matchTransform(jnt, inObject, pos=1, rot=0)
+
+    mesh = allConnected[0].split('.')[0]
+        
+    sc = shared.skinCluster(mesh, True)
+    cmds.skinCluster( sc, e=True, lw=False, wt = 0.0, ai= jnt )
+    
+    expandedVertices = shared.convertToVertexList(mesh)
+    values = cmds.percent( clusterDeformer , mesh, q=1, v=1)
+    
+    percentage = 99.0/len(allConnected)
+    for index, vertex in enumerate(allConnected):
+        cmds.skinPercent( sc, vertex, tv =[ jnt, values[indices[index]] ])
+        utils.setProgress(index * percentage, progressBar, "setting cluster weights")
+
+    cmds.delete(inObject)  
+    utils.setProgress(100, progressBar, "converted cluster to joint")
+
+@shared.dec_undo
+def convertVerticesToJoint( inComponents, progressBar = None):
+    expanded = shared.convertToVertexList(inComponents)
+    indices = shared.convertToIndexList(expanded)
+    cluster = cmds.cluster()[1]
+    
+    jnt = cmds.createNode("joint", "temp%s"%(indices[0]))
+    cmds.matchTransform(jnt, cluster, pos=1, rot=0)
+
+    mesh = expanded[0].split(".")[0]
+    sc = shared.skinCluster(mesh, True)
+    self.applySkinValues(1.0, expanded, skinClusterName, jnt, 0, mesh)
+    return jnt

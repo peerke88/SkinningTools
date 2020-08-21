@@ -274,3 +274,29 @@ def polySkeleton(radius=5):
     cmds.polyUnite(allGeo)
     cmds.DeleteHistory(allGeo)
     cmds.currentUnit(l=currentUnit)
+
+
+def softSelection():
+    selection     = OpenMaya.MSelectionList()
+    softSelection = OpenMaya.MRichSelection()
+    OpenMaya.MGlobal.getRichSelection(softSelection)
+    softSelection.getSelection(selection)
+    
+    dagPath = OpenMaya.MDagPath()
+    component = OpenMaya.MObject()
+    
+    iter = OpenMaya.MItSelectionList( selection, OpenMaya.MFn.kMeshVertComponent )
+    elements, weights = [], []
+    while not iter.isDone(): 
+        iter.getDagPath( dagPath, component )
+        dagPath.pop() #Grab the parent of the shape node
+        node = dagPath.fullPathName()
+        fnComp = OpenMaya.MFnSingleIndexedComponent( component )   
+        getWeight = lambda i: fnComp.weight( i ).influence() if fnComp.hasWeights() else 1.0
+        
+        for i in range( fnComp.elementCount() ):
+            elements.append( '%s.vtx[%i]' % ( node, fnComp.element( i ) ) )
+            weights.append( getWeight( i ) ) 
+        iter.next()
+        
+    return elements, weights

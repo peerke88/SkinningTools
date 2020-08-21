@@ -92,8 +92,26 @@ def labelJoints(progressBar = None):
 	return result
 
 @shared.dec_repeat
+def unifyShells(progressBar = None):
+	selection = getSelection()
+	result = skinCluster.hardSkinSelectionShells(selection, progressBar)
+	return result
+
+@shared.dec_repeat
 def copySkin(inplace, smooth, uvSpace, progressBar = None):
 	labelJoints()
 	selection = getSelection()
 	result = skinCluster.transferSkinning(selection[0], selection[1:], inplace, smooth, uvSpace, progressBar)
+	return result
+
+@shared.dec_repeat
+def neighbors(both, growing, full, progressBar = None):
+	selection = getSelection()
+	result = skinCluster.smoothAndSmoothNeighbours(selection, both, growing, full,progressBar)
+	return result
+
+@shared.dec_repeat
+def smooth(progressBar = None):
+	selection = getSelection()
+	result = skinCluster.neighbourAverage(selection, progressBar= progressBar)
 	return result

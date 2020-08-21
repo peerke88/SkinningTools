@@ -48,6 +48,7 @@ class SkinningTools(QMainWindow):
 
     def __defaults(self):
         self.__graphSize = 60
+        self.__iconSize = 40
         self.settings = QSettings("uiSkinSave", "SkinningTools")
         self.__liveIMG = QPixmap(":/UVPivotLeft.png")
         self.__notLiveIMG = QPixmap(":/enabled.png")
@@ -94,12 +95,26 @@ class SkinningTools(QMainWindow):
 
         v = nullVBoxLayout()
         h = nullHBoxLayout()
+        g = nullGridLayout()
+
+        g.addWidget(QLabel("  skin:"), 0, 0)
+        g.addWidget(QLabel("  Vtx :"), 1, 0)
+
+        g.addWidget(QPushButton("Save >>"), 0, 1)
+        g.addWidget(QPushButton("Save >>"), 1, 1)
+
+        g.addWidget(QLineEdit(), 0, 2)
+        g.addWidget(QLineEdit(), 1, 2)
+
+        g.addWidget(QPushButton("<< Load"), 0, 3)
+        g.addWidget(QPushButton("<< Load"), 1, 3)
 
         filePath = self._updateGraph()
 
         self.graph = toolButton(filePath, size=self.__graphSize)
         self.graph.clicked.connect(self._showGraph)
         self.BezierGraph.closed.connect(self._updateGraphButton)
+        h.addLayout(g)
         h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
         h.addWidget(self.graph)
 
@@ -127,63 +142,64 @@ class SkinningTools(QMainWindow):
         v.addLayout(g)
         tab.view.frame.setLayout(v)
 
-        AvgWght_Btn = svgButton("avarage", os.path.join(_DIR, "Icons/AvarageVerts.svg"), size=60)
-        cpyWght_Btn = svgButton("copy", os.path.join(_DIR, "Icons/copy2Mult.svg"), size=60)
-        swchVtx_Btn = svgButton("switch", os.path.join(_DIR, "Icons/vert2vert.svg"), size=60)
-        BoneLbl_Btn = svgButton("label", os.path.join(_DIR, "Icons/jointLabel.svg"), size=60)
-        shellUn_btn = svgButton("shells", os.path.join(_DIR, "Icons/shellUnify.svg"), size=60)
-        trsfrSK_Btn = svgButton("skinToSkin", os.path.join(_DIR, "Icons/skinToSkin.svg"), size=60)
-        trsfrPS_Btn = svgButton("skinToPose", os.path.join(_DIR, "Icons/skinToPose.svg"), size=60)
-        nghbors_Btn = svgButton("neighbors", os.path.join(_DIR, "Icons/neighbors.svg"), size=60)
-        nghbrsP_Btn = svgButton("neighbors + ", os.path.join(_DIR, "Icons/neighborsPlus.svg"), size=60)
-        smthVtx_Btn = svgButton("smooth", os.path.join(_DIR, "Icons/smooth.svg"), size=60)
-        smthBrs_Btn = svgButton("sm.Brush", os.path.join(_DIR, "Icons/brush.svg"), size=60)
-        toJoint_Btn = svgButton("Convert", os.path.join(_DIR, "Icons/toJoints.svg"), size=60)
+        AvgWght_Btn = svgButton("avarage vtx", os.path.join(_DIR, "Icons/AvarageVerts.svg"), size=self.__iconSize)
+        cpyWght_Btn = svgButton("copy vtx", os.path.join(_DIR, "Icons/copy2Mult.svg"), size=self.__iconSize)
+        swchVtx_Btn = svgButton("switch vtx", os.path.join(_DIR, "Icons/vert2vert.svg"), size=self.__iconSize)
+        BoneLbl_Btn = svgButton("label joints", os.path.join(_DIR, "Icons/jointLabel.svg"), size=self.__iconSize)
+        shellUn_btn = svgButton("unify shells", os.path.join(_DIR, "Icons/shellUnify.svg"), size=self.__iconSize)
+        trsfrSK_Btn = svgButton("skin to skin", os.path.join(_DIR, "Icons/skinToSkin.svg"), size=self.__iconSize)
+        trsfrPS_Btn = svgButton("skin to pose", os.path.join(_DIR, "Icons/skinToPose.svg"), size=self.__iconSize)
+        nghbors_Btn = svgButton("neighbors", os.path.join(_DIR, "Icons/neighbors.svg"), size=self.__iconSize)
+        nghbrsP_Btn = svgButton("neighbors + ", os.path.join(_DIR, "Icons/neighborsPlus.svg"), size=self.__iconSize)
+        smthVtx_Btn = svgButton("smooth", os.path.join(_DIR, "Icons/smooth.svg"), size=self.__iconSize)
+        smthBrs_Btn = svgButton("smooth Brush", os.path.join(_DIR, "Icons/brush.svg"), size=self.__iconSize)
+        toJoint_Btn = svgButton("convert to joint", os.path.join(_DIR, "Icons/toJoints.svg"), size=self.__iconSize)
+        rstPose_Btn = svgButton("reset Pose", os.path.join(_DIR, "Icons/resetJoint.svg"), size=self.__iconSize)
 
-        copy2bn_Btn = svgButton("move", os.path.join(_DIR, "Icons/Bone2Bone.svg"), size=60)
-        b2bSwch_Btn = svgButton("swap", os.path.join(_DIR, "Icons/Bone2Boneswitch.svg"), size=60)
-        showInf_Btn = svgButton("select", os.path.join(_DIR, "Icons/selectinfl.svg"), size=60)
-        delBone_Btn = svgButton("BoneDelete", os.path.join(_DIR, "Icons/jointDelete.svg"), size=60)
-        addinfl_Btn = svgButton("add", os.path.join(_DIR, "Icons/addJoint.svg"), size=60)
-        unifyBn_Btn = svgButton("unify", os.path.join(_DIR, "Icons/unify.svg"), size=60)
-        seltInf_Btn = svgButton("selectinfl", os.path.join(_DIR, "Icons/selectJnts.svg"), size=60)
-        sepMesh_Btn = svgButton("seperateMesh", os.path.join(_DIR, "Icons/seperate.svg"), size=60)
-        onlySel_Btn = svgButton("only sel infl.", os.path.join(_DIR, "Icons/onlySel.svg"), size=60)
-        infMesh_Btn = svgButton("infl. meshes", os.path.join(_DIR, "Icons/infMesh.svg"), size=60)
+        copy2bn_Btn = svgButton("move bone infl.", os.path.join(_DIR, "Icons/Bone2Bone.svg"), size=self.__iconSize)
+        b2bSwch_Btn = svgButton("swap bone infl.", os.path.join(_DIR, "Icons/Bone2Boneswitch.svg"), size=self.__iconSize)
+        showInf_Btn = svgButton("select vertices", os.path.join(_DIR, "Icons/selectinfl.svg"), size=self.__iconSize)
+        delBone_Btn = svgButton("delete joint", os.path.join(_DIR, "Icons/jointDelete.svg"), size=self.__iconSize)
+        addinfl_Btn = svgButton("add joint", os.path.join(_DIR, "Icons/addJoint.svg"), size=self.__iconSize)
+        unifyBn_Btn = svgButton("unify skeletons", os.path.join(_DIR, "Icons/unify.svg"), size=self.__iconSize)
+        seltInf_Btn = svgButton("select joints", os.path.join(_DIR, "Icons/selectJnts.svg"), size=self.__iconSize)
+        sepMesh_Btn = svgButton("seperate mesh", os.path.join(_DIR, "Icons/seperate.svg"), size=self.__iconSize)
+        onlySel_Btn = svgButton("only selected infl.", os.path.join(_DIR, "Icons/onlySel.svg"), size=self.__iconSize)
+        infMesh_Btn = svgButton("influenced meshes", os.path.join(_DIR, "Icons/infMesh.svg"), size=self.__iconSize)
+
         maxL = nullHBoxLayout()
         spin = QSpinBox()
-        vtexMax_Btn = svgButton("max infl.", '', size=60)
-        for w in [spin, vtexMax_Btn]:
-            maxL.addWidget(w, 1)
-        vtxOver_Btn = svgButton("infl. > max", os.path.join(_DIR, "Icons/vertOver.svg"), size=60)
+        spin.setFixedSize(self.__iconSize, self.__iconSize+10)
+        vtexMax_Btn = svgButton("force max infl.", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
+        frzBone_Btn = svgButton("freeze joints", os.path.join(_DIR, "Icons/FreezeJoint.svg"), size=self.__iconSize)
 
-        for index, btn in enumerate([AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn, 
-                                     trsfrPS_Btn, nghbors_Btn, nghbrsP_Btn, smthVtx_Btn, smthBrs_Btn, toJoint_Btn, 
-                                     copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn, 
-                                     seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn]):
-            row = index / 12
+        for w in [spin, vtexMax_Btn]:
+            maxL.addWidget(w)
+        vtxOver_Btn = svgButton("sel infl. > max", os.path.join(_DIR, "Icons/vertOver.svg"), size=self.__iconSize)
+        self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn, 
+                         trsfrPS_Btn, nghbors_Btn, nghbrsP_Btn, smthVtx_Btn, smthBrs_Btn, toJoint_Btn, rstPose_Btn, 
+                         copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn, 
+                         seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, frzBone_Btn]
+        for index, btn in enumerate(self.__buttons):
+            row = index / 13
             if isinstance(btn, QLayout):
-                g.addLayout(btn, index - (row * 12), row)
+                g.addLayout(btn, index - (row * 13), row)
                 continue
-            g.addWidget(btn, index - (row * 12), row)
+            g.addWidget(btn, index - (row * 13), row)
 
         v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        AvgWght_Btn.clicked.connect(partial(interface.avgVtx, self.progressBar ))
-        cpyWght_Btn.clicked.connect(partial(interface.copyVtx, self.progressBar ))
-        # b2bSwch_Btn.clicked.connect(partial(interface, self.progressBar ))
-        # copy2bn_Btn.clicked.connect(partial(interface, self.progressBar ))
-        # showInf_Btn.clicked.connect(partial(interface, self.progressBar ))
-        swchVtx_Btn.clicked.connect(partial(interface.switchVtx, self.progressBar ))
-        BoneLbl_Btn.clicked.connect(partial(interface.labelJoints, self.progressBar ))
-        # delBone_Btn.clicked.connect(partial(interface, self.progressBar ))
-        # seltInf_Btn.clicked.connect(partial(interface, self.progressBar ))
-        # unifyBn_Btn.clicked.connect(partial(interface, self.progressBar ))
-        # smthVtx_Btn.clicked.connect(partial(interface, self.progressBar ))
-        trsfrSK_Btn.clicked.connect(partial(interface.copySkin, False, True, False, self.progressBar))
-        trsfrPS_Btn.clicked.connect(partial(interface.copySkin, True, True, False, self.progressBar))
-        # addinfl_Btn.clicked.connect(partial(interface, self.progressBar ))
-
+        AvgWght_Btn.clicked.connect( partial( interface.avgVtx, True, self.BezierGraph, self.progressBar ) )
+        cpyWght_Btn.clicked.connect( partial( interface.copyVtx, self.progressBar ) )
+        swchVtx_Btn.clicked.connect( partial( interface.switchVtx, self.progressBar ) )
+        BoneLbl_Btn.clicked.connect( partial( interface.labelJoints, self.progressBar ) )
+        shellUn_btn.clicked.connect( partial( interface.unifyShells, self.progressBar ) )
+        trsfrSK_Btn.clicked.connect( partial( interface.copySkin, False, True, False, self.progressBar) )
+        trsfrPS_Btn.clicked.connect( partial( interface.copySkin, True, True, False, self.progressBar) )
+        nghbors_Btn.clicked.connect( partial( interface.neighbors, False, True, self.progressBar ) )
+        nghbrsP_Btn.clicked.connect( partial( interface.neighbors, True, True, self.progressBar ) )
+        smthVtx_Btn.clicked.connect( partial( interface.smooth, self.progressBar ) )
+        
     def __addCopyRangeFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("copy functions")
         v = nullVBoxLayout()
@@ -200,16 +216,18 @@ class SkinningTools(QMainWindow):
         self.inflEdit = SkinningToolsSliderList()
         v = nullVBoxLayout()
         h = nullHBoxLayout()
-        cnct_Btn = toolButton(self.__notConnected)
-        cnct_Btn.setCheckable(True)
-        cnct_Btn.clicked.connect(self._updateConnect)
+        cnct = toolButton(self.__notConnected)
         rfr = toolButton(":/playbackLoopingContinuous_100.png")
         live = toolButton(self.__liveIMG)
+        
+        cnct.setCheckable(True)
         live.setCheckable(True)
+
         live.clicked.connect(self._updateLive)
+        cnct.clicked.connect(self._updateConnect)
 
         h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        for btn in [cnct_Btn, rfr, live]:
+        for btn in [cnct, rfr, live]:
             h.addWidget(btn)
 
         v.addLayout(h)
