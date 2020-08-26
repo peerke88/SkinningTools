@@ -155,3 +155,6 @@ def textProgressBar(progress, message = ''):
     block = int(round(barLength*progress))
     text = "[%s] %.1f%%, %s"%("#"*block + "-"*(barLength-block), progress*100, message)
     OpenMaya.MGlobal.displayInfo(text)
+
+def displayToolTips():
+    cmds.help( popupMode =True)

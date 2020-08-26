@@ -50,7 +50,7 @@ def forceCompareInfluences(meshes):
         return True
     return False
 
-def getVertOverMaxInfluence(inObject, maxInfValue = 8, notSelect=False, progressBar=None ):
+def getVertOverMaxInfluence(inObject, maxInfValue = 8, progressBar=None ):
     utils.setProgress(0, progressBar, "get max info")
     sc = shared.skinCluster(inObject, True)
     vtxWeights = cmds.getAttr("%s.weightList[:]"%sc)

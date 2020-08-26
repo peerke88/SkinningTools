@@ -189,6 +189,15 @@ class SkinningTools(QMainWindow):
 
         v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+        addChecks(self, AvgWght_Btn, ["use distance"] )
+        addChecks(self, trsfrSK_Btn, ["smooth", "uvSpace"] )
+        addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"] )
+        addChecks(self, nghbors_Btn, ["full"] )
+        addChecks(self, nghbrsP_Btn, ["full"] )
+        addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
+        addChecks(self, unifyBn_Btn, ["query"] )
+
+        #@note: make sure the flags are adjusted by button settings
         AvgWght_Btn.clicked.connect( partial( interface.avgVtx, True, self.BezierGraph, self.progressBar ) )
         cpyWght_Btn.clicked.connect( partial( interface.copyVtx, self.progressBar ) )
         swchVtx_Btn.clicked.connect( partial( interface.switchVtx, self.progressBar ) )
@@ -199,7 +208,24 @@ class SkinningTools(QMainWindow):
         nghbors_Btn.clicked.connect( partial( interface.neighbors, False, True, self.progressBar ) )
         nghbrsP_Btn.clicked.connect( partial( interface.neighbors, True, True, self.progressBar ) )
         smthVtx_Btn.clicked.connect( partial( interface.smooth, self.progressBar ) )
-        
+        smthBrs_Btn.clicked.connect( interface.smoothBrush )
+        toJoint_Btn.clicked.connect( partial( interface.convertToJoint, self.progressBar ) )
+        rstPose_Btn.clicked.connect( partial( interface.resetPose, self.progressBar ) )
+
+        copy2bn_Btn.clicked.connect( partial( interface.moveBones, False,  self.progressBar ) )
+        b2bSwch_Btn.clicked.connect( partial( interface.moveBones, True, self.progressBar ) )
+        showInf_Btn.clicked.connect( partial( interface.showInfVerts, self.progressBar ) )
+        delBone_Btn.clicked.connect( partial( interface.removeJoint, True, True, False, self.progressBar ) )
+        addinfl_Btn.clicked.connect( partial( interface.addNewJoint, self.progressBar ) )
+        unifyBn_Btn.clicked.connect( partial( interface.unifySkeletons, False,  self.progressBar ) )
+        seltInf_Btn.clicked.connect( partial( interface.selectJoints, self.progressBar ) )
+        sepMesh_Btn.clicked.connect( partial( interface.seperateSkinned, self.progressBar ) )
+        onlySel_Btn.clicked.connect( partial( interface.getJointInfVers, self.progressBar ) )
+        infMesh_Btn.clicked.connect( partial( interface.getMeshFromJoints, self.progressBar ) )
+        vtexMax_Btn.clicked.connect( partial( interface.setMaxInfl, 8, self.progressBar ) )
+        vtxOver_Btn.clicked.connect( partial( interface.getMaxInfl, 8, self.progressBar ) )
+        frzBone_Btn.clicked.connect( partial( interface.freezeJoint, self.progressBar ) )
+
     def __addCopyRangeFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("copy functions")
         v = nullVBoxLayout()

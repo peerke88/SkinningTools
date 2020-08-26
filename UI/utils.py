@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.py23 import *
-import re
+import re, functools
 from SkinningTools.UI.qt_util import *
 from SkinningTools.Maya import api
 
@@ -155,3 +155,38 @@ def invLerp(a, b, v):
 def remap(iMin, iMax, oMin, oMax, v):
     t = invLerp(iMin, iMax, v)
     return lerp(oMin, oMax, t)
+
+
+
+def addChecks(cls, button, checks = []):
+    v=nullVBoxLayout(size = 3)
+    h=nullHBoxLayout()
+    v.addLayout(h)
+    v.setAlignment(Qt.AlignRight)
+    button.setLayout(v)
+    button.setContextMenuPolicy(Qt.CustomContextMenu)
+    button.checks = {}
+    for check in checks:
+        chk = QCheckBox()
+        chk.setEnabled(False)
+        chk.setToolTip(check)
+        v.addWidget(chk)
+        button.checks[check] = chk
+
+    functions, popup = add_contextToMenu(cls, checks, button )
+    button.customContextMenuRequested.connect(functools.partial(on_context_menu, button, popup))
+
+def add_contextToMenu(cls, actionNames, btn ):
+    popMenu = QMenu(cls)
+    allFunctions = []
+    for actionName in actionNames:
+        check = QAction(actionName, cls)
+        check.setCheckable(True)
+        check.toggled.connect(btn.checks[actionName].setChecked)
+        popMenu.addAction(check)
+        allFunctions.append(check)
+    
+    return allFunctions, popMenu  
+
+def on_context_menu(buttonObj, popMenu, point):
+    popMenu.exec_(buttonObj.mapToGlobal(point)) 

@@ -115,3 +115,155 @@ def smooth(progressBar = None):
 	selection = getSelection()
 	result = skinCluster.neighbourAverage(selection, progressBar= progressBar)
 	return result
+
+
+def smoothBrush():
+	pass
+
+
+@shared.dec_repeat
+def convertToJoint(progressBar = None):
+	selection = getSelection()
+	if "." in selection[0]:
+		result = joints.convertVerticesToJoint(selection, progressBar)
+		return result
+
+	result = joints.convertClusterToJoint(selection, progressBar)
+	return result
+
+@shared.dec_repeat
+def resetPose(progressBar = None):
+	selection = getSelection()
+	joints = []
+	sc = []
+	for obj in selection:
+		if cmds.objectType(obj) == "joint":
+			joints.append(obj)
+			continue
+		sc.append(shared.skinCluster(obj, True))
+
+	result = joints.resetSkinnedJoints(joints, sc, progressBar)
+	return result
+
+@shared.dec_repeat
+def moveBones(swap = False, progressBar = None):
+	selection = getSelection()
+	joints = []
+	mesh = ''
+	for obj in selection:
+		if cmds.objectType(obj) == "joint":
+			joints.append(obj)
+			continue
+		mesh = obj
+
+	if swap:
+		result = joints.BoneSwitch(joints[0], joints[1], mesh[0], progressBar)
+		return result
+
+	result = joints.BoneMove(joints[0], joints[1], mesh[0], progressBar)
+	return result
+
+@shared.dec_repeat
+def showInfVerts(progressBar = None):
+	selection = getSelection()
+	joints = []
+	mesh = ''
+	for obj in selection:
+		if cmds.objectType(obj) == "joint":
+			joints.append(obj)
+			continue
+		mesh = obj
+
+	result = joints.ShowInfluencedVerts(mesh, joints, progressBar)
+	cmds.select(result, r=1)
+	return result
+
+@shared.dec_repeat
+def removeJoint(useParent=True, delete=True, fast=False, progressBar=None):
+	selection = getSelection()
+	joints = []
+	mesh = []
+	for obj in selection:
+		if cmds.objectType(obj) == "joint":
+			joints.append(obj)
+			continue
+		mesh.append(obj)
+
+	result = joints.removeJoints(mesh, joints, useParent, delete, fast, progressBar)
+	return result
+
+@shared.dec_repeat
+def addNewJoint( progressBar=None):
+	selection = getSelection()
+	joints = []
+	mesh = ''
+	for obj in selection:
+		if cmds.objectType(obj) == "joint":
+			joints.append(obj)
+			continue
+		mesh = obj
+
+	result = joints.addCleanJoint(joints, mesh, progressBar)
+	return result
+
+@shared.dec_repeat
+def unifySkeletons(query = False, progressBar = None):
+	selection = getSelection()
+	result = joints.comparejointInfluences(selection, query, progressBar)
+	if query:
+		cmds.select(result, r=1)
+	return result
+
+@shared.dec_repeat
+def selectJoints(progressBar = None):
+	selection = getSelection()
+	result = joints.getInfluencingJoints(selection, progressBar)
+	cmds.select(result, r=1)
+	return result
+
+@shared.dec_repeat
+def seperateSkinned(progressBar = None):
+	selection = getSelection()
+	result = skincluster.extractSkinnedShells(selection, progressBar)
+	return result
+
+@shared.dec_repeat
+def getJointInfVers(progressBar = None):
+	selection = getSelection()
+	joints = []
+	mesh = ''
+	for obj in selection:
+		if cmds.objectType(obj) == "joint":
+			joints.append(obj)
+			continue
+		mesh = obj
+
+	result = joints.ShowInfluencedVerts(mesh, joints, progressBar)
+	cmds.select(result, r=1)
+	return result
+
+@shared.dec_repeat
+def getMeshFromJoints(progressBar = None):
+	selection = getSelection()
+	result = joints.getMeshesInfluencedByJoint(selection, progressBar)
+	cmds.select(result, r=1)
+	return result
+
+@shared.dec_repeat
+def setMaxInfl( amountInfluences = 8, progressBar = None):
+	selection = getSelection()
+	result = skinCluster.setMaxJointInfluences(selection, amountInfluences, progressBar)
+	return result
+
+@shared.dec_repeat
+def getMaxInfl( amountInfluences = 8, progressBar = None ):
+	selection = getSelection()
+	result = skinCluster.getVertOverMaxInfluence(selection, amountInfluences, progressBar)
+	cmds.select(result[0], r=1)
+	return result
+
+@shared.dec_repeat
+def freezeJoint( progressBar = None ):
+	selection = getSelection()
+	result = joints.freezeSkinnedJoints(joints, progressBar=progressBar)
+	return result

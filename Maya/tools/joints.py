@@ -301,6 +301,11 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
     skinClusters = []
     skinPercentage = 100.0 / len(skinObjects)
 
+    #@todo: make this smarter, make it look for all skinclusters when deleting the joint to keep the joint as clean as possible
+    # if delete:
+    #     for joint in jointsToRemove:
+    #         skinClusters.append(cmds.listConnections("%s.worldMatrix[0]"%joint, type="skinCluster", p=1))
+
     for skinIter, skinObject in enumerate(skinObjects):
         skinClusterName = SkinningTools.skinCluster(skinObject, True)
         if skinClusterName == None:
@@ -470,6 +475,7 @@ def convertClusterToJoint(inObject, progressBar = None):
 
     cmds.delete(inObject)  
     utils.setProgress(100, progressBar, "converted cluster to joint")
+    return jnt
 
 @shared.dec_undo
 def convertVerticesToJoint( inComponents, progressBar = None):
@@ -482,5 +488,5 @@ def convertVerticesToJoint( inComponents, progressBar = None):
 
     mesh = expanded[0].split(".")[0]
     sc = shared.skinCluster(mesh, True)
-    self.applySkinValues(1.0, expanded, skinClusterName, jnt, 0, mesh)
+    skinCluster.applySkinValues(1.0, expanded, skinClusterName, jnt, 0, mesh)
     return jnt
