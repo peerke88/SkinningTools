@@ -269,6 +269,15 @@ def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength = 40):
             continue
         return loopSize
 
+def getDagpath(node, extendToShape=False):
+    sellist = OpenMaya.MGlobal.getSelectionListByName( name )
+    try:
+        if extendToShape:
+            return sellist.getDagPath(0).extendToShape()
+        return sellist.getDagPath(0)
+    except:
+        return sellist.getDependNode(0)
+
 # --- vertex island functions ---
 
 def getConnectedVerts(mesh, vtxSelectionSet):
@@ -331,3 +340,149 @@ def growLatticePoints(points):
             if growc in allPoints:
                 extras.append(growc)
     return extras
+
+
+def getWeights(mesh):
+    sc = skinCluster(mesh)
+    shape = cmds.listRelatives(mesh, s=1)[0]
+
+    skinNode = getDagpath( sc )       
+    skinFn = MFnSkinCluster(skinNode)
+    meshPath = getDagpath( shape )
+    meshNode = meshPath.node()
+
+    meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
+    indices = range( meshVerItFn.count() )
+
+    singleIdComp = OpenMaya.MFnSingleIndexedComponent()
+    vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
+    singleIdComp.addElements( indices )
+
+    infDags = skinFn.influenceObjects()
+    infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
+    for x in xrange( len( infDags ) ):
+        infIndexes[x] = int( skinFn.indexForInfluenceObject( infDags[x] ) )
+
+    weightData = skinFn.getWeights( meshPath , vertexComp, infIndexes )
+    return weightData
+
+def setWeigths(mesh, weightData):
+    sc = skinCluster(mesh)
+    shape = cmds.listRelatives(mesh, s=1)[0]
+
+    skinNode = getDagpath( sc )       
+    skinFn = MFnSkinCluster(skinNode)
+    meshPath = getDagpath( shape )
+    meshNode = meshPath.node()
+
+    meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
+    indices = range( meshVerItFn.count() )
+
+    singleIdComp = OpenMaya.MFnSingleIndexedComponent()
+    vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
+    singleIdComp.addElements( indices )
+
+    infDags = skinFn.influenceObjects()
+    infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
+    for x in xrange( len( infDags ) ):
+        infIndexes[x] = int( skinFn.indexForInfluenceObject( infDags[x] ) )
+
+    skinFn.setWeights( meshPath , vertexComp , infIndexes , weightData ) 
+
+# -------------
+
+def getPolyOnMesh(point, mesh):
+    meshDag =getDagpath(mesh, extendToShape=True)
+
+    meshIntersector = OpenMaya.MMeshIntersector()
+    meshIntersector.create(meshDag.node(), meshDag.inclusiveMatrix())
+
+    _point = OpenMaya.MPoint(*point)
+    meshPoint = meshIntersector.getClosestPoint(_point)
+
+    faceIndex = meshPoint.faceIndex()
+    triangleIndex = meshPoint.triangleIndex()
+
+    u, v = meshPoint.getBarycentricCoords()
+    return faceIndex, triangleIndex, u, v
+
+def getTriIndex(mesh, polygon_index, triangleIndex):
+    meshDag = getDagpath(mesh, extendToShape=True)
+    polyIt = OpenMaya.MItMeshPolygon(meshDag)
+    
+       
+    prevIndexPTR = polyIt.setIndex(polygon_index )
+
+    points, vertex_list = polyIt.getTriangle(triangleIndex, OpenMaya.MSpace.kWorld)
+
+    return (vertex_list[0], vertex_list[1], vertex_list[2])
+    
+def getTriWeight(mesh, polygon_index, triangleIndex, u, v):
+    skin_cluster = skinCluster(mesh)
+    influences = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
+
+    vtxIndex = getTriIndex(mesh, polygon_index, triangleIndex)
+    barycentric_coordinates = [u, v, 1.0-u-v]
+
+    weights = [0.0 for _ in range(len(influences))]
+    for i, vertId in enumerate(vtxIndex):
+        vtxWeights = cmds.skinPercent(skin_cluster, '%s.vtx[%s]'%(mesh, vertId), query=True, value=True)
+        weights = [weights[j] + weight * barycentric_coordinates[i] for j,weight in enumerate(vtxWeights)]
+
+    return influences, weights
+
+
+def skinConstraint(mesh, transform, precision=2):
+    precision = max(precision, 1)
+    point = cmds.xform(transform, q=True, t=True, ws=True)
+    faceId, triangle_index, u, v = getPolyOnMesh(point, mesh)
+
+    transforms, weights = getTriWeight(mesh, faceId, triangle_index, u, v)
+    matrix_node = createWeightedMM(transforms, weights, precision=precision)
+
+    vector_product_node1 = cmds.createNode('vectorProduct')
+    cmds.setAttr('%s.operation'%vector_product_node1, 4)
+    cmds.setAttr('%s.input1'%vector_product_node1, *point)
+    cmds.connectAttr('%s.matrixSum'%matrix_node, '%s.matrix'%vector_product_node1)
+
+    vector_product_node2 = cmds.createNode('vectorProduct')
+    cmds.setAttr('%s.operation'%vector_product_node2, 4)
+    cmds.connectAttr('%s.output'%vector_product_node1, '%s.input1'%vector_product_node2)
+    cmds.connectAttr('%s.parentInverseMatrix'%transform, '%s.matrix'%vector_product_node2)
+    cmds.connectAttr('%s.output'%vector_product_node2, '%s.translate'%transform, force=True)
+
+    decompose_matrix_node = cmds.createNode('decomposeMatrix')
+    cmds.connectAttr('%s.matrixSum'%matrix_node, '%s.inputMatrix'%decompose_matrix_node)
+    cmds.connectAttr('%S.outputRotate'%decompose_matrix_node, '%s.rotate'%transform, force=True)
+ 
+
+def createWeightedMM(transforms, weights, precision, epsilon=1e-6):
+    Trs = []
+    Wgth = []
+
+    wgthTotal = 0.0
+    for trsNode, weight in zip(transforms, weights):
+        weight = float('%.{}f'.format(precision) % weight)
+        if weight > epsilon:
+            wgthTotal += weight
+            Trs.append(trsNode)
+            Wgth.append(weight)
+
+    for i, weight in enumerate(Wgth):
+        Wgth[i] *= 1.0 / max(wgthTotal, 1e-6)
+    
+    addMM = cmds.createNode('wtAddMatrix')
+
+    for i, (trsNode, weight) in enumerate(zip(Trs, Wgth)):
+        mmNode = cmds.createNode('multMatrix')
+        mmInv = cmds.getAttr('%s.worldInverseMatrix'%trsNode)
+        cmds.setAttr('%s.matrixIn[0]'%mmNode, mmInv, type='matrix')
+        cmds.connectAttr('%s.worldMatrix'%trsNode, '%s.matrixIn[1]'%mmNode)
+
+        cmds.connectAttr('%s.matrixSum'%mmNode, '%s.wtMatrix[%s].matrixIn'%(addMM, i))
+        cmds.setAttr('%s.wtMatrix[%s].weightIn'%(addMM, i), weight)
+
+        cmds.addAttr(addMM, ln=trsNode, dv=weight, at='double', k=True)
+        cmds.setAttr('%s.%s'%(addMM, trsNode), lock=True)
+
+    return addMM
