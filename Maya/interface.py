@@ -267,3 +267,18 @@ def freezeJoint( progressBar = None ):
 	selection = getSelection()
 	result = joints.freezeSkinnedJoints(joints, progressBar=progressBar)
 	return result
+
+@decorator.loadPlugin("averageWeightPlugin.py")
+def paintSmoothBrush():
+	_ctx = "AverageWghtCtx"
+	_brush_init = "AverageWghtCtxInitialize"
+	_brush_update = "AverageWghtCtxUpdate"
+
+    if not cmds.artUserPaintCtx(_ctx, query=True, exists=True):
+        cmds.artUserPaintCtx(_ctx)
+            
+    cmds.artUserPaintCtx( _ctx, edit=True, ic=_brush_init, 
+        				  svc=_brush_update, whichTool="userPaint", fullpaths=True,
+        			      outwhilepaint=True, brushfeedback=False, selectedattroper="additive")
+
+    cmds.setToolTo(_ctx)

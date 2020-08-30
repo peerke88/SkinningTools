@@ -311,8 +311,8 @@ def switchVertexWeight(vertex1, vertex2, progressBar = None):
     pointsWeightsList2 = []
     percentage = 99.0/ len(infJoints)
     for j, bone in enumerate(infJoints):
-        pointsWeightsList1.append(bone, pointWeights1[j])
-        pointsWeightsList2.append(bone, pointWeights2[j])
+        pointsWeightsList1.append([bone, pointWeights1[j]])
+        pointsWeightsList2.append([bone, pointWeights2[j]])
         utils.setProgress(i * percentage, progressBar, "gather joint info")
 
     cmds.skinPercent(skinClusterName, vertex1, transformValue=pointsWeightsList2)
@@ -693,4 +693,3 @@ def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operati
             else:
                 newVal = 0.0
             cmds.skinPercent( skinCluster, obj, tv =[ inObject, newVal ])
-

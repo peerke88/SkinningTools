@@ -66,6 +66,19 @@ def dec_repeat(func):
 
     return _repeat_func
 
+def dec_loadPlugin(plugin):
+    def _loadPlugin_func(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
+            registered = cmds.pluginInfo(plugin, q=True, registered=True)
+
+            if not registered or not loaded:
+                cmds.loadPlugin(plugin)
+
+            return func(*args, **kwargs)
+        return inner
+    return _loadPlugin_func
 
 class Graph(object):
     ''' dijkstra closest path technique (for nurbs and lattice)
@@ -270,13 +283,23 @@ def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength = 40):
         return loopSize
 
 def getDagpath(node, extendToShape=False):
-    sellist = OpenMaya.MGlobal.getSelectionListByName( name )
+    sellist = OpenMaya.MGlobal.getSelectionListByName( node )
     try:
         if extendToShape:
             return sellist.getDagPath(0).extendToShape()
         return sellist.getDagPath(0)
     except:
         return sellist.getDependNode(0)
+
+def getMfnSkinCluster(mObject):
+     iter = OpenMaya.MItDependencyGraph(
+        mObject,
+        OpenMaya.MFn.kSkinClusterFilter,
+        OpenMaya.MItDependencyGraph.kUpstream
+    )
+
+    while not iter.isDone():
+        return OpenMayaAnim.MFnSkinCluster(iter.currentItem())
 
 # --- vertex island functions ---
 

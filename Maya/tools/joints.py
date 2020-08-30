@@ -490,3 +490,57 @@ def convertVerticesToJoint( inComponents, progressBar = None):
     sc = shared.skinCluster(mesh, True)
     skinCluster.applySkinValues(1.0, expanded, skinClusterName, jnt, 0, mesh)
     return jnt
+
+
+def convertClustersToJoint( mesh, inClusters, progressBar = True):
+    meshDag = shared.getDagpath(mesh)
+    mfnMesh = OpenMaya.MFnMesh(meshDag)
+    origPos = mfnMesh.getPoints(OpenMaya.MSpace.kObject)
+    vertices = {}
+    for index, vtx in enumerate(origPos):
+        vertices[index] = {}
+
+    jnts = []
+    for deform in inClusters:
+        deformDag = shared.getDagpath(deform)
+
+        jnt = cmds.createNode("joint")
+        cmds.matchTransform(jnt, deform, pos=1, rot=1)
+        
+
+        mfnTrs = OpenMaya.MFnTransform(deformDag)
+        vec = OpenMaya.MVector(1,0,0)
+        mfnTrs.setTranslation(vec, OpenMaya.MSpace.kTransform)
+
+        deformPos = mfnMesh.getPoints(OpenMaya.MSpace.kObject)
+        zero = OpenMaya.MVector(0,0,0)
+        mfnTrs.setTranslation(zero, OpenMaya.MSpace.kTransform)
+        
+        weights = []
+        for index, origVec in enumerate(origPos):
+            deformVec = deformPos[index]
+            vertices[index][jnt] = (origVec-deformVec).length() 
+        jnts.append(jnt)
+
+    sc = shared.skinCluster(mesh)
+    if sc != None:
+        addCleanJoint(jnts, mesh)
+    else:
+        sc = cmds.skinCluster(jnts, mesh, tsb=1)[0]
+    
+    for key, value in vertices.iteritems():
+        vtx = "%s.vtx[%i]"%(mesh, key)
+        tv = []
+        totalVal = 0
+        for jnt in jnts:
+            totalVal += value[jnt]
+        if totalVal < 1e-6:
+            continue
+        
+        for jnt in jnts:
+            weight = value[jnt]
+            if totalVal > 1.0:
+                weight = remap(0, totalVal, 0, 1, weight)
+            tv.append([jnt, weight])
+
+        cmds.skinPercent(sc, vtx, transformValue = tv)
