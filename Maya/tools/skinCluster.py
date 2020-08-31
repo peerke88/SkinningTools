@@ -278,7 +278,7 @@ def Copy2MultVertex(selection, lastSelected, progressBar = None):
         transformValueList.append([jnt, currentValues[i]])
         utils.setProgress(i * percentage, progressBar, "gather joint info")
 
-    cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize = 0,zeroRemainingInfluences = True )
+    cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize = 1,zeroRemainingInfluences = True )
     utils.setProgress(100, progressBar, "copied vertex")
     return True
 

@@ -1,9 +1,14 @@
 from maya import cmds
-from maya.api import OpenMaya, OpenMayaMPx, OpenMayaAnim
+from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.Maya.tools import shared
 
 CONTEXT_INIT = "paintAverageWghtCtxInitialize"
 CONTEXT_UPDATE = "paintAverageWghtCtxUpdate"
+kCreator = "Trevor van Hoof & Perry Leijten"
+kVersion = "1.0.20200831"
+
+def maya_useNewAPI( ):
+    pass
 
 class AverageWghtCtx(object):
     def __init__(self):
@@ -117,27 +122,25 @@ class AverageWghtCtx(object):
 
 smoothWeights = AverageWghtCtx()
 
-class AverageWghtCtxInitialize(OpenMayaMPx.MPxCommand):
+class AverageWghtCtxInitialize(OpenMaya.MPxCommand):
     def __init__(self):
-        OpenMayaMPx.MPxCommand.__init__(self)
+        OpenMaya.MPxCommand.__init__(self)
  
     def doIt( self, args ):
         obj = args.asString(0)
         smoothWeights.initialize(obj)
 
+def creatorInit():     
+    return OpenMaya.asMPxPtr(AverageWghtCtxInitialize())
 
-def creatorInitialize():     
-    return OpenMayaMPx.asMPxPtr(AverageWghtCtxInitialize())
-
-
-def syntaxInitialize():  
+def initialize():  
     syntax = OpenMaya.MSyntax()  
     syntax.addArg(OpenMaya.MSyntax.kLong)  
     return syntax
 
-class AverageWghtCtxUpdate(OpenMayaMPx.MPxCommand):
+class AverageWghtCtxUpdate(OpenMaya.MPxCommand):
     def __init__(self):
-        OpenMayaMPx.MPxCommand.__init__(self)
+        OpenMaya.MPxCommand.__init__(self)
  
     def doIt( self, args ):            
         self.index = args.asInt(1)
@@ -161,10 +164,8 @@ class AverageWghtCtxUpdate(OpenMayaMPx.MPxCommand):
     def isUndoable(self):
         return True
 
-
 def creatorUpdate():       
-    return OpenMayaMPx.asMPxPtr(AverageWghtCtxUpdate())
-
+    return OpenMaya.asMPxPtr(AverageWghtCtxUpdate())
 
 def syntaxUpdate():  
     syntax = OpenMaya.MSyntax()  
@@ -173,22 +174,20 @@ def syntaxUpdate():
     syntax.addArg(OpenMaya.MSyntax.kDouble)  
     return syntax  
 
-
-def initializePlugin( obj ):
-    plugin = OpenMayaMPx.MFnPlugin(obj, "Trevor van Hoof & Perry Leijten", "1.0", "any")
+def initializePlugin( mObject ):
+    plugin = OpenMaya.MFnPlugin(mObject, kCreator, kVersion, "any")
     
-    for command, creator, syntax in [(CONTEXT_INIT, creatorInitialize, syntaxInitialize),(CONTEXT_UPDATE, creatorUpdate, syntaxUpdate)]:
+    for command, creator, syntax in [(CONTEXT_INIT, creatorInit, initialize),(CONTEXT_UPDATE, creatorUpdate, syntaxUpdate)]:
         try:            
             plugin.registerCommand(command, creator, syntax)
         except:         
-            raise RuntimeError("Failed to register : %s"%command)
-    
+            raise 
  
-def uninitializePlugin(obj):
-    plugin = OpenMayaMPx.MFnPlugin(obj)
+def uninitializePlugin(mObject):
+    plugin = OpenMaya.MFnPlugin(mObject)
     
     for command in [ CONTEXT_INIT, CONTEXT_UPDATE ]:
         try:            
             plugin.deregisterCommand(command)
         except:         
-            raise RuntimeError("Failed to unregister : %s"%command)
+            raise 

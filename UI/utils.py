@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.py23 import *
-import re, functools
+import re, difflib
 from SkinningTools.UI.qt_util import *
 from SkinningTools.Maya import api
 
@@ -190,3 +190,11 @@ def add_contextToMenu(cls, actionNames, btn ):
 
 def on_context_menu(buttonObj, popMenu, point):
     popMenu.exec_(buttonObj.mapToGlobal(point)) 
+
+
+def similarString(inString, inList):
+    remove = .1
+    for i in xrange(10):
+        matches = difflib.get_close_matches(inString, inList, n=3, cutoff = 1.0 - (i * remove))
+        if matches:
+            return matches[0]

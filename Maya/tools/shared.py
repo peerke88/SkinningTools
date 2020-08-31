@@ -292,11 +292,7 @@ def getDagpath(node, extendToShape=False):
         return sellist.getDependNode(0)
 
 def getMfnSkinCluster(mObject):
-     iter = OpenMaya.MItDependencyGraph(
-        mObject,
-        OpenMaya.MFn.kSkinClusterFilter,
-        OpenMaya.MItDependencyGraph.kUpstream
-    )
+    iter = OpenMaya.MItDependencyGraph( mObject, OpenMaya.MFn.kSkinClusterFilter, OpenMaya.MItDependencyGraph.kUpstream )
 
     while not iter.isDone():
         return OpenMayaAnim.MFnSkinCluster(iter.currentItem())

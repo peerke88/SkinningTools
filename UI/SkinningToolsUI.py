@@ -168,12 +168,12 @@ class SkinningTools(QMainWindow):
         infMesh_Btn = svgButton("influenced meshes", os.path.join(_DIR, "Icons/infMesh.svg"), size=self.__iconSize)
 
         maxL = nullHBoxLayout()
-        spin = QSpinBox()
-        spin.setFixedSize(self.__iconSize, self.__iconSize+10)
+        self._maxSpin = QSpinBox()
+        self._maxSpin.setFixedSize(self.__iconSize, self.__iconSize+10)
         vtexMax_Btn = svgButton("force max infl.", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
         frzBone_Btn = svgButton("freeze joints", os.path.join(_DIR, "Icons/FreezeJoint.svg"), size=self.__iconSize)
 
-        for w in [spin, vtexMax_Btn]:
+        for w in [self._maxSpin, vtexMax_Btn]:
             maxL.addWidget(w)
         vtxOver_Btn = svgButton("sel infl. > max", os.path.join(_DIR, "Icons/vertOver.svg"), size=self.__iconSize)
         self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn, 
@@ -197,34 +197,59 @@ class SkinningTools(QMainWindow):
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
         addChecks(self, unifyBn_Btn, ["query"] )
 
-        #@note: make sure the flags are adjusted by button settings
-        AvgWght_Btn.clicked.connect( partial( interface.avgVtx, True, self.BezierGraph, self.progressBar ) )
+        AvgWght_Btn.clicked.connect( self._AvgWght_func )
         cpyWght_Btn.clicked.connect( partial( interface.copyVtx, self.progressBar ) )
         swchVtx_Btn.clicked.connect( partial( interface.switchVtx, self.progressBar ) )
         BoneLbl_Btn.clicked.connect( partial( interface.labelJoints, self.progressBar ) )
         shellUn_btn.clicked.connect( partial( interface.unifyShells, self.progressBar ) )
-        trsfrSK_Btn.clicked.connect( partial( interface.copySkin, False, True, False, self.progressBar) )
-        trsfrPS_Btn.clicked.connect( partial( interface.copySkin, True, True, False, self.progressBar) )
-        nghbors_Btn.clicked.connect( partial( interface.neighbors, False, True, self.progressBar ) )
-        nghbrsP_Btn.clicked.connect( partial( interface.neighbors, True, True, self.progressBar ) )
+        trsfrSK_Btn.clicked.connect( partial( self._trsfrSK_func, False) )
+        trsfrPS_Btn.clicked.connect( partial( self._trsfrSK_func, True) )
+        nghbors_Btn.clicked.connect( partial( self._nghbors_func, False, self.progressBar ) )
+        nghbrsP_Btn.clicked.connect( partial( self._nghbors_func, True, self.progressBar ) )
         smthVtx_Btn.clicked.connect( partial( interface.smooth, self.progressBar ) )
-        smthBrs_Btn.clicked.connect( interface.smoothBrush )
+        smthBrs_Btn.clicked.connect( interface.paintSmoothBrush )
         toJoint_Btn.clicked.connect( partial( interface.convertToJoint, self.progressBar ) )
         rstPose_Btn.clicked.connect( partial( interface.resetPose, self.progressBar ) )
 
         copy2bn_Btn.clicked.connect( partial( interface.moveBones, False,  self.progressBar ) )
         b2bSwch_Btn.clicked.connect( partial( interface.moveBones, True, self.progressBar ) )
         showInf_Btn.clicked.connect( partial( interface.showInfVerts, self.progressBar ) )
-        delBone_Btn.clicked.connect( partial( interface.removeJoint, True, True, False, self.progressBar ) )
+        delBone_Btn.clicked.connect( self._delBone_func)
         addinfl_Btn.clicked.connect( partial( interface.addNewJoint, self.progressBar ) )
-        unifyBn_Btn.clicked.connect( partial( interface.unifySkeletons, False,  self.progressBar ) )
+        unifyBn_Btn.clicked.connect( self._unifyBn_func )
         seltInf_Btn.clicked.connect( partial( interface.selectJoints, self.progressBar ) )
         sepMesh_Btn.clicked.connect( partial( interface.seperateSkinned, self.progressBar ) )
         onlySel_Btn.clicked.connect( partial( interface.getJointInfVers, self.progressBar ) )
         infMesh_Btn.clicked.connect( partial( interface.getMeshFromJoints, self.progressBar ) )
-        vtexMax_Btn.clicked.connect( partial( interface.setMaxInfl, 8, self.progressBar ) )
-        vtxOver_Btn.clicked.connect( partial( interface.getMaxInfl, 8, self.progressBar ) )
+        vtexMax_Btn.clicked.connect( partial( self.vtexMax_func, False ) )
+        vtxOver_Btn.clicked.connect( partial( self.vtexMax_func, True ) )
         frzBone_Btn.clicked.connect( partial( interface.freezeJoint, self.progressBar ) )
+
+    # -- buttons with extra functionality
+    def _AvgWght_func(self):
+        interface.avgVtx(self.sender().checks["use distance"].isChecked(), self.BezierGraph, self.progressBar )
+
+    def _trsfrSK_func(self, inPlace):
+        chkbxs = self.sender().checks
+        interface.copySkin(inPlace, chkbxs["smooth"].isChecked(), chkbxs["uvSpace"].isChecked(), self.progressBar)
+
+    def _nghbors_func(self, both):
+        interface.neighbors(both, self.sender().checks["full"].isChecked(), self.progressBar)
+
+    def _delBone_func(self):
+        chkbxs = self.sender().checks
+        interface.removeJoint(chkbxs["use parent"].isChecked(), chkbxs["delete"].isChecked(), chkbxs["fast"].isChecked(), self.progressBar)
+        
+    def _unifyBn_func(self):
+        interface.unifySkeletons( self.sender().checks["query"].isChecked(), self.progressBar)
+
+    def vtexMax_func(self, query):
+        if query:
+            interface.getMaxInfl(self._maxSpin.value(), self.progressBar)
+            return
+        interface.setMaxInfl(self._maxSpin.value(), self.progressBar)
+
+    # -- other maya tools
 
     def __addCopyRangeFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("copy functions")
