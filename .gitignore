@@ -139,3 +139,8 @@ dmypy.json
 *.check_cache
 *.make
 *.internal
+.vs/VSWorkspaceState.json
+.vs/ProjectSettings.json
+.vs/SkinningTools/v15/.suo
+*.db
+*.sqlite

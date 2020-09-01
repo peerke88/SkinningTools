@@ -100,6 +100,7 @@ class SliderControl(AbstractControl):
                 obj.setStyleSheet('')
         elif event.type() == QEvent.FocusOut:
             self.editEnd()
+        return True
 
 
 if __name__ == '__main__':

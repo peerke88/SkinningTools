@@ -15,7 +15,7 @@ class VertAndBoneFunction(QWidget):
 
         self.progressBar = inProgressBar
         self.BezierGraph = inGraph
-
+        self.borderSelection = interface.NeighborSelection()
         self.__addVertNBoneFunc()
 
     def __addVertNBoneFunc(self):
@@ -35,6 +35,7 @@ class VertAndBoneFunction(QWidget):
         smthBrs_Btn = svgButton("smooth Brush", os.path.join(_DIR, "Icons/brush.svg"), size=self.__iconSize)
         toJoint_Btn = svgButton("convert to joint", os.path.join(_DIR, "Icons/toJoints.svg"), size=self.__iconSize)
         rstPose_Btn = svgButton("reset Pose", os.path.join(_DIR, "Icons/resetJoint.svg"), size=self.__iconSize)
+        cutMesh_Btn = svgButton("create proxy", os.path.join(_DIR, "Icons/proxy.svg"), size=self.__iconSize)
 
         copy2bn_Btn = svgButton("move bone infl.", os.path.join(_DIR, "Icons/Bone2Bone.svg"), size=self.__iconSize)
         b2bSwch_Btn = svgButton("swap bone infl.", os.path.join(_DIR, "Icons/Bone2Boneswitch.svg"), size=self.__iconSize)
@@ -52,20 +53,31 @@ class VertAndBoneFunction(QWidget):
         self._maxSpin.setFixedSize(self.__iconSize, self.__iconSize+10)
         vtexMax_Btn = svgButton("force max infl.", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
         frzBone_Btn = svgButton("freeze joints", os.path.join(_DIR, "Icons/FreezeJoint.svg"), size=self.__iconSize)
-
         for w in [self._maxSpin, vtexMax_Btn]:
             maxL.addWidget(w)
         vtxOver_Btn = svgButton("sel infl. > max", os.path.join(_DIR, "Icons/vertOver.svg"), size=self.__iconSize)
+
+        growL = nullHBoxLayout()
+        storsel_Btn = svgButton("store inner", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
+        self.shrinks_Btn = svgButton("-", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
+        self.growsel_Btn = svgButton("+", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
+        for i, w in enumerate([self.shrinks_Btn, storsel_Btn, self.growsel_Btn]):
+            if i != 1:
+                w.setEnabled(False)
+                w.setMaximumWidth(30)
+                w.setStyleSheet("QPushButton { text-align: center; }")
+            growL.addWidget(w)
+
         self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn, 
                          trsfrPS_Btn, nghbors_Btn, nghbrsP_Btn, smthVtx_Btn, smthBrs_Btn, toJoint_Btn, rstPose_Btn, 
-                         copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn, 
-                         seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, frzBone_Btn]
+                         cutMesh_Btn, copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn, 
+                         seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, frzBone_Btn, growL]
         for index, btn in enumerate(self.__buttons):
-            row = index / 13
+            row = index / 14
             if isinstance(btn, QLayout):
-                g.addLayout(btn, index - (row * 13), row)
+                g.addLayout(btn, index - (row * 14), row)
                 continue
-            g.addWidget(btn, index - (row * 13), row)
+            g.addWidget(btn, index - (row * 14), row)
 
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
@@ -74,6 +86,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"] )
         addChecks(self, nghbors_Btn, ["full"] )
         addChecks(self, nghbrsP_Btn, ["full"] )
+        addChecks(self, cutMesh_Btn, ["internal", "fast"] )
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
         addChecks(self, unifyBn_Btn, ["query"] )
 
@@ -90,6 +103,7 @@ class VertAndBoneFunction(QWidget):
         smthBrs_Btn.clicked.connect( interface.paintSmoothBrush )
         toJoint_Btn.clicked.connect( partial( interface.convertToJoint, self.progressBar ) )
         rstPose_Btn.clicked.connect( partial( interface.resetPose, self.progressBar ) )
+        cutMesh_Btn.clicked.connect( partial( self.cutMesh_func, self.progressBar ))
 
         copy2bn_Btn.clicked.connect( partial( interface.moveBones, False,  self.progressBar ) )
         b2bSwch_Btn.clicked.connect( partial( interface.moveBones, True, self.progressBar ) )
@@ -104,6 +118,9 @@ class VertAndBoneFunction(QWidget):
         vtexMax_Btn.clicked.connect( partial( self.vtexMax_func, False ) )
         vtxOver_Btn.clicked.connect( partial( self.vtexMax_func, True ) )
         frzBone_Btn.clicked.connect( partial( interface.freezeJoint, self.progressBar ) )
+        storsel_Btn.clicked.connect( self.storesel_func)
+        self.shrinks_Btn.clicked.connect( self.shrinks_func)
+        self.growsel_Btn.clicked.connect( self.growsel_func)
 
     # -- buttons with extra functionality
     def _AvgWght_func(self):
@@ -128,3 +145,23 @@ class VertAndBoneFunction(QWidget):
             interface.getMaxInfl(self._maxSpin.value(), self.progressBar)
             return
         interface.setMaxInfl(self._maxSpin.value(), self.progressBar)
+
+    def cutMesh_func(self):
+        chkbxs = self.sender().checks
+
+    def storesel_func(self, *args):
+        self.borderSelection.storeSel()
+        self.shrinks_Btn.setEnabled(False)
+        self.growsel_Btn.setEnabled(True)
+
+    def shrinks_func(self, *args):
+        self.borderSelection.shrink()
+        if self.borderSelection.getBorderIndex() == 0:
+            self.shrinks_Btn.setEnabled(False)
+
+    def growsel_func(self, *args):
+        self.shrinks_Btn.setEnabled(True)
+        if self.borderSelection.getBorderIndex() == 0:
+            self.shrinks_Btn.setEnabled(False)
+        self.borderSelection.grow()
+        

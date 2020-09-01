@@ -24,6 +24,9 @@ def getSelection():
     cmds.selectPref(tso=True)
     return cmds.ls(os=1, l=1, fl=1)
 
+def doSelect(input):
+    cmds.select(input, r=1)
+
 # --- maya menus ---
 
 def mirrorSkinOptions():
@@ -270,7 +273,7 @@ def getMaxInfl( amountInfluences = 8, progressBar = None ):
 @shared.dec_repeat
 def freezeJoint( progressBar = None ):
     selection = getSelection()
-    result = joints.freezeSkinnedJoints(joints, progressBar=progressBar)
+    result = joints.freezeSkinnedJoints(selection, progressBar=progressBar)
     return result
 
 
@@ -289,6 +292,22 @@ def paintSmoothBrush():
                           outwhilepaint=True, brushfeedback=False, selectedattroper="additive")
 
     cmds.setToolTo(_ctx)
+
+def getNeightbors(inComps):
+    objType = cmds.objectType(inComps[0])
+    if objType == 'mesh': 
+        convertedFaces = cmds.polyListComponentConversion(inComps, tf=True)
+        return shared.convertToVertexList(convertedFaces)
+    
+    if objType == "nurbsSurface":
+        cmds.select(cl=1)
+        cmds.nurbsSelect(inComps,  gs=1 )
+        return cmds.ls(sl=1, fl=1)
+    
+    if objType == "lattice":
+        return shared.growLatticePoints(inComps)
+    
+    cmds.error( "current type --%s-- not valid for this commmand, only surface or polygon can be used!"%objType )
 
 
 class vertexWeight(object):
@@ -382,3 +401,36 @@ class skinWeight(object):
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)
 
         shared.setWeigths(mesh, self.weightInfo)
+
+
+class NeighborSelection(object):
+    def __init__(self):
+        self.__bdrSel = None
+        self.__bdrIndex = 0
+        self.__bdrSelBase = []
+
+    def getBorderIndex(self):
+        return self.__bdrIndex
+
+    def storeSel(self, *args):
+        self.__bdrSelBase = shared.convertToVertexList(getSelection())
+        self.__bdrSel = None
+        self.__bdrIndex = 0
+
+    def shrink(self, *args):
+        self.__bdrIndex += 1
+        self.__borderSel()
+
+    def grow(self, *args):
+        self.__bdrIndex -= 1
+        self.__borderSel()
+            
+    def __borderSel(self, *args):
+        for i in range(self.__bdrIndex):
+            toConvert = self.__bdrSel
+            if i == 0:
+                toConvert = self.__bdrSelBase
+            self.__bdrSel = interface.getNeightbors(toConvert)
+            
+        borderSelect = list(set(self.__bdrSel) ^ set(self.__bdrSelBase))
+        cmds.select(borderSelect, r=1)

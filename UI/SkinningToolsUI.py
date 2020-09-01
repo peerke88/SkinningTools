@@ -5,6 +5,7 @@ from SkinningTools.UI.utils import *
 from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
 from SkinningTools.UI.tearOff.tearOffDialog import *
 from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
+from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
 from SkinningTools.UI.advancedToolTip import AdvancedToolTip
@@ -180,6 +181,8 @@ class SkinningTools(QMainWindow):
             parent.mouseMoveEvent = partial(self.childMouseMoveEvent, parent)
 
         for child in parent.children():
+            if isinstance(child, SliderControl):
+                continue
             self.recurseMouseTracking(child, flag)
 
     def _mouseTracking(self, event):

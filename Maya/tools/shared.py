@@ -232,7 +232,7 @@ def convertToVertexList(inObject):
 
 def selectHierarchy(node):
     ad = cmds.listRelatives(node, ad=1, f=1)
-    ad.append(node)
+    ad.append(node[0])
     return ad[::-1]
 
 def getJointIndexMap(inSkinCluster):

@@ -80,11 +80,9 @@ class ToolTipFilter(QObject):
             return False
         
         if ( event.type() == QEvent.MouseButtonPress and event.button() == 4):
-            print "mousePressed"
             foundObjects = objectUnderMouse()
             if self.__debug:
                 foundObjects = (True, "testBone")
-            print foundObjects
 
             if foundObjects == (False, '') or foundObjects is False:
                 return False
@@ -99,7 +97,6 @@ class ToolTipFilter(QObject):
             self.popup.updateLine(QCursor.pos())
 
         if (event.type() == QEvent.MouseButtonRelease and event.button() == 4): 
-            print "mouse released"
             if self.popup is None:
                 return True
             _curItem = self.popup.getActiveItem()
@@ -110,7 +107,7 @@ class ToolTipFilter(QObject):
             self.popup.hide()
             self.popup.deleteLater()
             self.popup = None
-            return True
+        return True
 
 
 class radialMenu(QMainWindow):
