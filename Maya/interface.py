@@ -302,7 +302,7 @@ class vertexWeight(object):
         self.boneInfo = cmds.listConnections("%s.matrix"%sc, source=True)
 
         averageList = []
-        for vtx in vtxs
+        for vtx in vtxs:
             averageList.append( cmds.skinPercent ( sc, vtx, q=1 ,v =1 ) )
 
         self.vertexWeightInfo = [sum(x)/vertAmount for x in zip(*averageList)]
@@ -329,6 +329,7 @@ class vertexWeight(object):
         cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize = 1, zeroRemainingInfluences = True )
 
 class skinWeight(object):
+	# @TODO: check to make sure when remapped if skinweights neew remap as well!
     def __init__(self, inProgressBar = None):
         self.weightInfo = None
         self.boneInfo = None
@@ -348,6 +349,16 @@ class skinWeight(object):
         self.weightInfo = shared.getWeights(mesh)
         return mesh
 
+    def needsRemap(self):
+        toCheck = set(self.boneInfo).instersection(set(cmds.ls(type="joint")))
+        return (not list(toCheck) == self.boneInfo)
+
+    def calcRemap(self, remapDict):
+    	joints = []
+    	for jnt in self.boneInfo:
+    		joints.append(remapDict[jnt])
+    	self.boneInfo = joints
+        	
     def  setSkinWeigths(self):
     	selection = getSelection()
         if not selection:
@@ -358,7 +369,9 @@ class skinWeight(object):
         	mesh = mesh.split('.')[0]
 
         sc = shared.skincluster(mesh)
+        
         boneInfo = cmds.listConnections("%s.matrix"%sc, source=True)
+
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)
 
