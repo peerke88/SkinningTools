@@ -198,8 +198,8 @@ def BoneMove(joint1, joint2, skin, progressBar = None):
     addCleanJoint([joint1, joint2], skin)
     
     meshShapeName = cmds.listRelatives(skin, s=True, f=1)[0]
-    outInfluencesArray = cmds.SkinWeights([meshShapeName, skinClusterName], q=True)
-
+    outInfluencesArray = shared.getWeigths(skin)
+    
     infLengt = len(infjnts)
     pos1 = infjnts.index(joint1)
     pos2 = infjnts.index(joint2)
@@ -213,7 +213,7 @@ def BoneMove(joint1, joint2, skin, progressBar = None):
         outInfluencesArray[(j * infLengt) + pos1] = 0.0
         utils.setProgress(j * percentage, progressBar, "moving joint influences")
 
-    cmds.SkinWeights([meshShapeName, skinClusterName], nwt=outInfluencesArray)
+    shared.setWeigths(skin, outInfluencesArray)
     utils.setProgress(100, progressBar, "moved joint influences")
     return True
 

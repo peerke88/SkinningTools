@@ -157,7 +157,10 @@ def remap(iMin, iMax, oMin, oMax, v):
     t = invLerp(iMin, iMax, v)
     return lerp(oMin, oMax, t)
 
-
+def widgetsAt(pos):
+    widgets = []
+    widget_at = QApplication.widgetAt(pos)
+    return widget_at
 
 def addChecks(cls, button, checks = []):
     v=nullVBoxLayout(size = 3)

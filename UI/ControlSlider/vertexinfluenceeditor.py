@@ -3,6 +3,7 @@ import functools, re
 from SkinningTools.Maya import api
 from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.utils import *
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 
 
@@ -10,81 +11,11 @@ class VertexInfluenceEditor(QGroupBox):
     lockIcon = QIcon(':/nodeGrapherUnlocked.png')
     unlockIcon = QIcon(':/lockGeneric.png')
 
-    """
-    def _lookAt(self, pos1, pos2):
-        aim =OpenMaya.MVector().zAxis
-
-        source = OpenMaya.MVector(pos1[0], pos1[1],pos1[2])
-        target = OpenMaya.MVector(pos2[0], pos2[1],pos2[2])
-
-        aimVector = (target - source).normal()
-
-        quat = OpenMaya.MQuaternion()
-        QuatU = OpenMaya.MQuaternion(aim, aimVector).asEulerRotation()
-      
-        return (QuatU.x, QuatU.y,QuatU.z)
-      
-    def _hiliteNode(self, radius):
-        POINTS = []
-        r = radius
-        fullRange = pi*12.5
-        for angle in xrange(int(fullRange)+1):
-            POINTS.append(( r*cos(angle/6.25), r*sin(angle/6.25), 0 ))
-
-        circle = mscreen.drawCurve(POINTS, color=mscreen.COLOR_RED, drawInFront = True)
-        point = mscreen.drawPoint((0.0,0.0,0.0), mscreen.COLOR_YELLOW, drawInFront = True)
-        return circle, point
-
-    def _activeCamera(self):
-        camera = cmds.modelEditor(cmds.playblast(ae=True), q=True, camera=True)
-        if not camera:
-            camera = cmds.modelEditor(cmds.modelEditor(q=True, activeView=True), q=True, camera=True)
-        if not camera:
-            return
-        if cmds.ls(camera, type='shape'):
-            camera = cmds.listRelatives(camera, p=True, f=True)
-        return camera
-
-    def _snapHiliteNode(self, vertex):
-        pos = cmds.xform(vertex, q=True, ws=True, t=True)
-        camera = self._activeCamera()
-        if not camera: return False
-        camPos = cmds.xform(camera, q=True, ws=True, rp=True)
-        euler = self._lookAt(pos, camPos)
-
-        scale = sqrt((camPos[0]-pos[0])*(camPos[0]-pos[0])+
-            (camPos[1]-pos[1])*(camPos[1]-pos[1])+
-            (camPos[2]-pos[2])*(camPos[2]-pos[2])) * 0.01
-      
-        mscreen.clear() 
-        hilite, vtx= self._hiliteNode(scale)
-        hilite.move(pos[0], pos[1], pos[2])
-        hilite.rotate( euler[0], euler[1],euler[2], False)
-        vtx.move(pos[0], pos[1], pos[2])
-        mscreen.refresh()
-      
-        return True
-    """
-
-    @staticmethod
-    def VLayout():
-        l = QVBoxLayout()
-        l.setSpacing(0)
-        l.setContentsMargins(0, 0, 0, 0)
-        return l
-
-    @staticmethod
-    def HLayout():
-        l = QHBoxLayout()
-        l.setSpacing(0)
-        l.setContentsMargins(0, 0, 0, 0)
-        return l
-
     def __unusedJointsBox(self):
         unusedJoints = QGroupBox()
         unusedJoints.setTitle('Unused influences')
         unusedJoints.setFlat(True)
-        l = VertexInfluenceEditor.VLayout()
+        l = nullVBoxLayout()
         unusedJoints.setLayout(l)
         unusedJoints.setCheckable(True)
         unusedJoints.toggled.connect(self._toggleGroupBox)
@@ -103,28 +34,22 @@ class VertexInfluenceEditor(QGroupBox):
                 continue
             widget.setVisible(state)
 
-    @staticmethod
-    def __lineEdit_CorrectFolderCharacters(inLineEdit):
-        return re.search(r'[\\/:<>"]', inLineEdit) or re.search(r'[*?|]', inLineEdit) or re.search(r'[A-Z]', inLineEdit) or re.search(r'[a-z]', inLineEdit)
-
     def __lineEdit_FieldEditted(self, *_):
-        Controller_name_text = self.sender().displayText()
-        if self.__lineEdit_CorrectFolderCharacters(Controller_name_text) is not None or Controller_name_text == '':
+        self.sender().setStyleSheet('')
+        if set(self.sender().displayText()).difference(set(".0123456789")):
             self.sender().setStyleSheet('background-color: #f00;')
-        else:
-            self.sender().setStyleSheet('')
-
-    def __init__(self, skinCluster, vertexFullPath, skinBones, weights):
-        super(VertexInfluenceEditor, self).__init__()
+        
+    def __init__(self, skinCluster, vtxLName, skinBones, weights, parent = None):
+        super(VertexInfluenceEditor, self).__init__( parent = None)
         self.setMinimumHeight(0)
 
         self.setCheckable(True)
         self.setChecked(True)
         self.toggled.connect(self._toggleGroupBox)
-        self.setTitle(vertexFullPath.rsplit('|', 1)[-1])
-        self.setLayout(VertexInfluenceEditor.VLayout())
+        self.setTitle(vtxLName.rsplit('|', 1)[-1])
+        self.setLayout(nullVBoxLayout())
 
-        self.__target = (skinCluster, vertexFullPath)
+        self.__target = (skinCluster, vtxLName)
         self.__influences = skinBones
 
         self.__sliders = []
@@ -143,7 +68,7 @@ class VertexInfluenceEditor(QGroupBox):
 
         unusedSliders = 0
         for i, skBone in enumerate(skinBones):
-            sliderLayout = VertexInfluenceEditor.HLayout()
+            sliderLayout = nullHBoxLayout()
             sliderFrame = QFrame()
             sliderFrame.setLayout(sliderLayout)
             gripSlider = SliderControl(skBone, label=skBone.rsplit('|', 1)[-1], mn=0.0, mx=1.0, rigidRange=True, labelOnSlider=True)
@@ -169,19 +94,6 @@ class VertexInfluenceEditor(QGroupBox):
 
         if hasUnused:
             self.layout().addWidget(self.__unusedJoints)
-
-    """
-    def enterEvent(self, event):
-        super(VertexInfluenceEditor, self).enterEvent(event)
-        if not self._snapHiliteNode(self.__target):
-            mscreen.clear()
-            mscreen.refresh()
-
-    def leaveEvent(self, event):
-        super(VertexInfluenceEditor, self).leaveEvent(event)
-        mscreen.clear()
-        mscreen.refresh()
-    """
 
     def finalize(self):
         self.__unusedJoints.setChecked(False)

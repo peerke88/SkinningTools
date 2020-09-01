@@ -78,7 +78,7 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
     sc = shared.skinCluster(inObject, True)
     shape = cmds.listRelatives(inObject, s=True)[0]
 
-    outInfluencesArray = cmds.SkinWeights([meshShapeName, skinClusterName], q=True)
+    outInfluencesArray = shared.getWeights(inObject)
 
     infjnts = cmds.listConnections("%s.matrix"%sc, source=True)
     infLengt = len(infjnts)
@@ -121,8 +121,8 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
     jointAmount = len(sourceJoints)
     skinClusterName = shared.skinCluster(targetMesh, True)
     
-    targetInflArray = cmds.SkinWeights([targetMesh, TargetSkinCluster], q=True)
-    sourceInflArray = cmds.SkinWeights([sourceMesh, SourceSkinCluster], q=True)
+    targetInflArray = shared.getWeights(targetMesh)
+    sourceInflArray = shared.getWeights(sourceMesh)
     
     allVerticesSource = shared.convertToVertexList(sourceMesh)
     allVerticesTarget = shared.convertToVertexList(targetMesh)
@@ -197,8 +197,8 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
             targetInflArray[weightindex] = weightlist[index]
             index += 1
 
-    cmds.SkinWeights([targetMesh, TargetSkinCluster], nwt=targetInflArray)
-
+    shared.setWeigths(targetMesh, targetInflArray)
+    
     utils.setProgress(100, progressBar, "copy from Source to Target")
 
     return True
@@ -529,7 +529,7 @@ def freezeSkinnedMesh(mesh, progressBar=None):
 
     utils.setProgress(25, progressBar, "gather current skindata")
     shape = cmds.listRelatives(mesh, s=True)[0]
-    outInfluencesArray = cmds.SkinWeights([shape, sc], q=True)
+    outInfluencesArray = shared.getWeights(mesh)
 
     utils.setProgress(50, progressBar, "clean mesh")
     cmds.skinCluster(shape, e=True, ub=True)
@@ -538,7 +538,7 @@ def freezeSkinnedMesh(mesh, progressBar=None):
 
     utils.setProgress(75, progressBar, "re-apply skin")
     nsc = cmds.skinCluster(attachedJoints, mesh, tsb=True, bm=0, nw=1)
-    cmds.SkinWeights([shape, nsc], nwt=outInfluencesArray)
+    shared.setWeigths(mesh, outInfluencesArray)
     utils.setProgress(100, progressBar, "freeze skinned mesh")
     return True
 

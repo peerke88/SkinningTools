@@ -7,24 +7,26 @@ from SkinningTools.UI.tearOff.tearOffDialog import *
 from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
 from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
+from SkinningTools.UI.advancedToolTip import AdvancedToolTip
 import tempfile, os
 from functools import partial
 
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
+from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
 __VERSION__ = "5.0.20200820"
-# _DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 class SkinningTools(QMainWindow):
     def __init__(self, parent=None):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
+
         self.setCentralWidget(mainWidget)
         self.setWindowFlags(Qt.Tool)
-        self.progressBar = MessageProgressBar()
+
+        self.__uiElements()
 
         self.__defaults()
 
@@ -40,24 +42,25 @@ class SkinningTools(QMainWindow):
         self.__weightManagerSetup()
 
         mainLayout.addWidget(self.tabs)
+        mainLayout.addWidget(self.progressBar)
 
         self.loadUIState()
-        
-        mainLayout.addWidget(self.progressBar)
+        self.recurseMouseTracking(self, True)
 
         api.dccInstallEventFilter()
 
-    # ------------------------- defaults -------------------------------
+    def __uiElements(self):
+        self.settings = QSettings("uiSkinSave", "SkinningTools")
+        self.progressBar = MessageProgressBar()
+        self.BezierGraph = BezierGraph()
 
     def __defaults(self):
-        # self.__graphSize = 60
-        # self.__iconSize = 40
-        self.settings = QSettings("uiSkinSave", "SkinningTools")
-        self.__liveIMG = QPixmap(":/UVPivotLeft.png")
-        self.__notLiveIMG = QPixmap(":/enabled.png")
-        self.__isConnected = QPixmap(":/hsDownStreamCon.png")
-        self.__notConnected = QPixmap(":/hsNothing.png")
-        self.BezierGraph = BezierGraph()
+        interface.showToolTip(True)
+        self._timer = QTimer()
+        self._timer.timeout.connect(self._displayToolTip)
+        self.curentWidgetAtMouse = None
+        self.toolTipWindow = None
+        self.__timing = 700
 
     # ------------------------- ui Setups ---------------------------------
     def __menuSetup(self):
@@ -127,56 +130,25 @@ class SkinningTools(QMainWindow):
         v = nullVBoxLayout()
         tab.view.frame.setLayout(v)
 
-        closest = ClosestVertexWeightWidget()
-        transfer = TransferWeightsWidget()
+        closest = ClosestVertexWeightWidget(self)
+        transfer = TransferWeightsWidget(self)
         for w in [closest, transfer]:
             v.addWidget(w)
         v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")
-        self.inflEdit = SkinningToolsSliderList()
         v = nullVBoxLayout()
-        h = nullHBoxLayout()
-        cnct = toolButton(self.__notConnected)
-        rfr = toolButton(":/playbackLoopingContinuous_100.png")
-        live = toolButton(self.__liveIMG)
-        
-        cnct.setCheckable(True)
-        live.setCheckable(True)
+        widget = SkinSliderSetup(self)
 
-        live.clicked.connect(self._updateLive)
-        cnct.clicked.connect(self._updateConnect)
-
-        h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        for btn in [cnct, rfr, live]:
-            h.addWidget(btn)
-
-        v.addLayout(h)
+        v.addWidget(widget)
         tab.view.frame.setLayout(v)
-        v.addWidget(self.inflEdit)
-
+        
     def __componentEditSetup(self):
         self.tabs.addGraphicsTab("Component Editor")
 
     def __weightManagerSetup(self):
         self.tabs.addGraphicsTab("Weight Manager")
-
-    # ------------------------- connections ---------------------------------
-
-    def _updateLive(self):
-        liveBtn = self.sender()
-        if liveBtn.isChecked():
-            liveBtn.setIcon(QIcon(self.__notLiveIMG))
-        else:
-            liveBtn.setIcon(QIcon(self.__liveIMG))
-
-    def _updateConnect(self):
-        liveBtn = self.sender()
-        if liveBtn.isChecked():
-            liveBtn.setIcon(QIcon(self.__isConnected))
-        else:
-            liveBtn.setIcon(QIcon(self.__notConnected))
 
     # ------------------------- utilities ---------------------------------
 
@@ -199,7 +171,74 @@ class SkinningTools(QMainWindow):
         dlg.show()
         tabs.removeTab(index)
 
-    # -------------------- window geometry -------------------------------
+    # -------------------- tool tips -------------------------------------
+
+    def recurseMouseTracking(self, parent, flag):
+        if hasattr(parent, "mouseMoveEvent"):        
+            parent.setMouseTracking(flag)
+            parent.__mouseMoveEvent = parent.mouseMoveEvent
+            parent.mouseMoveEvent = partial(self.childMouseMoveEvent, parent)
+
+        for child in parent.children():
+            self.recurseMouseTracking(child, flag)
+
+    def _mouseTracking(self, event):
+        if QT_VERSION == "pyside2":
+            point = QPoint(event.screenPos().x(), event.screenPos().y())
+        else:
+            point = QPoint(event.globalPos().x(), event.globalPos().y())
+        curWidget = widgetsAt(point)
+        
+        def _removeTT():
+            if self.toolTipWindow is not None:
+                self.toolTipWindow.deleteLater()
+            self.toolTipWindow = None
+            self._timer.stop()
+
+        if curWidget == None and self.toolTipWindow != None:
+            _removeTT()
+        if self.curentWidgetAtMouse != curWidget:
+            if self.toolTipWindow != None:
+                _removeTT()
+
+            if not isinstance(curWidget, QPushButton): # <- add multiple checks if more implemented then just buttons
+                _removeTT()
+                self.curentWidgetAtMouse = None
+                return
+
+            self.curentWidgetAtMouse = curWidget
+            self._timer.start(self.__timing) 
+
+    def childMouseMoveEvent(self, child, event):
+        self._mouseTracking(event)
+        return child.__mouseMoveEvent(event)
+        
+    def mouseMoveEvent(self, event):
+        self._mouseTracking(event)
+        super( SkinningTools, self ).mouseMoveEvent( event )
+
+    def _displayToolTip(self):
+        self._timer.stop()
+        if self.curentWidgetAtMouse == None or self.tooltipAction.isChecked()== False:
+            return
+        tip =  self.curentWidgetAtMouse.whatsThis()
+
+        size = 250
+        if QDesktopWidget().screenGeometry().height() > 1080:
+            size *=1.5
+        rct = QRect(QCursor.pos().x()+20, QCursor.pos().y()-(40+size), size, size)
+        if (self.window().pos().y() + (self.height()/2)) > QCursor.pos().y():
+            rct = QRect(QCursor.pos().x()+20, QCursor.pos().y()+20, size, size)
+
+        self.toolTipWindow = AdvancedToolTip(rct)
+        # @TODO: change this to only display text if gif does not exist
+        # if not self.toolTipWindow.toolTipExists(tip):
+        #     return 
+        self.toolTipWindow.setTip(str(tip))
+        self.toolTipWindow.setGifImage(tip)
+        self.toolTipWindow.show()
+
+    # -------------------- window states -------------------------------
 
     def saveUIState(self):
         self.settings.setValue("geometry", self.saveGeometry())

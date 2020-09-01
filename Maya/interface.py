@@ -13,6 +13,12 @@ import os
 def getInterfaceDir():
 	return os.path.dirname(os.path.abspath(__file__))
 
+def showToolTip(inBool):
+	cmds.help(popupMode = inBool)
+
+def getAllJoints():
+	return cmds.ls(sl=0, type="joint")
+
 #ensure we get ordered selection and all in long names
 def getSelection():
     cmds.selectPref(tso=True)
@@ -269,7 +275,7 @@ def freezeJoint( progressBar = None ):
 
 
 @shared.dec_repeat
-@shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "SmoothBrush/averageWeightPlugin.py"))
+@shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/averageWeightPlugin.py"))
 def paintSmoothBrush():
     _ctx = "AverageWghtCtx"
     _brush_init = "AverageWghtCtxInitialize"
