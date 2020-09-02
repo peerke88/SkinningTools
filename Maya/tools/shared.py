@@ -1,9 +1,8 @@
-import sys
-import traceback
+import sys, traceback, collections, itertools
 from collections import defaultdict, deque
 from functools import wraps
 from maya import cmds, mel
-from maya.api import OpenMaya
+from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 
 
@@ -61,7 +60,8 @@ def dec_repeat(func):
             print(e.__class__)
             print(sys.exc_info())
             cmds.warning(traceback.format_exc())
-        finally:    
+        finally:  
+            print ret  
             return ret
 
     return _repeat_func
@@ -291,11 +291,12 @@ def getDagpath(node, extendToShape=False):
     except:
         return sellist.getDependNode(0)
 
-def getMfnSkinCluster(mObject):
-    iter = OpenMaya.MItDependencyGraph( mObject, OpenMaya.MFn.kSkinClusterFilter, OpenMaya.MItDependencyGraph.kUpstream )
-
-    while not iter.isDone():
-        return OpenMayaAnim.MFnSkinCluster(iter.currentItem())
+def getMfnSkinCluster(mDag):
+    if isinstance(mDag, OpenMaya.MDagPath):
+        skinNode = skinCluster(mDag.fullPathName())
+    else:
+        skinNode = skinCluster(mDag)
+    return OpenMayaAnim.MFnSkinCluster( getDagpath(skinNode) )
 
 # --- vertex island functions ---
 
@@ -304,17 +305,14 @@ def getConnectedVerts(mesh, vtxSelectionSet):
     iterVertLoop = OpenMaya.MItMeshVertex(mObject)
 
     talkedToNeighbours = set()
-
     districtDict = collections.defaultdict(list)
     districtNr = 0
-
     for currentIndex in vtxSelectionSet:
         districtHouses = set()
 
         if not currentIndex in talkedToNeighbours:
             districtHouses.add(currentIndex)
             currentNeighbours = getNeighbours(iterVertLoop, currentIndex)
-
             while currentNeighbours:
                 newNeighbours = set()
                 for neighbour in currentNeighbours:
@@ -334,7 +332,8 @@ def getConnectedVerts(mesh, vtxSelectionSet):
 
 
 def getNeighbours(mVtxItter, index):
-    intArray = mVtxItter.getConnectedVertices(index)
+    mVtxItter.setIndex(index)
+    intArray = mVtxItter.getConnectedVertices()
     return set(int(x) for x in intArray)
 
 

@@ -10,6 +10,8 @@ from SkinningTools.UI.dialogs.jointLabel import JointLabel
 from random import randint
 import os
 
+cmds.selectPref(tso=True)
+
 def getInterfaceDir():
 	return os.path.dirname(os.path.abspath(__file__))
 
@@ -21,7 +23,6 @@ def getAllJoints():
 
 #ensure we get ordered selection and all in long names
 def getSelection():
-    cmds.selectPref(tso=True)
     return cmds.ls(os=1, l=1, fl=1)
 
 def doSelect(input):
@@ -79,6 +80,7 @@ def avgVtx(useDistance=True, weightAverageWindow = None, progressBar = None):
 @shared.dec_repeat
 def copyVtx(progressBar = None):
     selection = getSelection()
+    print selection
     result = skinCluster.Copy2MultVertex(selection, selection[-1], progressBar)
     return result
 
@@ -123,7 +125,9 @@ def neighbors(both, growing, full, progressBar = None):
     result = skinCluster.smoothAndSmoothNeighbours(selection, both, growing, full,progressBar)
     return result
 
+
 @shared.dec_repeat
+@shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/averageWeightPlugin.py"))
 def smooth(progressBar = None):
     selection = getSelection()
     result = skinCluster.neighbourAverage(selection, progressBar= progressBar)
@@ -142,76 +146,76 @@ def convertToJoint(progressBar = None):
 @shared.dec_repeat
 def resetPose(progressBar = None):
     selection = getSelection()
-    joints = []
+    jnts = []
     sc = []
     for obj in selection:
         if cmds.objectType(obj) == "joint":
-            joints.append(obj)
+            jnts.append(obj)
             continue
         sc.append(shared.skinCluster(obj, True))
 
-    result = joints.resetSkinnedJoints(joints, sc, progressBar)
+    result = joints.resetSkinnedJoints(jnts, sc, progressBar)
     return result
 
 @shared.dec_repeat
 def moveBones(swap = False, progressBar = None):
     selection = getSelection()
-    joints = []
+    jnts = []
     mesh = ''
     for obj in selection:
         if cmds.objectType(obj) == "joint":
-            joints.append(obj)
+            jnts.append(obj)
             continue
         mesh = obj
 
     if swap:
-        result = joints.BoneSwitch(joints[0], joints[1], mesh[0], progressBar)
+        result = joints.BoneSwitch(jnts[0], jnts[1], mesh[0], progressBar)
         return result
 
-    result = joints.BoneMove(joints[0], joints[1], mesh[0], progressBar)
+    result = joints.BoneMove(jnts[0], jnts[1], mesh[0], progressBar)
     return result
 
 @shared.dec_repeat
 def showInfVerts(progressBar = None):
     selection = getSelection()
-    joints = []
+    jnts = []
     mesh = ''
     for obj in selection:
         if cmds.objectType(obj) == "joint":
-            joints.append(obj)
+            jnts.append(obj)
             continue
         mesh = obj
 
-    result = joints.ShowInfluencedVerts(mesh, joints, progressBar)
+    result = joints.ShowInfluencedVerts(mesh, jnts, progressBar)
     cmds.select(result, r=1)
     return result
 
 @shared.dec_repeat
 def removeJoint(useParent=True, delete=True, fast=False, progressBar=None):
     selection = getSelection()
-    joints = []
+    jnts = []
     mesh = []
     for obj in selection:
         if cmds.objectType(obj) == "joint":
-            joints.append(obj)
+            jnts.append(obj)
             continue
         mesh.append(obj)
 
-    result = joints.removeJoints(mesh, joints, useParent, delete, fast, progressBar)
+    result = joints.removeJoints(mesh, jnts, useParent, delete, fast, progressBar)
     return result
 
 @shared.dec_repeat
 def addNewJoint( progressBar=None):
     selection = getSelection()
-    joints = []
+    jnts = []
     mesh = ''
     for obj in selection:
         if cmds.objectType(obj) == "joint":
-            joints.append(obj)
+            jnts.append(obj)
             continue
         mesh = obj
 
-    result = joints.addCleanJoint(joints, mesh, progressBar)
+    result = joints.addCleanJoint(jnts, mesh, progressBar)
     return result
 
 @shared.dec_repeat
@@ -238,15 +242,15 @@ def seperateSkinned(progressBar = None):
 @shared.dec_repeat
 def getJointInfVers(progressBar = None):
     selection = getSelection()
-    joints = []
+    jnts = []
     mesh = ''
     for obj in selection:
         if cmds.objectType(obj) == "joint":
-            joints.append(obj)
+            jnts.append(obj)
             continue
         mesh = obj
 
-    result = joints.ShowInfluencedVerts(mesh, joints, progressBar)
+    result = joints.ShowInfluencedVerts(mesh, jnts, progressBar)
     cmds.select(result, r=1)
     return result
 
@@ -281,8 +285,8 @@ def freezeJoint( progressBar = None ):
 @shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/averageWeightPlugin.py"))
 def paintSmoothBrush():
     _ctx = "AverageWghtCtx"
-    _brush_init = "AverageWghtCtxInitialize"
-    _brush_update = "AverageWghtCtxUpdate"
+    _brush_init = "paintAverageWghtCtxInitialize"
+    _brush_update = "paintAverageWghtCtxUpdate"
 
     if not cmds.artUserPaintCtx(_ctx, query=True, exists=True):
         cmds.artUserPaintCtx(_ctx)

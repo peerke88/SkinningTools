@@ -9,6 +9,7 @@ from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI import utils 
 
+from maya.api import OpenMaya
 from maya import cmds
 
 def checkBasePose(skinCluster):
@@ -29,8 +30,8 @@ def checkBasePose(skinCluster):
 def forceCompareInfluences(meshes):
     compared = joints.comparejointInfluences(meshes, True)
     outOfPose = False
-    for mesh in meshes:
-        shared.skinCluster(mesh, True)
+    for inMesh in meshes:
+        shared.skinCluster(inMesh, True)
         if checkBasePose(skinClusterName):
             continue
         outOfPose = True
@@ -266,11 +267,11 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
 def Copy2MultVertex(selection, lastSelected, progressBar = None):
     utils.setProgress(0, progressBar, "start copy vertex")
     index = int(lastSelected.split("[")[-1].split("]")[0])
-    mesh = lastSelected.split('.')[0]
-    sc = shared.skinCluster(mesh, True)
+    currentMesh = lastSelected.split('.')[0]
+    sc = shared.skinCluster(currentMesh, True)
 
     infJoints =  cmds.listConnections("%s.matrix"%sc, source=True)
-    currentValues = cmds.skinPercent(sc, "%s.vtx[%i]"%(mesh, index), q=1, value=1)
+    currentValues = cmds.skinPercent(sc, "%s.vtx[%i]"%(currentMesh, index), q=1, value=1)
 
     percentage = 99.0/ len(infJoints)
     transformValueList = []
@@ -285,8 +286,8 @@ def Copy2MultVertex(selection, lastSelected, progressBar = None):
 @shared.dec_undo
 def hammerVerts(inSelection, needsReturn=True, progressBar = None):
     utils.setProgress(0, progressBar, "start Hammer")
-    mesh = inSelection[0].split('.')[0]
-    sc = shared.skinCluster(mesh, True)
+    currentMesh = inSelection[0].split('.')[0]
+    sc = shared.skinCluster(currentMesh, True)
     maxInfls = cmds.skinCluster(sc, q=True, mi=True)
     utils.setProgress(50, progressBar, "gather data")
 
@@ -299,24 +300,24 @@ def hammerVerts(inSelection, needsReturn=True, progressBar = None):
 @shared.dec_undo
 def switchVertexWeight(vertex1, vertex2, progressBar = None):
     utils.setProgress(0, progressBar, "start switch")
-    mesh = vertex1.split('.')[0]
-    sc = shared.skinCluster(mesh)
-    cmds.skinCluster(mesh, e=True, nw=1)
+    currentMesh = vertex1.split('.')[0]
+    sc = shared.skinCluster(currentMesh)
+    cmds.skinCluster(currentMesh, e=True, nw=1)
     infJoints = cmds.listConnections("%s.matrix"%sc, source=True)
 
-    pointWeights1 = cmds.skinPercent(skinClusterName, vertex1, q=True, value=True)
-    pointWeights2 = cmds.skinPercent(skinClusterName, vertex2, q=True, value=True)
+    pointWeights1 = cmds.skinPercent(sc, vertex1, q=True, value=True)
+    pointWeights2 = cmds.skinPercent(sc, vertex2, q=True, value=True)
 
     pointsWeightsList1 = []
     pointsWeightsList2 = []
     percentage = 99.0/ len(infJoints)
-    for j, bone in enumerate(infJoints):
-        pointsWeightsList1.append([bone, pointWeights1[j]])
-        pointsWeightsList2.append([bone, pointWeights2[j]])
+    for i, bone in enumerate(infJoints):
+        pointsWeightsList1.append([bone, pointWeights1[i]])
+        pointsWeightsList2.append([bone, pointWeights2[i]])
         utils.setProgress(i * percentage, progressBar, "gather joint info")
 
-    cmds.skinPercent(skinClusterName, vertex1, transformValue=pointsWeightsList2)
-    cmds.skinPercent(skinClusterName, vertex2, transformValue=pointsWeightsList1)
+    cmds.skinPercent(sc, vertex1, transformValue=pointsWeightsList2)
+    cmds.skinPercent(sc, vertex2, transformValue=pointsWeightsList1)
     utils.setProgress(100, progressBar, "switched Weights")
     return True
 
@@ -377,10 +378,10 @@ def transferUvToSkinnedObject(mesh_source, mesh_target, sourceMap = "map1", targ
     return True
 
 @shared.dec_undo
-def seperateSkinnedObject(mesh, progressBar=None):
+def seperateSkinnedObject(inMesh, progressBar=None):
     utils.setProgress(0, progressBar, "start seperate")
-    shape = cmds.listRelatives(mesh, ad=True, s=True)
-    shells = mesh.getShellFaces(mesh)
+    shape = cmds.listRelatives(inMesh, ad=True, s=True)
+    shells = mesh.getShellFaces(inMesh)
 
     total = len(shells)
     percentage = 99.0 / total
@@ -388,7 +389,7 @@ def seperateSkinnedObject(mesh, progressBar=None):
     newMeshes = []
     for i, shell in enumerate(shells):
 
-        dup = cmds.duplicate(mesh)[0]
+        dup = cmds.duplicate(inMesh)[0]
         newShells = []
         for obj in shells:
             newShells.append(dup + obj)
@@ -399,9 +400,9 @@ def seperateSkinnedObject(mesh, progressBar=None):
 
         utils.setProgress(percentage * i, progressBar, "extracting shells")
 
-    transferSkinning(mesh, newMeshes, inPlace=True)
+    transferSkinning(inMesh, newMeshes, inPlace=True)
     cmds.delete(shape)
-    cmds.parent(newMeshes, mesh)
+    cmds.parent(newMeshes, inMesh)
 
     utils.setProgress(100, progressBar, "seperated object shells")
     return True
@@ -414,9 +415,9 @@ def extractSkinnedShells(components, progressBar=None):
 
     utils.setProgress(0, progressBar, "get shell info")
     faces = _convertToFaces(components)
-    mesh = faces.split(".")[0]
+    inMesh = faces.split(".")[0]
 
-    dup = cmds.duplicate(mesh)[0]
+    dup = cmds.duplicate(inMesh)[0]
     allFaces = _convertToFaces(dup)
 
     newSel = []
@@ -427,7 +428,7 @@ def extractSkinnedShells(components, progressBar=None):
 
     cmds.delete(list(set(allFaces) ^ set(newSel)))
     cmds.delete(dup, ch=1)
-    if shared.skinCluster(mesh, True) == None:
+    if shared.skinCluster(inMesh, True) == None:
         return
     transferSkinning(mesh, [dup], inPlace=True)
     utils.setProgress(100, progressBar, "extracted shells")
@@ -445,8 +446,8 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
     utils.setProgress(0, progressBar, "get joint influences")
     polySelection = list(set(fullSelection) ^ set(jointOnlySelection))
     vertices = shared.convertToVertexList(polySelection)
-    mesh = vertices[0].split(".")[0]
-    skinCluster = SkinningTools.skinCluster(mesh, True)
+    inMesh = vertices[0].split(".")[0]
+    skinCluster = SkinningTools.skinCluster(inMesh, True)
 
     attachedJoints = cmds.skinCluster(skinCluster, q=True, inf=True)
     jointsToRemove = list(set(attachedJoints) - set(jointOnlySelection))
@@ -465,11 +466,11 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
 def smoothAndSmoothNeighbours(input, both=False, growing=False, full = True, progressBar = None):
     utils.setProgress(0, progressBar, "start smooth")
     vertices = shared.convertToVertexList(input)
-    mesh = vertices[0].split('.')[0]
-    meshNode = OpenMaya.MGlobal.getSelectionListByName( name ).getDependNode()
+    inMesh = vertices[0].split('.')[0]
+    meshNode = OpenMaya.MGlobal.getSelectionListByName( inMesh ).getDependNode(0)
     meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
     
-    sc = shared.skinCluster(mesh)
+    sc = shared.skinCluster(inMesh)
     if both:
         cmds.select(vertices, r=1)
         cmds.skinCluster(sc, geometry=vertices, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
@@ -480,26 +481,25 @@ def smoothAndSmoothNeighbours(input, both=False, growing=False, full = True, pro
         for vert in vertices:
             index = int(vert[vert.index("[") + 1: -1])
             indices.extend(shared.getNeighbours(meshVerItFn, index))
-            for nb in indices:
-                grown.append("%s.vtx[%i]"%(mesh,nb))
-        grown = convertToCompList(indices, mesh)
+        grown = shared.convertToCompList(indices, inMesh)
 
     fixedList = list(set(grown) ^ set(vertices))
     utils.setProgress(67, progressBar, "gathered smooth data")
     cmds.skinCluster(sc, geometry=fixedList, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
 
     utils.setProgress(100, progressBar, "smoothed neighbors")
-    if not growing or both == False:
-        return expandedVertices
-
+    if False in [growing, both]:
+        cmds.select(vertices, r=1)
+        return vertices
+    cmds.select(fixedList, r=1)
     return fixedList
 
 @shared.dec_undo
 def avgVertex( vertices, lastSelected, progressBar = None):
     utils.setProgress(0, progressBar, "get average data")
     pointList = [x for x in vertices if x != lastSelected]
-    mesh = lastSelected.split('.')[0]
-    sc = shared.skinCluster(mesh)
+    inMesh = lastSelected.split('.')[0]
+    sc = shared.skinCluster(inMesh)
     jointInfls = cmds.listConnections("%s.matrix"%sc, source=True)
 
     _weights = dict.fromkeys(jointInfls, 0)
@@ -522,23 +522,23 @@ def avgVertex( vertices, lastSelected, progressBar = None):
     return True
 
 @shared.dec_undo
-def freezeSkinnedMesh(mesh, progressBar=None):
+def freezeSkinnedMesh(inMesh, progressBar=None):
     utils.setProgress(0, progressBar, "start freeze mesh")
-    sc = shared.skinCluster(mesh, True)
+    sc = shared.skinCluster(inMesh, True)
     attachedJoints = cmds.listConnections("%s.matrix"%sc, source=True)
 
     utils.setProgress(25, progressBar, "gather current skindata")
-    shape = cmds.listRelatives(mesh, s=True)[0]
-    outInfluencesArray = shared.getWeights(mesh)
+    shape = cmds.listRelatives(inMesh, s=True)[0]
+    outInfluencesArray = shared.getWeights(inMesh)
 
     utils.setProgress(50, progressBar, "clean mesh")
     cmds.skinCluster(shape, e=True, ub=True)
-    cmds.delete(mesh, ch=1)
-    cmds.makeIdentity(mesh, apply=True)
+    cmds.delete(inMesh, ch=1)
+    cmds.makeIdentity(inMesh, apply=True)
 
     utils.setProgress(75, progressBar, "re-apply skin")
-    nsc = cmds.skinCluster(attachedJoints, mesh, tsb=True, bm=0, nw=1)
-    shared.setWeigths(mesh, outInfluencesArray)
+    nsc = cmds.skinCluster(attachedJoints, inMesh, tsb=True, bm=0, nw=1)
+    shared.setWeigths(inMesh, outInfluencesArray)
     utils.setProgress(100, progressBar, "freeze skinned mesh")
     return True
 
@@ -546,19 +546,19 @@ def freezeSkinnedMesh(mesh, progressBar=None):
 def hardSkinSelectionShells(selection, progressBar=False):
     utils.setProgress(0, progressBar, "converting to shells")
     expanded = shared.convertToVertexList(selection)
-    mesh = expanded[0].split('.')[0]
+    inMesh = expanded[0].split('.')[0]
 
-    sc = shared.skinCluster(mesh, True)
+    sc = shared.skinCluster(inMesh, True)
     attachedJoints = cmds.skinCluster(sc, q=True, inf=True)
 
     vtxList = shared.convertToIndexList(expanded)
-    foundFriendDict = shared.getConnectedVerts(mesh, vtxList)
+    foundFriendDict = shared.getConnectedVerts(inMesh, vtxList)
 
     iteration = 0
     percentage = 99.0/len(foundFriendDict.keys())
     for group, entries in foundFriendDict.iteritems():
         list1 = foundFriendDict[group]
-        vertices = shared.convertToCompList(mesh, list1)
+        vertices = shared.convertToCompList(list(list1), inMesh)
         vertexWeights = dict.fromkeys(attachedJoints, 0.0)
 
         combinations = list(itertools.product(vertices, attachedJoints))
@@ -585,24 +585,25 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
     if vertexAmount < 2:
         cmds.error("not enough vertices selected! select a minimum of 2")
 
-    mesh = selection[0].split('.')[0]
+    selectedMesh = selection[0].split('.')[0]
 
     _isEdgeSelection = False
     if ".e[" in selection[0]:
         _isEdgeSelection = True
 
-    sc = shared.skinCluster(mesh, True)
+
+    sc = shared.skinCluster(selectedMesh, True)
     infJoints = cmds.listConnections("%s.matrix"%sc, source=True)
     
-    cmds.skinCluster(mesh, e=True, nw=1)
+    cmds.skinCluster(selectedMesh, e=True, nw=1)
     if vertexAmount == 2 or _isEdgeSelection:
         baseList = [selection]
         if _isEdgeSelection:
-            baseList = shared.edgesToSmooth(selection)
+            baseList = mesh.edgesToSmooth(selection)
 
         percentage = 99.0/len(baseList)   
         for iteration, vertlist in enumerate(baseList):
-            vertMap = componentPathFinding(vertlist, useDistance, weightWindow=weightAverageWindow)
+            vertMap = mesh.componentPathFinding(vertlist, useDistance, weightWindow=weightAverageWindow)
 
             startWGT = cmds.skinPercent( sc, vertlist[0], q=True, v=True )        
             endWGT = cmds.skinPercent( sc, vertlist[1], q=True, v=True )  
@@ -625,6 +626,8 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
 
 @shared.dec_undo
 def neighbourAverage(components, warningPopup=True, progressBar=None):
+    # use this function to get outer shells neighbour information
+    # convert 1 line inwards, and continue to move inwards doing this for nice smooth deformation!
     expandedVertices = shared.convertToVertexList(components)
     if warningPopup and len(expandedVertices) > 1000:
         result = cmds.confirmDialog(title='warning',
@@ -634,8 +637,8 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
             return
 
     utils.setProgress(100, progressBar, "get neighbor data")
-    mesh = expandedVertices[0].split('.')[0]
-    sc = shared.skinCluster(mesh)
+    inMesh = expandedVertices[0].split('.')[0]
+    sc = shared.skinCluster(inMesh)
     percentage = 99.0/len(expandedVertices)
     for index, vertex in enumerate(expandedVertices):
         cmds.AverageVtxWeight(vertex, sc=sc, wt=1)
@@ -646,8 +649,8 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
 
 #@note check what the operations do!
 def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operation):
-    mesh = expandedVertices[0].split('.')[0]
-    skinCluster = shared.skinCluster(mesh, True)
+    inMesh = expandedVertices[0].split('.')[0]
+    skinCluster = shared.skinCluster(inMesh, True)
     expandedVertices = shared.convertToVertexList(expandedVertices)
     allBones = cmds.listConnections("%s.matrix"%skinCluster, source=True)
     

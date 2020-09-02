@@ -20,9 +20,10 @@ class AverageWghtCtx(object):
             return 
 
         self.dag = shared.getDagpath(obj)
-        self.obj = self.dag.getDependNode(0)
+        self.obj = self.dag.node()
         
-        self.skinCluster = shared.getMfnSkinCluster(self.obj)
+        self.skinCluster = shared.getMfnSkinCluster(self.dag)
+        print self.skinCluster
         
         maxInfPLG = self.skinCluster.findPlug("maxInfluences")
         normalizePLG = self.skinCluster.findPlug("normalizeWeights")
@@ -34,12 +35,7 @@ class AverageWghtCtx(object):
         
         self.infl = OpenMaya.MDagPathArray()
         self.skinCluster.influenceObjects(self.infl)
-            
-        self.lockedInfl = []
-        for i in range(self.infl.length()):
-            path = self.infl[i].fullPathName()
-            locked = cmds.getAttr("%s.liw"%path)
-            self.lockedInfl.append(locked)
+
 
     def reset(self):
         self.obj = None
@@ -51,43 +47,36 @@ class AverageWghtCtx(object):
         self.maintainMaxInfl = False
         
         self.infl = OpenMaya.MDagPathArray()
-        self.lockedInfl = []
     
     def calcWeights(self, value, origWeights, nbWeigths, influences, amountComps):
-        infAmount = (influences[-1]+1)
+        infAmount = len(influences)
         newWeigths = [0.0]*infAmount
         amountNeighbors = len(nbWeigths)
         for i, joint in enumerate(influences):
-            if self.lockedInfl[i]:
-                newWeigths[i] = origWeights[i]
-                continue
             
             for j in range(i, amountNeighbors, infAmount):
-                w = ((origWeights[i]/amountNeighbors)*(1-value))+((nbWeigths[j]/numC)*value)
+                
+                w = ((origWeights[i]/amountNeighbors)*(1-value))+((nbWeigths[j]/amountComps)*value)
                 newWeigths[i] += w
          
-        if self.maintainMaxInfluences:
-            weights = zip(newWeigths, influenceNew)
+        if self.maintainMaxInfl:
+            weights = zip(newWeigths, influences)
             excess = sorted(weights, reverse=True)[self.maxInfluences:]
             for e in excess:    
                 newWeigths[e[1]] = 0.0
                 
-        if self.normalizeMode == 1:
-            lockedTotal = sum( [ newWeigths[i]  for i in range(newWeigths.length()) if self.lockedInfl[i] ] )
+        if self.normalize == 1:
+            total = sum(newWeigths)
             
-            total = sum(newWeigths) - lockedTotal
-            
-            if lockedTotal >= 1.0 or total < 1e-6:
+            if total < 1e-6:
                 factor = 0
             else:
-                factor = (1.0-lockedTotal)/total            
+                factor = 1.0/total            
             
             for i, weight in enumerate(newWeigths):
-                if self.lockedInfl[i]:
-                    continue
                 newWeigths[i] = weight * factor
 
-        return newWeigths, influenceNew
+        return newWeigths, influences
 
     def setWeights(self, index, value):
         if not self.obj:
@@ -95,25 +84,31 @@ class AverageWghtCtx(object):
 
         singleIdComp = OpenMaya.MFnSingleIndexedComponent()
         vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
-        vertexComp.addElements( index )
+        singleIdComp.addElement( index )
         
-        origWeigths = self.skinCluster(self.dag, vertexComp)
-
+        origWeigths = self.skinCluster.getWeights(self.dag, vertexComp)[0]
+        
         iterVertLoop = OpenMaya.MItMeshVertex(self.obj)
-        intArray = iterVertLoop.getConnectedVertices(index)
-        vertexComps = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
-        vertexComps.addElements( intArray )
-        compAmount = len(vertexComps)
+        iterVertLoop.setIndex(index)
+        intArray = iterVertLoop.getConnectedVertices()
 
-        nbWeights = self.skinCluster(self.dag, vertexComps)
+        vertexComps = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
+        singleIdComp.addElements( intArray )
+        compAmount = len(intArray)
+
+        nbWeights = self.skinCluster.getWeights(self.dag, vertexComps)[0]
 
         infDags = self.skinCluster.influenceObjects()
         infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
         for x in xrange( len( infDags ) ):
             infIndexes[x] = int( self.skinCluster.indexForInfluenceObject( infDags[x] ) )
 
-        newWeights, newInfl = self.calcWeights(value, origWeigths, nbWeights, infIndexes, len(vertexComps))
+        newWeights, newInfl = self.calcWeights(value, origWeigths, nbWeights, infIndexes, compAmount)
         
+        singleIdComp = OpenMaya.MFnSingleIndexedComponent()
+        vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
+        singleIdComp.addElement( index )
+
         self.skinCluster.setWeights( self.dag,  vertexComp,  newInfl,  newWeights)
         
         return [self.skinCluster, self.dag, component, influencesN, origWeigths]
@@ -131,7 +126,7 @@ class AverageWghtCtxInitialize(OpenMaya.MPxCommand):
         smoothWeights.initialize(obj)
 
 def creatorInit():     
-    return OpenMaya.asMPxPtr(AverageWghtCtxInitialize())
+    return AverageWghtCtxInitialize()
 
 def initialize():  
     syntax = OpenMaya.MSyntax()  
@@ -165,7 +160,7 @@ class AverageWghtCtxUpdate(OpenMaya.MPxCommand):
         return True
 
 def creatorUpdate():       
-    return OpenMaya.asMPxPtr(AverageWghtCtxUpdate())
+    return AverageWghtCtxUpdate()
 
 def syntaxUpdate():  
     syntax = OpenMaya.MSyntax()  

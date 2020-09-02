@@ -1,8 +1,9 @@
 from maya.api.OpenMaya import MVector, MPoint, MMatrix, MQuaternion
+from maya import cmds
+
 
 def toVec3(inObject):
     return MVector(inObject[0], inObject[1], inObject[2])
-
 
 def toVec3List(inList):
     veclist = []
@@ -10,16 +11,13 @@ def toVec3List(inList):
         veclist.append(toVec3(obj))
     return veclist
 
-
 def toPoint(inObject):
     vec3 = toVec3(inObject)
     retVec = MPoint(vec3)
     return retVec
 
-
 def matrixToFloatList(matrix):
     return [matrix[i] for i in xrange(16)]
-
 
 def floatToMatrix(floatList):
     vec1 = toVec3(floatList[0: 3])

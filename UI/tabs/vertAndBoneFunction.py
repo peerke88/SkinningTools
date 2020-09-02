@@ -85,7 +85,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, trsfrSK_Btn, ["smooth", "uvSpace"] )
         addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"] )
         addChecks(self, nghbors_Btn, ["full"] )
-        addChecks(self, nghbrsP_Btn, ["full"] )
+        addChecks(self, nghbrsP_Btn, ["full", "growing"] )
         addChecks(self, cutMesh_Btn, ["internal", "fast"] )
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
         addChecks(self, unifyBn_Btn, ["query"] )
@@ -95,15 +95,15 @@ class VertAndBoneFunction(QWidget):
         swchVtx_Btn.clicked.connect( partial( interface.switchVtx, self.progressBar ) )
         BoneLbl_Btn.clicked.connect( partial( interface.labelJoints, self.progressBar ) )
         shellUn_btn.clicked.connect( partial( interface.unifyShells, self.progressBar ) )
-        trsfrSK_Btn.clicked.connect( partial( self._trsfrSK_func, False) )
-        trsfrPS_Btn.clicked.connect( partial( self._trsfrSK_func, True) )
-        nghbors_Btn.clicked.connect( partial( self._nghbors_func, False, self.progressBar ) )
-        nghbrsP_Btn.clicked.connect( partial( self._nghbors_func, True, self.progressBar ) )
+        trsfrSK_Btn.clicked.connect( partial( self._trsfrSK_func, trsfrSK_Btn, False) )
+        trsfrPS_Btn.clicked.connect( partial( self._trsfrSK_func, trsfrPS_Btn, True) )
+        nghbors_Btn.clicked.connect( partial( self._nghbors_func, nghbors_Btn, False ) )
+        nghbrsP_Btn.clicked.connect( partial( self._nghbors_func, nghbrsP_Btn, True ) )
         smthVtx_Btn.clicked.connect( partial( interface.smooth, self.progressBar ) )
         smthBrs_Btn.clicked.connect( interface.paintSmoothBrush )
         toJoint_Btn.clicked.connect( partial( interface.convertToJoint, self.progressBar ) )
         rstPose_Btn.clicked.connect( partial( interface.resetPose, self.progressBar ) )
-        cutMesh_Btn.clicked.connect( partial( self.cutMesh_func, self.progressBar ))
+        cutMesh_Btn.clicked.connect( partial( self._cutMesh_func, self.progressBar ))
 
         copy2bn_Btn.clicked.connect( partial( interface.moveBones, False,  self.progressBar ) )
         b2bSwch_Btn.clicked.connect( partial( interface.moveBones, True, self.progressBar ) )
@@ -115,23 +115,27 @@ class VertAndBoneFunction(QWidget):
         sepMesh_Btn.clicked.connect( partial( interface.seperateSkinned, self.progressBar ) )
         onlySel_Btn.clicked.connect( partial( interface.getJointInfVers, self.progressBar ) )
         infMesh_Btn.clicked.connect( partial( interface.getMeshFromJoints, self.progressBar ) )
-        vtexMax_Btn.clicked.connect( partial( self.vtexMax_func, False ) )
-        vtxOver_Btn.clicked.connect( partial( self.vtexMax_func, True ) )
+        vtexMax_Btn.clicked.connect( partial( self._vtexMax_func, False ) )
+        vtxOver_Btn.clicked.connect( partial( self._vtexMax_func, True ) )
         frzBone_Btn.clicked.connect( partial( interface.freezeJoint, self.progressBar ) )
-        storsel_Btn.clicked.connect( self.storesel_func)
-        self.shrinks_Btn.clicked.connect( self.shrinks_func)
-        self.growsel_Btn.clicked.connect( self.growsel_func)
+        storsel_Btn.clicked.connect( self._storesel_func)
+        self.shrinks_Btn.clicked.connect( self._shrinks_func)
+        self.growsel_Btn.clicked.connect( self._growsel_func)
 
     # -- buttons with extra functionality
     def _AvgWght_func(self):
+        print self.sender()
         interface.avgVtx(self.sender().checks["use distance"].isChecked(), self.BezierGraph, self.progressBar )
 
-    def _trsfrSK_func(self, inPlace):
-        chkbxs = self.sender().checks
+    def _trsfrSK_func(self, sender,  inPlace):
+        chkbxs = sender.checks
         interface.copySkin(inPlace, chkbxs["smooth"].isChecked(), chkbxs["uvSpace"].isChecked(), self.progressBar)
 
-    def _nghbors_func(self, both):
-        interface.neighbors(both, self.sender().checks["full"].isChecked(), self.progressBar)
+    def _nghbors_func(self, sender, both):
+        growing = False
+        if "growing" in sender.checks.keys():
+            growing = sender.checks["growing"].isChecked()
+        interface.neighbors(both, growing, sender.checks["full"].isChecked(), self.progressBar)
 
     def _delBone_func(self):
         chkbxs = self.sender().checks
@@ -140,26 +144,26 @@ class VertAndBoneFunction(QWidget):
     def _unifyBn_func(self):
         interface.unifySkeletons( self.sender().checks["query"].isChecked(), self.progressBar)
 
-    def vtexMax_func(self, query):
+    def _vtexMax_func(self, query):
         if query:
             interface.getMaxInfl(self._maxSpin.value(), self.progressBar)
             return
         interface.setMaxInfl(self._maxSpin.value(), self.progressBar)
 
-    def cutMesh_func(self):
+    def _cutMesh_func(self):
         chkbxs = self.sender().checks
 
-    def storesel_func(self, *args):
+    def _storesel_func(self, *args):
         self.borderSelection.storeSel()
         self.shrinks_Btn.setEnabled(False)
         self.growsel_Btn.setEnabled(True)
 
-    def shrinks_func(self, *args):
+    def _shrinks_func(self, *args):
         self.borderSelection.shrink()
         if self.borderSelection.getBorderIndex() == 0:
             self.shrinks_Btn.setEnabled(False)
 
-    def growsel_func(self, *args):
+    def _growsel_func(self, *args):
         self.shrinks_Btn.setEnabled(True)
         if self.borderSelection.getBorderIndex() == 0:
             self.shrinks_Btn.setEnabled(False)
