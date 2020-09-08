@@ -442,7 +442,7 @@ def combineSkinnedMeshes(meshes):
     return newMesh
 
 @shared.dec_undo
-def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
+def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse = False, progressBar=None):
     utils.setProgress(0, progressBar, "get joint influences")
     polySelection = list(set(fullSelection) ^ set(jointOnlySelection))
     vertices = shared.convertToVertexList(polySelection)
@@ -450,7 +450,9 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection):
     skinCluster = SkinningTools.skinCluster(inMesh, True)
 
     attachedJoints = cmds.skinCluster(skinCluster, q=True, inf=True)
-    jointsToRemove = list(set(attachedJoints) - set(jointOnlySelection))
+    jointsToRemove = jointOnlySelection
+    if not inverse:
+        jointsToRemove = list(set(attachedJoints) - set(jointOnlySelection))
 
     jointsToRemoveValues = []
     percentage = 99.0/len(jointsToRemove)

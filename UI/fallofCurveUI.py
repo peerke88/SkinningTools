@@ -211,11 +211,8 @@ class NodeScene(QGraphicsScene):
 
         self.undoAction = self.getUndoStack().createUndoAction(self)
         self.redoAction = self.getUndoStack().createRedoAction(self)
-        # @note: add action to buttons! as these will take precedence when ui has focus
-        # self.undoAction.setShortcut( QKeySequence( Qt.CTRL + Qt.Key_Z ) )
-        # self.redoAction.setShortcuts( ( QKeySequence( Qt.CTRL + Qt.Key_Y ),
-        #                            QKeySequence( Qt.SHIFT + Qt.Key_Z ),
-        #                            QKeySequence( Qt.CTRL + Qt.SHIFT + Qt.Key_Z ) ) )
+
+        
         self.createGrid()
         self.createGrid(10, Qt.black, Qt.DotLine)
         self.createControls()
@@ -351,12 +348,14 @@ class BezierGraph(QMainWindow):
         self.line1 = QLineEdit()
         self.line1.textEdited[unicode].connect(self.__lineEdit_FieldEditted)
         self.but1 = QPushButton("store")
+        self.but2 = QPushButton("del")
         self.but1.clicked.connect(self.storeValues)
+        self.but2.clicked.connect(self.delValues)
 
         check = QCheckBox("snap")
         check.toggled.connect(self.setSnap)
         check.setChecked(True)
-        for qb in [self.cbox, self.line1, self.but1]:
+        for qb in [self.cbox, self.line1, self.but1, self.but2]:
             qb.setMinimumHeight(23)
             lay1.addWidget(qb)
 
@@ -367,7 +366,6 @@ class BezierGraph(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        # self.show()
         self.updateView()
         self.__lineEdit_FieldEditted()
         self._loadCBox()
@@ -399,6 +397,13 @@ class BezierGraph(QMainWindow):
             self.__lineEdit_Color(self.line1, self.__qt_normal_color)
             self.but1.setEnabled(True)
 
+    def delValues(self):
+        if self.cbox.currentText() in ['bezier' ,'linear']:
+            return
+        del self.BezierDict[self.cbox.currentText()]
+        self.settings.setValue("graphPos", self.BezierDict)
+        self._loadCBox()
+
     def storeValues(self):
         pts = self.scene.bCurve.points
         self.BezierDict[self.line1.displayText()] = pts
@@ -417,6 +422,10 @@ class BezierGraph(QMainWindow):
         self.scene.getUndoStack().clear()
 
     def changeCurve(self):
+        if self.cbox.currentText() == '':
+            return
+        self.but2.setEnabled(not (self.cbox.currentText() in ['bezier' ,'linear']))
+
         cp = self.BezierDict[self.cbox.currentText()]
         self.scene.getUndoStack().push(NodeSwitchCommand(self.scene, self.scene.getPoints(), cp))
 
@@ -455,19 +464,3 @@ class BezierGraph(QMainWindow):
     def hideEvent(self, event):
         self.closed.emit()
         super(BezierGraph, self).hideEvent(event)
-
-    ## @note: possibly add animation that looks like it pops out of the button?
-    # def showEvent(self, event):
-    #     size = self.size()
-    #     start_size = QSize(40, 40)
-    #     self.resize(start_size)
-
-    #     anim = QPropertyAnimation(self, 'size', self)
-    #     anim.setStartValue(start_size)
-    #     anim.setEndValue(size)
-    #     anim.setDuration(700)
-
-    #     self.show()
-    #     anim.start()
-
-    #     event.accept()

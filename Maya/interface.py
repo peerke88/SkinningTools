@@ -240,17 +240,15 @@ def seperateSkinned(progressBar = None):
     return result
 
 @shared.dec_repeat
-def getJointInfVers(progressBar = None):
+def keepOnlyJoints(invert = False, progressBar = None):
     selection = getSelection()
     jnts = []
-    mesh = ''
     for obj in selection:
         if cmds.objectType(obj) == "joint":
             jnts.append(obj)
             continue
-        mesh = obj
 
-    result = joints.ShowInfluencedVerts(mesh, jnts, progressBar)
+    result = skinCluster.keepOnlySelectedInfluences(selection, jnts, progressBar)
     cmds.select(result, r=1)
     return result
 

@@ -34,18 +34,18 @@ class VertAndBoneFunction(QWidget):
         smthVtx_Btn = svgButton("smooth", os.path.join(_DIR, "Icons/smooth.svg"), size=self.__iconSize)
         smthBrs_Btn = svgButton("smooth Brush", os.path.join(_DIR, "Icons/brush.svg"), size=self.__iconSize)
         toJoint_Btn = svgButton("convert to joint", os.path.join(_DIR, "Icons/toJoints.svg"), size=self.__iconSize)
-        rstPose_Btn = svgButton("reset Pose", os.path.join(_DIR, "Icons/resetJoint.svg"), size=self.__iconSize)
+        rstPose_Btn = svgButton("recalc bind", os.path.join(_DIR, "Icons/resetJoint.svg"), size=self.__iconSize)
         cutMesh_Btn = svgButton("create proxy", os.path.join(_DIR, "Icons/proxy.svg"), size=self.__iconSize)
 
         copy2bn_Btn = svgButton("move bone infl.", os.path.join(_DIR, "Icons/Bone2Bone.svg"), size=self.__iconSize)
         b2bSwch_Btn = svgButton("swap bone infl.", os.path.join(_DIR, "Icons/Bone2Boneswitch.svg"), size=self.__iconSize)
-        showInf_Btn = svgButton("select vertices", os.path.join(_DIR, "Icons/selectinfl.svg"), size=self.__iconSize)
-        delBone_Btn = svgButton("delete joint", os.path.join(_DIR, "Icons/jointDelete.svg"), size=self.__iconSize)
+        showInf_Btn = svgButton("influenced vtx", os.path.join(_DIR, "Icons/selectinfl.svg"), size=self.__iconSize)
+        delBone_Btn = svgButton("remove joint", os.path.join(_DIR, "Icons/jointDelete.svg"), size=self.__iconSize)
         addinfl_Btn = svgButton("add joint", os.path.join(_DIR, "Icons/addJoint.svg"), size=self.__iconSize)
-        unifyBn_Btn = svgButton("unify skeletons", os.path.join(_DIR, "Icons/unify.svg"), size=self.__iconSize)
-        seltInf_Btn = svgButton("select joints", os.path.join(_DIR, "Icons/selectJnts.svg"), size=self.__iconSize)
-        sepMesh_Btn = svgButton("seperate mesh", os.path.join(_DIR, "Icons/seperate.svg"), size=self.__iconSize)
-        onlySel_Btn = svgButton("only selected infl.", os.path.join(_DIR, "Icons/onlySel.svg"), size=self.__iconSize)
+        unifyBn_Btn = svgButton("unify bind map", os.path.join(_DIR, "Icons/unify.svg"), size=self.__iconSize)
+        seltInf_Btn = svgButton("attached joints", os.path.join(_DIR, "Icons/selectJnts.svg"), size=self.__iconSize)
+        sepMesh_Btn = svgButton("seperate skinMesh", os.path.join(_DIR, "Icons/seperate.svg"), size=self.__iconSize)
+        onlySel_Btn = svgButton("prune excluded infl.", os.path.join(_DIR, "Icons/onlySel.svg"), size=self.__iconSize)
         infMesh_Btn = svgButton("influenced meshes", os.path.join(_DIR, "Icons/infMesh.svg"), size=self.__iconSize)
 
         maxL = nullHBoxLayout()
@@ -58,7 +58,7 @@ class VertAndBoneFunction(QWidget):
         vtxOver_Btn = svgButton("sel infl. > max", os.path.join(_DIR, "Icons/vertOver.svg"), size=self.__iconSize)
 
         growL = nullHBoxLayout()
-        storsel_Btn = svgButton("store inner", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
+        storsel_Btn = svgButton("store internal", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
         self.shrinks_Btn = svgButton("-", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
         self.growsel_Btn = svgButton("+", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
         for i, w in enumerate([self.shrinks_Btn, storsel_Btn, self.growsel_Btn]):
@@ -89,7 +89,9 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, cutMesh_Btn, ["internal", "fast"] )
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
         addChecks(self, unifyBn_Btn, ["query"] )
-
+        addChecks(self, onlySel_Btn, ["invert"] )
+        onlySel_Btn.checks["invert"].stateChanged.connect(partial(self._pruneOption, onlySel_Btn))
+        
         AvgWght_Btn.clicked.connect( self._AvgWght_func )
         cpyWght_Btn.clicked.connect( partial( interface.copyVtx, self.progressBar ) )
         swchVtx_Btn.clicked.connect( partial( interface.switchVtx, self.progressBar ) )
@@ -113,7 +115,7 @@ class VertAndBoneFunction(QWidget):
         unifyBn_Btn.clicked.connect( self._unifyBn_func )
         seltInf_Btn.clicked.connect( partial( interface.selectJoints, self.progressBar ) )
         sepMesh_Btn.clicked.connect( partial( interface.seperateSkinned, self.progressBar ) )
-        onlySel_Btn.clicked.connect( partial( interface.getJointInfVers, self.progressBar ) )
+        onlySel_Btn.clicked.connect( self._pruneSel_func )
         infMesh_Btn.clicked.connect( partial( interface.getMeshFromJoints, self.progressBar ) )
         vtexMax_Btn.clicked.connect( partial( self._vtexMax_func, False ) )
         vtxOver_Btn.clicked.connect( partial( self._vtexMax_func, True ) )
@@ -123,6 +125,11 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect( self._growsel_func)
 
     # -- buttons with extra functionality
+    def _pruneOption(self, btn, value):
+        btn.setText("prune excluded infl.")
+        if btn.checks["invert"].isChecked():
+            btn.setText("prune selected infl.")
+
     def _AvgWght_func(self):
         print self.sender()
         interface.avgVtx(self.sender().checks["use distance"].isChecked(), self.BezierGraph, self.progressBar )
@@ -152,6 +159,10 @@ class VertAndBoneFunction(QWidget):
 
     def _cutMesh_func(self):
         chkbxs = self.sender().checks
+
+    def _pruneSel_func(self):
+        inverse = self.sender().checks["invert"].isChecked()
+        interface.keepOnlyJoints(inverse)
 
     def _storesel_func(self, *args):
         self.borderSelection.storeSel()
