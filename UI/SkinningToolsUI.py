@@ -24,6 +24,9 @@ class SkinningTools(QMainWindow):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
 
+        __sel = interface.getSelection()
+        interface.doSelect('')
+
         self.setCentralWidget(mainWidget)
         self.setWindowFlags(Qt.Tool)
 
@@ -50,6 +53,8 @@ class SkinningTools(QMainWindow):
 
         api.dccInstallEventFilter()
 
+        interface.doSelect(__sel)
+        
     def __uiElements(self):
         self.settings = QSettings("uiSkinSave", "SkinningTools")
         self.progressBar = MessageProgressBar()
@@ -93,6 +98,7 @@ class SkinningTools(QMainWindow):
         self.tabs = EditableTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.tearOff.connect(self.tearOff)
+        self.tabs.tabBar().setWest()
 
     def __mayaToolsSetup(self):
         tab = self.tabs.addGraphicsTab("Maya Tools")

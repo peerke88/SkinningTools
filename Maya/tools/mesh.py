@@ -4,7 +4,7 @@ from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
 from SkinningTools.UI.fallofCurveUI import BezierFunctions
-
+from collections import OrderedDict
 
 def getShellFaces(poly):
     shells = []
@@ -34,12 +34,11 @@ def shortestPathVertex(start, end):
         return (pos1 - pos2).length()
 
     mesh = start.split('.')[0]
-    objType = cmds.objectType(start)
     
     firstExtendedEdges = cmds.polyListComponentConversion(start, te=True)
-    firstExtended = cmds.filterExpand(firstExtendedEdges, sm=32)
+    firstExtended = cmds.filterExpand(firstExtendedEdges, sm=32, fp=1)
     secondExtendedEdges = cmds.polyListComponentConversion(end, te=True)
-    secondExtended = cmds.filterExpand(secondExtendedEdges, sm=32)
+    secondExtended = cmds.filterExpand(secondExtendedEdges, sm=32, fp=1)
 
     found = []
     combinations = list(itertools.product(firstExtended, secondExtended))
@@ -66,29 +65,34 @@ def shortestPathVertex(start, end):
         midexpand = shared.convertToVertexList("%s.e[%s]" % (mesh, edge))
         newVertexSelection.append(midexpand)
 
+    startIndex = int(start[start.index("[") + 1: -1])
+    endIndex = int(end[end.index("[") + 1: -1])
+
     inOrder = []
     lastVertex = None
     for listVerts in newVertexSelection:
-        if start in listVerts:
-            listVerts.remove(start)
+        indexList = shared.convertToIndexList(listVerts)
+        if startIndex in indexList:
+            indexList.remove(startIndex)
         if lastVertex != None:
-            listVerts.remove(lastVertex)
-        if end in listVerts:
-            listVerts.remove(end)
-        if listVerts == []:
+            indexList.remove(lastVertex)
+        if endIndex in indexList:
+            indexList.remove(endIndex)
+        if indexList == []:
             continue
-        lastVertex = listVerts[0]
+        lastVertex = indexList[0]
         inOrder.append(lastVertex)
 
-    if not start in newVertexSelection[0]:
+    if not startIndex in shared.convertToIndexList(newVertexSelection[0]):
         inOrder.reverse()
 
-    totalDistance = measureLength(inOrder[-1], end)
+    # totalDistance = measureLength(inOrder[-1], end)
+    inOrder = shared.convertToCompList(inOrder, mesh)
     return [start] + inOrder + [end]
 
 def shortestPathNurbsSurface(start, end, diagonal=False):
     surface = start.split('.')[0]
-    allCvs = cmds.filterExpand("%s.cv[*][*]" % surface, sm=28)
+    allCvs = cmds.filterExpand("%s.cv[*][*]" % surface, sm=28, fp=1)
     graph = shared.Graph()
     
     recomputeDict = {}
@@ -108,7 +112,7 @@ def shortestPathNurbsSurface(start, end, diagonal=False):
             groString = gro.split("][")
             gro = ["%s][%s" % (workString[0], groString[-1]), "%s][%s" % (groString[0], workString[-1])]
 
-        gro = cmds.filterExpand(gro, sm=28)
+        gro = cmds.filterExpand(gro, sm=28, fp=1)
 
         gro.remove(node)
         basePos = MVector(*cmds.xform(node, q=1, ws=1, t=1))
@@ -139,7 +143,7 @@ def shortestPathNurbsCurve(start, end):
     return inOrder
 
 def shortestPathLattice(start, end):
-    allCvs = cmds.filterExpand("%s.pt[*]" % surface, sm=46)
+    allCvs = cmds.filterExpand("%s.pt[*]" % surface, sm=46, fp=1)
     graph = shared.Graph()
     recomputeDict = {}
     for node in allCvs:
@@ -190,7 +194,7 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
     fullLength = sum(lengths)
     percentage = 1.0/ len(lengths)
     currentLength = 0.0
-    _vertMap = {}
+    _vertMap = OrderedDict()
     for index, vertex in enumerate(inOrder):
         currentPercentage = index * percentage
         currentLength = sum(lengths[:index+1])
@@ -201,7 +205,7 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
         else:
             currentPercentage = weightWindow.getDataOnPerc(currentPercentage)
         _vertMap[vertex] = currentPercentage
-
+    
     return _vertMap
 
 
@@ -222,7 +226,7 @@ def edgesToSmooth(inEdges):
             continue
         baseList.append([vert, vtx])
         edgeLengths.append(loopSize)
-
+    print edgeLengths
     minSize = min(edgeLengths)
     maxSize = max(edgeLengths)
 

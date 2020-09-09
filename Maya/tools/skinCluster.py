@@ -602,7 +602,7 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
         baseList = [selection]
         if _isEdgeSelection:
             baseList = mesh.edgesToSmooth(selection)
-
+        
         percentage = 99.0/len(baseList)   
         for iteration, vertlist in enumerate(baseList):
             vertMap = mesh.componentPathFinding(vertlist, useDistance, weightWindow=weightAverageWindow)

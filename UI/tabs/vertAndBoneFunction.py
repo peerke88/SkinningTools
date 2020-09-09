@@ -5,7 +5,7 @@ from functools import partial
 import os
 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+_DEBUG = True
 class VertAndBoneFunction(QWidget):
     def __init__(self, inGraph = None, inProgressBar = None, parent = None):
         super(VertAndBoneFunction, self).__init__(parent)
@@ -85,7 +85,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, trsfrSK_Btn, ["smooth", "uvSpace"] )
         addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"] )
         addChecks(self, nghbors_Btn, ["full"] )
-        addChecks(self, nghbrsP_Btn, ["full", "growing"] )
+        addChecks(self, nghbrsP_Btn, ["full"] )
         addChecks(self, cutMesh_Btn, ["internal", "fast"] )
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
         addChecks(self, unifyBn_Btn, ["query"] )
@@ -95,7 +95,7 @@ class VertAndBoneFunction(QWidget):
         AvgWght_Btn.clicked.connect( self._AvgWght_func )
         cpyWght_Btn.clicked.connect( partial( interface.copyVtx, self.progressBar ) )
         swchVtx_Btn.clicked.connect( partial( interface.switchVtx, self.progressBar ) )
-        BoneLbl_Btn.clicked.connect( partial( interface.labelJoints, self.progressBar ) )
+        BoneLbl_Btn.clicked.connect( partial( interface.labelJoints, False, self.progressBar ) )
         shellUn_btn.clicked.connect( partial( interface.unifyShells, self.progressBar ) )
         trsfrSK_Btn.clicked.connect( partial( self._trsfrSK_func, trsfrSK_Btn, False) )
         trsfrPS_Btn.clicked.connect( partial( self._trsfrSK_func, trsfrPS_Btn, True) )
@@ -124,12 +124,22 @@ class VertAndBoneFunction(QWidget):
         self.shrinks_Btn.clicked.connect( self._shrinks_func)
         self.growsel_Btn.clicked.connect( self._growsel_func)
 
-    # -- buttons with extra functionality
+        if _DEBUG:
+            notChecked = [trsfrSK_Btn, trsfrPS_Btn, smthVtx_Btn, smthBrs_Btn, toJoint_Btn, cutMesh_Btn,
+                    copy2bn_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn, 
+                    sepMesh_Btn, onlySel_Btn, infMesh_Btn, vtexMax_Btn, vtxOver_Btn, 
+                    frzBone_Btn]
+
+            for chk in notChecked:
+                chk.setStyleSheet("background-color: red")
+
+    # -- checkbox modifiers    
     def _pruneOption(self, btn, value):
         btn.setText("prune excluded infl.")
         if btn.checks["invert"].isChecked():
             btn.setText("prune selected infl.")
 
+    # -- buttons with extra functionality
     def _AvgWght_func(self):
         print self.sender()
         interface.avgVtx(self.sender().checks["use distance"].isChecked(), self.BezierGraph, self.progressBar )
@@ -139,9 +149,7 @@ class VertAndBoneFunction(QWidget):
         interface.copySkin(inPlace, chkbxs["smooth"].isChecked(), chkbxs["uvSpace"].isChecked(), self.progressBar)
 
     def _nghbors_func(self, sender, both):
-        growing = False
-        if "growing" in sender.checks.keys():
-            growing = sender.checks["growing"].isChecked()
+        growing = both
         interface.neighbors(both, growing, sender.checks["full"].isChecked(), self.progressBar)
 
     def _delBone_func(self):

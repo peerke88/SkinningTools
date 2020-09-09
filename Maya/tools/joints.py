@@ -229,6 +229,7 @@ def BoneSwitch(joint1, joint2, skin, progressBar = None):
         cmds.disconnectAttr("%s.lockInfluenceWeights"%key, "%s.lockWeights[%s]" % (skinClusterName, val))
     utils.setProgress(33, progressBar, "get influence map")
 
+    print _connectDict
     cmds.connectAttr(joint1 + '.worldMatrix', '%s.matrix[%i]'%(skinClusterName,_connectDict[joint2]), f=1)
     cmds.connectAttr(joint2 + '.worldMatrix', '%s.matrix[%i]'%(skinClusterName,_connectDict[joint1]), f=1)
     cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights[%s]" % (skinClusterName, _connectDict[joint2]), f=1)
@@ -255,13 +256,12 @@ def ShowInfluencedVerts(inMesh, jnts, progressBar=None):
         w = cmds.getAttr("%s.weightList[0:%i].weights[%i]"%(sc, vtxCount - 1, _connectDict[jnt]))
         res = [idx for idx, val in enumerate(w) if val > 0.0] 
         for i in res:
-            toSelect.append("%s.vtx[%i]"%("body_low", i))
+            toSelect.append("%s.vtx[%i]"%(inMesh, i))
         utils.setProgress(percentage * index, progressBar, "gather weight information")
 
     cmds.select(toSelect, r=1)
-    shared.doCorrectSelectionVisualization(inMesh)
     utils.setProgress(100, progressBar, "show influenced vertices")
-    return toSelect
+    return True
 
 @shared.dec_undo
 def removeJointBySkinPercent(skinObject, jointsToRemove, skinClusterName, progressBar = None):
@@ -421,7 +421,7 @@ def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
     return meshes
 
 def getInfluencingJoints(object, progressBar=None):
-    skinClusterName = SkinningTools.skinCluster(object, silent=True)
+    skinClusterName = shared.skinCluster(object, silent=True)
     if skinClusterName != None:
         jointInfls = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
         utils.setProgress(100, progressBar, "get influencing joints")

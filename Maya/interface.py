@@ -26,6 +26,9 @@ def getSelection():
     return cmds.ls(os=1, l=1, fl=1)
 
 def doSelect(input):
+    if input == '':
+        cmds.select(cl=1)
+        return
     cmds.select(input, r=1)
 
 # --- maya menus ---
@@ -91,16 +94,17 @@ def switchVtx(progressBar = None):
     return result
     
 @shared.dec_repeat
-def labelJoints(progressBar = None):
+def labelJoints(doCheck = True, progressBar = None):
     jnts = cmds.ls(type = "joint")
     jntAmount = len( jnts )
-    _reLabel = False
-    for i in xrange(5):
-        if cmds.getAttr( jnts[ randint( 0, jntAmount -1) ] + '.type' ) == 0: 
-            _reLabel = True
-    if not _reLabel:
-        return True
-
+    if doCheck:
+        _reLabel = False
+        for i in xrange(5):
+            if cmds.getAttr( jnts[ randint( 0, jntAmount -1) ] + '.type' ) == 0: 
+                _reLabel = True
+        if not _reLabel:
+            return True
+    print "test"
     dialog = JointLabel(parent = api.get_maya_window())
     dialog.exec_()
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
@@ -169,10 +173,11 @@ def moveBones(swap = False, progressBar = None):
         mesh = obj
 
     if swap:
-        result = joints.BoneSwitch(jnts[0], jnts[1], mesh[0], progressBar)
+
+        result = joints.BoneSwitch(jnts[0], jnts[1], mesh, progressBar)
         return result
 
-    result = joints.BoneMove(jnts[0], jnts[1], mesh[0], progressBar)
+    result = joints.BoneMove(jnts[0], jnts[1], mesh, progressBar)
     return result
 
 @shared.dec_repeat
@@ -187,7 +192,6 @@ def showInfVerts(progressBar = None):
         mesh = obj
 
     result = joints.ShowInfluencedVerts(mesh, jnts, progressBar)
-    cmds.select(result, r=1)
     return result
 
 @shared.dec_repeat
@@ -248,7 +252,7 @@ def keepOnlyJoints(invert = False, progressBar = None):
             jnts.append(obj)
             continue
 
-    result = skinCluster.keepOnlySelectedInfluences(selection, jnts, progressBar)
+    result = skinCluster.keepOnlySelectedInfluences(selection, jnts, inverse, progressBar)
     cmds.select(result, r=1)
     return result
 
@@ -420,19 +424,21 @@ class NeighborSelection(object):
         self.__bdrIndex = 0
 
     def shrink(self, *args):
-        self.__bdrIndex += 1
+        self.__bdrIndex -= 1
         self.__borderSel()
 
     def grow(self, *args):
-        self.__bdrIndex -= 1
+        self.__bdrIndex += 1
         self.__borderSel()
             
     def __borderSel(self, *args):
-        for i in range(self.__bdrIndex):
+        for i in xrange(self.__bdrIndex):
             toConvert = self.__bdrSel
             if i == 0:
                 toConvert = self.__bdrSelBase
-            self.__bdrSel = interface.getNeightbors(toConvert)
+            self.__bdrSel = getNeightbors(toConvert)
+            print i, self.__bdrSel
             
         borderSelect = list(set(self.__bdrSel) ^ set(self.__bdrSelBase))
+        print borderSelect
         cmds.select(borderSelect, r=1)

@@ -5,7 +5,7 @@ from maya import cmds, mel
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 
-
+_DEBUG = True
 def dec_undo(func):
     '''undo decorator'''
     @wraps(func)
@@ -14,10 +14,11 @@ def dec_undo(func):
             cmds.undoInfo(ock=True)
             return func(*args, **kwargs)
         except Exception as e:
-            print(e)
-            print(e.__class__)
-            print(sys.exc_info())
-            cmds.warning(traceback.format_exc())
+            if _DEBUG:
+                print(e)
+                print(e.__class__)
+                print(sys.exc_info())
+                cmds.warning(traceback.format_exc())
         finally:
             cmds.undoInfo(cck=True)
             return False
@@ -30,6 +31,7 @@ def dec_repeat(func):
     @wraps(func)
     def _repeat_func(*args, **kwargs):
         ret = func(*args, **kwargs)
+
         try:
             modules = ''
             arguments = args
@@ -49,19 +51,19 @@ def dec_repeat(func):
                     item = None
                 kwargs_string = '%s=%s, ' % (key, item)
 
-            
             repeat_command = '%s%s(%s%s)' % (modules, func.__name__, args_string, kwargs_string)
             if not '' in [args_string, kwargs_string]:
                 repeat_command = '%s%s(%s, %s)' % (modules, func.__name__, args_string, kwargs_string)
-
-            cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command, addCommandLabel=func.__name__)
+            
+            cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
         except Exception as e:
-            print(e)
-            print(e.__class__)
-            print(sys.exc_info())
-            cmds.warning(traceback.format_exc())
+            if _DEBUG:
+                print "if this is fired the when repeating a command it means it uses MEL"
+                print(e)
+                print(e.__class__)
+                print(sys.exc_info())
+                cmds.warning(traceback.format_exc())
         finally:  
-            print ret  
             return ret
 
     return _repeat_func
@@ -155,6 +157,7 @@ def skinCluster(inObject=None, silent=False):
         inObject = cmds.ls(sl=1, l=1)
     if not inObject:
         return None
+    print "inObject: ",inObject
     inObject = getParentShape(inObject)
     skinCluster = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
     if not skinCluster:
@@ -171,6 +174,7 @@ def getParentShape(object):
         object = object[0]
     objType = cmds.objectType(object)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
+        print object, cmds.listRelatives(object, p=True, f=True)
         object = cmds.listRelatives(object, p=True, f=True)[0]
     if cmds.objectType(object) != "transform":
         object = cmds.listRelatives(object, p=True, f=True)[0]
@@ -208,27 +212,27 @@ def convertToVertexList(inObject):
     objType = cmds.objectType(checkType)
     if objType == 'mesh':
         convertedVertices = cmds.polyListComponentConversion(inObject, tv=True)
-        return cmds.filterExpand(convertedVertices, sm=31)
+        return cmds.filterExpand(convertedVertices, sm=31, fp=1)
 
     if objType == "nurbsCurve" or objType == "nurbsSurface":
         if isinstance(inObject, list) and ".cv" in inObject[0]:
-            return cmds.filterExpand(inObject, sm=28)
+            return cmds.filterExpand(inObject, sm=28, fp=1)
         elif isinstance(inObject, list):
-            return cmds.filterExpand('%s.cv[*]' % inObject[0], sm=28)
+            return cmds.filterExpand('%s.cv[*]' % inObject[0], sm=28, fp=1)
         elif ".cv" in inObject:
-            return cmds.filterExpand(inObject, sm=28)
+            return cmds.filterExpand(inObject, sm=28, fp=1)
         else:
-            return cmds.filterExpand('%s.cv[*]' % inObject, sm=28)
+            return cmds.filterExpand('%s.cv[*]' % inObject, sm=28, fp=1)
 
     if objType == "lattice":
         if isinstance(inObject, list) and ".pt" in inObject[0]:
-            return cmds.filterExpand(inObject, sm=46)
+            return cmds.filterExpand(inObject, sm=46, fp=1)
         elif isinstance(inObject, list):
-            return cmds.filterExpand('%s.pt[*]' % inObject[0], sm=46)
+            return cmds.filterExpand('%s.pt[*]' % inObject[0], sm=46, fp=1)
         elif ".pt" in inObject:
-            return cmds.filterExpand(inObject, sm=46)
+            return cmds.filterExpand(inObject, sm=46, fp=1)
         else:
-            return cmds.filterExpand('%s.pt[*]' % inObject, sm=46)
+            return cmds.filterExpand('%s.pt[*]' % inObject, sm=46, fp=1)
 
 def selectHierarchy(node):
     ad = cmds.listRelatives(node, ad=1, f=1)
@@ -242,7 +246,7 @@ def getJointIndexMap(inSkinCluster):
     for i in inConns[::2]:
         indices.append(int(i[i.index("[") + 1: -1]))
     for index, conn in enumerate(inConns[1::2]):
-        _connectDict[conn] = indices[index]
+        _connectDict[cmds.ls(conn,sl=0, l=1)[0]] = indices[index]
     return _connectDict
 
 def convertToIndexList(vertList):
@@ -262,7 +266,7 @@ def convertToCompList(indices, mesh, comp = "vtx"):
 
 def toToEdgeNumber(vtx):
     toEdges = cmds.polyListComponentConversion(vtx, te=True)
-    edges = cmds.filterExpand(toEdges, sm=32)
+    edges = cmds.filterExpand(toEdges, sm=32, fp=1)
     en = []
     for e in edges:
         en.append(int(e[e.index("[") + 1: -1]))
@@ -339,7 +343,7 @@ def getNeighbours(mVtxItter, index):
 
 def growLatticePoints(points):
     base = points[0].split('.')[0]
-    allPoints = cmds.filterExpand("%s.pt[*]" % base, sm=46)
+    allPoints = cmds.filterExpand("%s.pt[*]" % base, sm=46, fp=1)
 
     extras = []
     for j in points:

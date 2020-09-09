@@ -15,6 +15,8 @@ class TearoffTabBar(QTabBar):
         self.setMovable(True)
         self.setIconSize(QSize(12, 12))
         self.__pressedIndex = -1
+        self.__isWest = False
+        self.__size = 30
 
     def mousePressEvent(self, event):
         button = event.button()
@@ -70,6 +72,20 @@ class TearoffTabBar(QTabBar):
                 self.__pressedIndex = -1
                 self.setCursor(Qt.ArrowCursor)
         return QTabBar.event(self, event)
+    
+    def setWest(self):
+        self.__isWest = True
+
+    def tabSizeHint(self, index = 0):
+        height = QTabBar.tabSizeHint(self, index).height()
+        width = QTabBar.tabSizeHint(self, index).width()
+        if index == self.count()-1 :
+            if self.__isWest:
+                return QSize(self.__size, height)
+            else:
+                return QSize(width, self.__size)
+        else: 
+            return QTabBar.tabSizeHint(self, index) 
 
 
 class EditableTabBar(TearoffTabBar):
