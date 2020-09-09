@@ -1,8 +1,7 @@
 from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI import utils 
-from SkinningTools.Maya.tools import shared
-from SkinningTools.Maya.tools import mathUtils
+from SkinningTools.Maya.tools import shared, mathUtils, mesh
 from maya import cmds, mel
 
 # @note all functions must have connection wiuth progressbar and sensible progress messages, 
@@ -181,8 +180,8 @@ def removeBindPoses(progressBar = None):
     return True
 
 @shared.dec_undo
-def addCleanJoint(jnts, mesh, progressBar = None):
-    sc = shared.skinCluster(mesh, silent=True)
+def addCleanJoint(jnts, inMesh, progressBar = None):
+    sc = shared.skinCluster(inMesh, silent=True)
     percentage = 99.0 / len(jnts)
     if sc != None:
         jointInfls = getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
@@ -445,7 +444,7 @@ def removeUnusedInfluences(inObject, progressBar = None):
     utils.setProgress(100, progressBar, "removed %i joints from influence"%(index+1))
 
 @shared.dec_undo
-def convertClusterToJoint(inObject, progressBar = None):
+def convertClusterToJoint(inObject, jointName = None, progressBar = None):
     utils.setProgress(0, progressBar, "gather cluster data")
     shape = cmds.listRelatives(inObject, s=1, type = "clusterHandle") or None
     if shape == None:
@@ -455,16 +454,20 @@ def convertClusterToJoint(inObject, progressBar = None):
     allConnected = shared.convertToVertexList(cmds.sets(clusterSet, q=1))
     indices = shared.convertToIndexList(allConnected)
 
-    jnt = cmds.createNode("joint", "temp%s"%(indices[0]))
-    cmds.matchTransform(jnt, inObject, pos=1, rot=0)
-
-    mesh = allConnected[0].split('.')[0]
+    if jointName is None:
+        jnt = cmds.createNode("joint", n="temp%s"%(indices[0]))
+    else:
+        jnt = cmds.createNode("joint", n=jointName)
         
-    sc = shared.skinCluster(mesh, True)
+    cmds.matchTransform(jnt, clusterDeformer, pos=1, rot=0)
+
+    inMesh = allConnected[0].split('.')[0]
+        
+    sc = shared.skinCluster(inMesh, True)
     cmds.skinCluster( sc, e=True, lw=False, wt = 0.0, ai= jnt )
     
-    expandedVertices = shared.convertToVertexList(mesh)
-    values = cmds.percent( clusterDeformer , mesh, q=1, v=1)
+    expandedVertices = shared.convertToVertexList(inMesh)
+    values = cmds.percent( clusterDeformer , inMesh, q=1, v=1)
     
     percentage = 99.0/len(allConnected)
     for index, vertex in enumerate(allConnected):
@@ -476,22 +479,31 @@ def convertClusterToJoint(inObject, progressBar = None):
     return jnt
 
 @shared.dec_undo
-def convertVerticesToJoint( inComponents, progressBar = None):
+def convertVerticesToJoint( inComponents, jointName = None, progressBar = None):
+    verts, weights = mesh.softSelection()
+
     expanded = shared.convertToVertexList(inComponents)
+    inMesh = expanded[0].split(".")[0]
+
     indices = shared.convertToIndexList(expanded)
     cluster = cmds.cluster()[1]
-    
-    jnt = cmds.createNode("joint", "temp%s"%(indices[0]))
+    if jointName is None:
+        jnt = cmds.createNode("joint", n="temp%s"%(indices[0]))
+    else:
+        jnt = cmds.createNode("joint", n=jointName)
     cmds.matchTransform(jnt, cluster, pos=1, rot=0)
 
-    mesh = expanded[0].split(".")[0]
-    sc = shared.skinCluster(mesh, True)
-    skinCluster.applySkinValues(1.0, expanded, sc, jnt, 0, mesh)
+    addCleanJoint([jnt], inMesh)
+    sc = shared.skinCluster(inMesh, True)
+
+    percentage = 99.0/ len(verts)
+    for index, vert in enumerate(verts):
+        cmds.skinPercent( sc, vert, tv =[ jnt, weights[index] ])
     return jnt
 
 
-def convertClustersToJoint( mesh, inClusters, progressBar = True):
-    meshDag = shared.getDagpath(mesh)
+def convertClustersToJoint( inMesh, inClusters, progressBar = True):
+    meshDag = shared.getDagpath(inMesh)
     mfnMesh = OpenMaya.MFnMesh(meshDag)
     origPos = mfnMesh.getPoints(OpenMaya.MSpace.kObject)
     vertices = {}
@@ -502,7 +514,7 @@ def convertClustersToJoint( mesh, inClusters, progressBar = True):
     for deform in inClusters:
         deformDag = shared.getDagpath(deform)
 
-        jnt = cmds.createNode("joint")
+        jnt = cmds.createNode("joint", n="temp%s"%(deform))
         cmds.matchTransform(jnt, deform, pos=1, rot=1)
         
 
@@ -520,14 +532,14 @@ def convertClustersToJoint( mesh, inClusters, progressBar = True):
             vertices[index][jnt] = (origVec-deformVec).length() 
         jnts.append(jnt)
 
-    sc = shared.skinCluster(mesh)
+    sc = shared.skinCluster(inMesh)
     if sc != None:
-        addCleanJoint(jnts, mesh)
+        addCleanJoint(jnts, inMesh)
     else:
-        sc = cmds.skinCluster(jnts, mesh, tsb=1)[0]
+        sc = cmds.skinCluster(jnts, inMesh, tsb=1)[0]
     
     for key, value in vertices.iteritems():
-        vtx = "%s.vtx[%i]"%(mesh, key)
+        vtx = "%s.vtx[%i]"%(inMesh, key)
         tv = []
         totalVal = 0
         for jnt in jnts:

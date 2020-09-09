@@ -88,6 +88,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"] )
         addChecks(self, nghbors_Btn, ["full"] )
         addChecks(self, nghbrsP_Btn, ["full"] )
+        addChecks(self, toJoint_Btn, ["specify name"])
         addChecks(self, cutMesh_Btn, ["internal", "fast"] )
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"] )
         addChecks(self, unifyBn_Btn, ["query"] )
@@ -105,7 +106,7 @@ class VertAndBoneFunction(QWidget):
         nghbrsP_Btn.clicked.connect( partial( self._nghbors_func, nghbrsP_Btn, True ) )
         smthVtx_Btn.clicked.connect( partial( interface.smooth, self.progressBar ) )
         smthBrs_Btn.clicked.connect( interface.paintSmoothBrush )
-        toJoint_Btn.clicked.connect( partial( interface.convertToJoint, self.progressBar ) )
+        toJoint_Btn.clicked.connect( partial( self._convertToJoint_func, toJoint_Btn ) )
         rstPose_Btn.clicked.connect( partial( interface.resetPose, self.progressBar ) )
         cutMesh_Btn.clicked.connect( partial( self._cutMesh_func, self.progressBar ))
 
@@ -127,7 +128,7 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect( self._growsel_func)
 
         if _DEBUG:
-            notChecked = [ smthVtx_Btn, smthBrs_Btn, toJoint_Btn, cutMesh_Btn, vtexMax_Btn]
+            notChecked = [ smthVtx_Btn, smthBrs_Btn, toJoint_Btn, cutMesh_Btn]
 
             for chk in notChecked:
                 chk.setStyleSheet("background-color: red")
@@ -150,6 +151,9 @@ class VertAndBoneFunction(QWidget):
     def _nghbors_func(self, sender, both):
         growing = both
         interface.neighbors(both, growing, sender.checks["full"].isChecked(), self.progressBar)
+
+    def _convertToJoint_func(self, sender):
+        interface.convertToJoint(sender.checks["specify name"].isChecked(), self.progressBar)
 
     def _delBone_func(self):
         chkbxs = self.sender().checks

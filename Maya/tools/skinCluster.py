@@ -72,8 +72,8 @@ def getVertOverMaxInfluence(inObject, maxInfValue = 8, progressBar=None ):
 @shared.dec_undo
 def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
     utils.setProgress(0, progressBar, "get max info")
-    toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue) or None
-    if toMuchinfls is None:
+    toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue) 
+    if toMuchinfls == []:
         return
 
     sc = shared.skinCluster(inObject, True)
@@ -88,18 +88,18 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
 
     percentage = 99.0/len(toMuchinfls)
     for index, vertex in enumerate(toMuchinfls):
-        values = cmds.skinPercent(skinClusterName, vertex, q=1, v=1, ib=float(Decimal('1.0e-17')))
+        values = cmds.skinPercent(sc, vertex, q=1, v=1, ib=float(Decimal('1.0e-17')))
         curAmountValues = len(values)
         toPrune = curAmountValues - maxInfValue
 
         pruneFix = max(nsmallest(toPrune, values)) + 0.001
-        cmds.skinPercent(skinClusterName, vertex, pruneWeights=pruneFix)
+        cmds.skinPercent(sc, vertex, pruneWeights=pruneFix)
         utils.setProgress(index * percentage, progressBar, "removing influences")
 
-    cmds.skinCluster(skinClusterName, e=True, fnw=1)
+    cmds.skinCluster(sc, e=True, fnw=1)
 
-    cmds.setAttr("%s.maxInfluences" % skinClusterName, maxInfValue)
-    cmds.setAttr("%s.maintainMaxInfluences" % skinClusterName, 1)
+    cmds.setAttr("%s.maxInfluences" % sc, maxInfValue)
+    cmds.setAttr("%s.maintainMaxInfluences" % sc, 1)
 
     utils.setProgress(100, progressBar, "set maximum influences")
 

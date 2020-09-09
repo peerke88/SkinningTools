@@ -7,6 +7,7 @@ from maya import cmds
 from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster
 from SkinningTools.Maya import api
 from SkinningTools.UI.dialogs.jointLabel import JointLabel
+from SkinningTools.UI.dialogs.jointName import JointName
 from random import randint
 import os
 
@@ -104,7 +105,7 @@ def labelJoints(doCheck = True, progressBar = None):
                 _reLabel = True
         if not _reLabel:
             return True
-    print "test"
+    
     dialog = JointLabel(parent = api.get_maya_window())
     dialog.exec_()
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
@@ -138,12 +139,21 @@ def smooth(progressBar = None):
     return result
 
 @shared.dec_repeat
-def convertToJoint(progressBar = None):
+def convertToJoint(inName = None, progressBar = None):
+    if inName == True:
+        dialog = JointName(parent = api.get_maya_window())
+        dialog.exec_()
+        inName = dialog.txt.text()
+    
+    if inName in ['', False, None]:
+        inName = None
+
     selection = getSelection()
     if "." in selection[0]:
-        result = joints.convertVerticesToJoint(selection, progressBar)
+        result = joints.convertVerticesToJoint(selection,inName, progressBar)
         return result
 
+    #@Todo: split selection in mesh and cluster selection
     result = joints.convertClusterToJoint(selection, progressBar)
     return result
 
@@ -265,7 +275,7 @@ def getMeshFromJoints(progressBar = None):
 @shared.dec_repeat
 def setMaxInfl( amountInfluences = 8, progressBar = None):
     selection = getSelection()
-    result = skinCluster.setMaxJointInfluences(selection, amountInfluences, progressBar)
+    result = skinCluster.setMaxJointInfluences(selection[0], amountInfluences, progressBar)
     return result
 
 @shared.dec_repeat
