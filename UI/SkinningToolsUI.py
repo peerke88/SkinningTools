@@ -20,7 +20,7 @@ from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 __VERSION__ = "5.0.20200820"
 
 class SkinningTools(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, newPlacement = False, parent=None):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
 
@@ -48,7 +48,8 @@ class SkinningTools(QMainWindow):
         mainLayout.addWidget(self.tabs)
         mainLayout.addWidget(self.progressBar)
 
-        self.loadUIState()
+        if not newPlacement:
+            self.loadUIState()
         self.recurseMouseTracking(self, True)
 
         api.dccInstallEventFilter()
@@ -271,7 +272,7 @@ class SkinningTools(QMainWindow):
         self.saveUIState()
 
 
-def showUI():
+def showUI(newPlacement = False):
     window_name = 'SkinningTools: %s' % __VERSION__
     mainWindow = api.get_maya_window()
 
@@ -280,7 +281,7 @@ def showUI():
             if child.objectName() == window_name:
                 child.close()
                 child.deleteLater()
-    window = SkinningTools(mainWindow)
+    window = SkinningTools(newPlacement, mainWindow)
     window.setObjectName(window_name)
     window.setWindowTitle(window_name)
     window.show()

@@ -81,7 +81,7 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
 
     outInfluencesArray = shared.getWeights(inObject)
 
-    infjnts = cmds.listConnections("%s.matrix"%sc, source=True)
+    infjnts = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
     infLengt = len(infjnts)
 
     lenOutInfArray = len(outInfluencesArray)
@@ -209,7 +209,7 @@ def transferClosestSkinning(objects, smoothValue, progressBar = None):
     utils.setProgress(0, progressBar, "get closest info")
     baseObject = objects[0]
     origSkinCluster = shared.skinCluster(baseObject)
-    origJoints = cmds.listConnections("%s.matrix"%origSkinCluster, source=True)
+    origJoints = joints.getInfluencingJoints(origSkinCluster)#cmds.listConnections("%s.matrix"%origSkinCluster, source=True)
 
     percentage = 99.0 / len(objects)
     for iteration, currentObj in enumerate(objects):
@@ -230,6 +230,7 @@ def transferClosestSkinning(objects, smoothValue, progressBar = None):
 @shared.dec_undo
 def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False, progressBar = None):
     utils.setProgress(0, progressBar, "transfer skinning")
+    print baseSkin
     sc = shared.skinCluster(baseSkin, silent=False)
     if sc == None:
         return False
@@ -249,7 +250,7 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
             cmds.skinCluster(skincluster, e=True, ub=True)
 
         
-        jointInfls = cmds.listConnections("%s.matrix"%sc, source=True)
+        jointInfls = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
         maxInfls = cmds.skinCluster(sc, q=True, mi=True)
         joints.removeBindPoses()
         newSkinCl = cmds.skinCluster(jointInfls, toSkinMesh, mi=maxInfls)
@@ -270,7 +271,7 @@ def Copy2MultVertex(selection, lastSelected, progressBar = None):
     currentMesh = lastSelected.split('.')[0]
     sc = shared.skinCluster(currentMesh, True)
 
-    infJoints =  cmds.listConnections("%s.matrix"%sc, source=True)
+    infJoints =  joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
     currentValues = cmds.skinPercent(sc, "%s.vtx[%i]"%(currentMesh, index), q=1, value=1)
 
     percentage = 99.0/ len(infJoints)
@@ -303,7 +304,7 @@ def switchVertexWeight(vertex1, vertex2, progressBar = None):
     currentMesh = vertex1.split('.')[0]
     sc = shared.skinCluster(currentMesh)
     cmds.skinCluster(currentMesh, e=True, nw=1)
-    infJoints = cmds.listConnections("%s.matrix"%sc, source=True)
+    infJoints = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
 
     pointWeights1 = cmds.skinPercent(sc, vertex1, q=True, value=True)
     pointWeights2 = cmds.skinPercent(sc, vertex2, q=True, value=True)
@@ -415,7 +416,7 @@ def extractSkinnedShells(components, progressBar=None):
 
     utils.setProgress(0, progressBar, "get shell info")
     faces = _convertToFaces(components)
-    inMesh = faces.split(".")[0]
+    inMesh = faces[0].split(".")[0]
 
     dup = cmds.duplicate(inMesh)[0]
     allFaces = _convertToFaces(dup)
@@ -430,7 +431,7 @@ def extractSkinnedShells(components, progressBar=None):
     cmds.delete(dup, ch=1)
     if shared.skinCluster(inMesh, True) == None:
         return
-    transferSkinning(mesh, [dup], inPlace=True)
+    transferSkinning(inMesh, [dup], inPlace=True)
     utils.setProgress(100, progressBar, "extracted shells")
     return dup
 
@@ -447,9 +448,9 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse = Fals
     polySelection = list(set(fullSelection) ^ set(jointOnlySelection))
     vertices = shared.convertToVertexList(polySelection)
     inMesh = vertices[0].split(".")[0]
-    skinCluster = SkinningTools.skinCluster(inMesh, True)
+    skinCluster = shared.skinCluster(inMesh, True)
 
-    attachedJoints = cmds.skinCluster(skinCluster, q=True, inf=True)
+    attachedJoints = joints.getInfluencingJoints(skinCluster)#cmds.skinCluster(skinCluster, q=True, inf=True)
     jointsToRemove = jointOnlySelection
     if not inverse:
         jointsToRemove = list(set(attachedJoints) - set(jointOnlySelection))
@@ -502,7 +503,7 @@ def avgVertex( vertices, lastSelected, progressBar = None):
     pointList = [x for x in vertices if x != lastSelected]
     inMesh = lastSelected.split('.')[0]
     sc = shared.skinCluster(inMesh)
-    jointInfls = cmds.listConnections("%s.matrix"%sc, source=True)
+    jointInfls = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
 
     _weights = dict.fromkeys(jointInfls, 0)
     percentage = 99.0/len(pointList)
@@ -527,7 +528,7 @@ def avgVertex( vertices, lastSelected, progressBar = None):
 def freezeSkinnedMesh(inMesh, progressBar=None):
     utils.setProgress(0, progressBar, "start freeze mesh")
     sc = shared.skinCluster(inMesh, True)
-    attachedJoints = cmds.listConnections("%s.matrix"%sc, source=True)
+    attachedJoints = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
 
     utils.setProgress(25, progressBar, "gather current skindata")
     shape = cmds.listRelatives(inMesh, s=True)[0]
@@ -595,7 +596,7 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
 
 
     sc = shared.skinCluster(selectedMesh, True)
-    infJoints = cmds.listConnections("%s.matrix"%sc, source=True)
+    infJoints = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
     
     cmds.skinCluster(selectedMesh, e=True, nw=1)
     if vertexAmount == 2 or _isEdgeSelection:
@@ -652,27 +653,27 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
 #@note check what the operations do!
 def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operation):
     inMesh = expandedVertices[0].split('.')[0]
-    skinCluster = shared.skinCluster(inMesh, True)
+    sc = shared.skinCluster(inMesh, True)
     expandedVertices = shared.convertToVertexList(expandedVertices)
-    allBones = cmds.listConnections("%s.matrix"%skinCluster, source=True)
+    allBones = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%skinCluster, source=True)
     
     if not inObject in allBones:
-        cmds.skinCluster( skinCluster, e=True, lw=False, wt = 0.0, ai= inObject )
+        cmds.skinCluster( sc, e=True, lw=False, wt = 0.0, ai= inObject )
     
     if operation == 1:
-        cmds.skinPercent( skinCluster, expandedVertices, tv =[ inObject, skinValue ], normalize=True)
+        cmds.skinPercent( sc, expandedVertices, tv =[ inObject, skinValue ], normalize=True)
     elif operation == 4:
-        cmds.skinPercent( skinCluster, expandedVertices, tv =[ inObject, 0.0 ], normalize=True)
+        cmds.skinPercent( sc, expandedVertices, tv =[ inObject, 0.0 ], normalize=True)
     elif operation == 3:
         # for loop assigning verts: little bit more costly operation but safe for removal of weight information
         for index, obj in enumerate( expandedVertices ):
-            val = cmds.skinPercent( skinCluster, obj, transform = inObject, q=True, value=True )
+            val = cmds.skinPercent( sc, obj, transform = inObject, q=True, value=True )
             newVal = val +  skinValue 
             if newVal < 0.0:
                 newVal = 0.0
-            cmds.skinPercent( skinCluster, obj, tv =[ inObject, newVal ], normalize=True)
+            cmds.skinPercent( sc, obj, tv =[ inObject, newVal ], normalize=True)
     else:
-        cmds.skinPercent( skinCluster, expandedVertices, relative=True, tv =[ inObject, skinValue ], normalize=True)
+        cmds.skinPercent( sc, expandedVertices, relative=True, tv =[ inObject, skinValue ], normalize=True)
         
     #@ note check if this needs to be split off from the main setup   
     if cmds.softSelect( q=True, softSelectEnabled=True) == 1:
@@ -682,7 +683,7 @@ def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operati
         for index, obj in enumerate( expandedVertices ):
             if weights[index] == 1.0:
                 continue
-            val = cmds.skinPercent( skinCluster, obj, transform = inObject, q=True, value=True )
+            val = cmds.skinPercent( sc, obj, transform = inObject, q=True, value=True )
             if operation == 0:
                 newVal = weights[ index ]
             elif operation == 1:
@@ -697,4 +698,4 @@ def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operati
                     newVal = 0.0
             else:
                 newVal = 0.0
-            cmds.skinPercent( skinCluster, obj, tv =[ inObject, newVal ])
+            cmds.skinPercent( sc, obj, tv =[ inObject, newVal ])

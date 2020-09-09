@@ -240,7 +240,7 @@ def selectJoints(progressBar = None):
 @shared.dec_repeat
 def seperateSkinned(progressBar = None):
     selection = getSelection()
-    result = skincluster.extractSkinnedShells(selection, progressBar)
+    result = skinCluster.extractSkinnedShells(selection, progressBar)
     return result
 
 @shared.dec_repeat
@@ -252,8 +252,7 @@ def keepOnlyJoints(invert = False, progressBar = None):
             jnts.append(obj)
             continue
 
-    result = skinCluster.keepOnlySelectedInfluences(selection, jnts, inverse, progressBar)
-    cmds.select(result, r=1)
+    result = skinCluster.keepOnlySelectedInfluences(selection, jnts, invert, progressBar)
     return result
 
 @shared.dec_repeat
@@ -272,7 +271,7 @@ def setMaxInfl( amountInfluences = 8, progressBar = None):
 @shared.dec_repeat
 def getMaxInfl( amountInfluences = 8, progressBar = None ):
     selection = getSelection()
-    result = skinCluster.getVertOverMaxInfluence(selection, amountInfluences, progressBar)
+    result = skinCluster.getVertOverMaxInfluence(selection[0], amountInfluences, progressBar)
     cmds.select(result[0], r=1)
     return result
 

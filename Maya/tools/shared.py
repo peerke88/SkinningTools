@@ -169,16 +169,16 @@ def skinCluster(inObject=None, silent=False):
     return skinCluster[0]
 
 
-def getParentShape(object):
+def getParentShape(inObject):
     if isinstance(object, list):
-        object = object[0]
-    objType = cmds.objectType(object)
+        inObject = inObject[0]
+    objType = cmds.objectType(inObject)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
-        print object, cmds.listRelatives(object, p=True, f=True)
-        object = cmds.listRelatives(object, p=True, f=True)[0]
-    if cmds.objectType(object) != "transform":
-        object = cmds.listRelatives(object, p=True, f=True)[0]
-    return object
+        print inObject, cmds.listRelatives(inObject, p=True, f=True)
+        inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
+    if cmds.objectType(inObject) != "transform":
+        inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
+    return inObject
 
 
 def doCorrectSelectionVisualization(skinMesh):
@@ -235,7 +235,7 @@ def convertToVertexList(inObject):
             return cmds.filterExpand('%s.pt[*]' % inObject, sm=46, fp=1)
 
 def selectHierarchy(node):
-    ad = cmds.listRelatives(node, ad=1, f=1)
+    ad = cmds.listRelatives(node, ad=1, f=1) or []
     ad.append(node[0])
     return ad[::-1]
 
@@ -369,7 +369,7 @@ def getWeights(mesh):
     shape = cmds.listRelatives(mesh, s=1)[0]
 
     skinNode = getDagpath( sc )       
-    skinFn = MFnSkinCluster(skinNode)
+    skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
     meshPath = getDagpath( shape )
     meshNode = meshPath.node()
 
@@ -393,7 +393,7 @@ def setWeigths(mesh, weightData):
     shape = cmds.listRelatives(mesh, s=1)[0]
 
     skinNode = getDagpath( sc )       
-    skinFn = MFnSkinCluster(skinNode)
+    skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
     meshPath = getDagpath( shape )
     meshNode = meshPath.node()
 

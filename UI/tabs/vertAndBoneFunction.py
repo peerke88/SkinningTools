@@ -44,13 +44,15 @@ class VertAndBoneFunction(QWidget):
         addinfl_Btn = svgButton("add joint", os.path.join(_DIR, "Icons/addJoint.svg"), size=self.__iconSize)
         unifyBn_Btn = svgButton("unify bind map", os.path.join(_DIR, "Icons/unify.svg"), size=self.__iconSize)
         seltInf_Btn = svgButton("attached joints", os.path.join(_DIR, "Icons/selectJnts.svg"), size=self.__iconSize)
-        sepMesh_Btn = svgButton("seperate skinMesh", os.path.join(_DIR, "Icons/seperate.svg"), size=self.__iconSize)
+        sepMesh_Btn = svgButton("extract skinned mesh", os.path.join(_DIR, "Icons/seperate.svg"), size=self.__iconSize)
         onlySel_Btn = svgButton("prune excluded infl.", os.path.join(_DIR, "Icons/onlySel.svg"), size=self.__iconSize)
         infMesh_Btn = svgButton("influenced meshes", os.path.join(_DIR, "Icons/infMesh.svg"), size=self.__iconSize)
 
         maxL = nullHBoxLayout()
         self._maxSpin = QSpinBox()
         self._maxSpin.setFixedSize(self.__iconSize, self.__iconSize+10)
+        self._maxSpin.setMinimum(1)
+        self._maxSpin.setValue(4)
         vtexMax_Btn = svgButton("force max infl.", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
         frzBone_Btn = svgButton("freeze joints", os.path.join(_DIR, "Icons/FreezeJoint.svg"), size=self.__iconSize)
         for w in [self._maxSpin, vtexMax_Btn]:
@@ -125,10 +127,7 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect( self._growsel_func)
 
         if _DEBUG:
-            notChecked = [trsfrSK_Btn, trsfrPS_Btn, smthVtx_Btn, smthBrs_Btn, toJoint_Btn, cutMesh_Btn,
-                    copy2bn_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn, 
-                    sepMesh_Btn, onlySel_Btn, infMesh_Btn, vtexMax_Btn, vtxOver_Btn, 
-                    frzBone_Btn]
+            notChecked = [ smthVtx_Btn, smthBrs_Btn, toJoint_Btn, cutMesh_Btn, vtexMax_Btn]
 
             for chk in notChecked:
                 chk.setStyleSheet("background-color: red")

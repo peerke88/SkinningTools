@@ -104,7 +104,7 @@ def shortestPathNurbsSurface(start, end, diagonal=False):
     for node in allCvs:
         cmds.select(cl=1)
         cmds.nurbsSelect(node, gs=1)
-        gro = cmds.ls(sl=1)[0]
+        gro = cmds.ls(sl=1, l=1)[0]
 
         if diagonal == False:
             # rough implementation to not cross U and V at the same time (2 implementation only)
@@ -246,7 +246,7 @@ def polySkeleton(radius=5):
     if currentUnit != 'cm':
         cmds.currentUnit(l='cm')
 
-    selection = cmds.ls(type="joint")
+    selection = cmds.ls(type="joint", l=1)
     allGeo = []
     for joint in selection:
         sphere = cmds.polySphere()[0]
