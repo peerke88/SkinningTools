@@ -159,13 +159,14 @@ def skinCluster(inObject=None, silent=False):
         return None
     print "inObject: ",inObject
     inObject = getParentShape(inObject)
-    skinCluster = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
+    skinCluster = cmds.ls(cmds.listHistory(inObject), type="skinCluster") or None
+    
     if not skinCluster:
         if silent == False:
             cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % inObject, button=['Ok'],
                                defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
         else:
-            skinCluster = None
+            return None
     return skinCluster[0]
 
 

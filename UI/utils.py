@@ -2,7 +2,6 @@
 from SkinningTools.py23 import *
 import re, difflib, functools
 from SkinningTools.UI.qt_util import *
-from SkinningTools.Maya import api
 
 
 def nullVBoxLayout(parent=None, size=0):
@@ -120,6 +119,7 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
 
 def setProgress(inValue, progressBar=None, inText = ''):
     if progressBar == None:
+        from SkinningTools.Maya import api
         api.textProgressBar(inValue, inText)
         return
     progressBar.message = inText

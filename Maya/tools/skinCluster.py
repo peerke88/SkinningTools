@@ -650,52 +650,26 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
     utils.setProgress(100, progressBar, "set neighbor average")
     return True
 
-#@note check what the operations do!
-def applySkinValues( skinValue, expandedVertices, skinCluster, inObject, operation):
-    inMesh = expandedVertices[0].split('.')[0]
+# operation = { 0:removes the values, 1:sets the values, 2: adds the values}
+def doSkinPercent(bone, value, operation=False):
+    vertices, weights = mesh.softSelection()
+    if vertices == []:
+        return False
+    inMesh = vertices[0].split('.')[0]
     sc = shared.skinCluster(inMesh, True)
-    expandedVertices = shared.convertToVertexList(expandedVertices)
-    allBones = joints.getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%skinCluster, source=True)
-    
-    if not inObject in allBones:
-        cmds.skinCluster( sc, e=True, lw=False, wt = 0.0, ai= inObject )
-    
-    if operation == 1:
-        cmds.skinPercent( sc, expandedVertices, tv =[ inObject, skinValue ], normalize=True)
-    elif operation == 4:
-        cmds.skinPercent( sc, expandedVertices, tv =[ inObject, 0.0 ], normalize=True)
-    elif operation == 3:
-        # for loop assigning verts: little bit more costly operation but safe for removal of weight information
-        for index, obj in enumerate( expandedVertices ):
-            val = cmds.skinPercent( sc, obj, transform = inObject, q=True, value=True )
-            newVal = val +  skinValue 
-            if newVal < 0.0:
-                newVal = 0.0
-            cmds.skinPercent( sc, obj, tv =[ inObject, newVal ], normalize=True)
-    else:
-        cmds.skinPercent( sc, expandedVertices, relative=True, tv =[ inObject, skinValue ], normalize=True)
-        
-    #@ note check if this needs to be split off from the main setup   
-    if cmds.softSelect( q=True, softSelectEnabled=True) == 1:
-        
-        expandedVertices, weights = mesh.softSelection()
-        percentage = 99.0/ len(expandedVertices)
-        for index, obj in enumerate( expandedVertices ):
-            if weights[index] == 1.0:
-                continue
-            val = cmds.skinPercent( sc, obj, transform = inObject, q=True, value=True )
-            if operation == 0:
-                newVal = weights[ index ]
-            elif operation == 1:
-                newVal = ( skinValue * weights[ index ] )
-            elif operation == 2:
-                newVal = val + ( skinValue * weights[ index ] )
-                if newVal > 1.0:
-                    newVal = 1.0
-            elif operation == 3:
-                newVal = val + ( skinValue * weights[ index ] )
-                if newVal < 0.0:
-                    newVal = 0.0
-            else:
-                newVal = 0.0
-            cmds.skinPercent( sc, obj, tv =[ inObject, newVal ])
+    if sc is None:
+        return False
+
+    allBones = joints.getInfluencingJoints(sc)
+    if not bone in allBones:
+        cmds.skinCluster( sc, e=True, lw=False, wt = 0.0, ai= bone )
+
+    _mult = [1, 0, -1]
+    for index, vert in enumerate(vertices):
+        val = cmds.skinPercent( sc, vert, transform = bone, q=True, value=True )
+        newVal = weights[index]
+        if operation != 1:
+            newVal = (val + (weights[index] * _mult[operation] * value))
+        clampVal = max(min(newVal, 1.0), 0.0)  
+        cmds.skinPercent( sc, vert, tv =[ bone, clampVal ], normalize=True)
+    return True    

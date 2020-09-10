@@ -281,6 +281,11 @@ def polySkeleton(radius=5):
 
 
 def softSelection():
+    _sel = cmds.ls(sl=1) or None
+    if _sel is None or not '.' in _sel[0]:
+        print ("no components selected to get information from, current selection: %s"%_sel)
+        return [],[]
+
     richSelection = OpenMaya.MGlobal.getRichSelection()
     selection = richSelection.getSelection()
     

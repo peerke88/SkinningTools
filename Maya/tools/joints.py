@@ -63,7 +63,7 @@ def resetToBindPoseobject(inObject, progressBar = None):
         return
     
     percentage = 99.0/len(infjnts)
-    infjnts = getInfluencingJoints(skinCluster)#cmds.listConnections("%s.matrix"%skinCluster, source=True)
+    infjnts = getInfluencingJoints(skinCluster)
     for i, joint in enumerate(infjnts):
         prebindMatrix = cmds.getAttr("%s.bindPreMatrix[%s]"%(skinCluster, i))
 
@@ -184,7 +184,7 @@ def addCleanJoint(jnts, inMesh, progressBar = None):
     sc = shared.skinCluster(inMesh, silent=True)
     percentage = 99.0 / len(jnts)
     if sc != None:
-        jointInfls = getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
+        jointInfls = getInfluencingJoints(sc)
         for index, joint in enumerate(jnts):
             if joint in jointInfls:
                 continue
@@ -196,7 +196,7 @@ def addCleanJoint(jnts, inMesh, progressBar = None):
 @shared.dec_undo
 def BoneMove(joint1, joint2, skin, progressBar = None):
     sc = shared.skinCluster(skin, True)
-    infjnts = getInfluencingJoints(sc)# cmds.ls(cmds.listConnections("%s.matrix"%sc, source=True), l=1)
+    infjnts = getInfluencingJoints(sc)
     addCleanJoint([joint1, joint2], skin)
     
     meshShapeName = cmds.listRelatives(skin, s=True, f=1)[0]
@@ -313,7 +313,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         if sc == None:
             continue
 
-        jointsAttached = getInfluencingJoints(sc)#cmds.ls(cmds.listConnections("%s.matrix"%sc, source=True), l=1)
+        jointsAttached = getInfluencingJoints(sc)
         if fast:
             removeJointBySkinPercent(skinObject, jointsToRemove, sc, progressBar)
             skinClusters.append(sc)
@@ -356,7 +356,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         skinClusters.append(sc)
 
     for sc in skinClusters:
-        jointsAttached = getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
+        jointsAttached = getInfluencingJoints(sc)
         for jnt in jointsToRemove:
             if not jnt in jointsAttached:
                 continue
@@ -376,7 +376,7 @@ def comparejointInfluences(skinObjects, query=False, progressBar=None):
     jnts = []
     for obj in skinObjects:
         sc = shared.skinCluster(obj, True)
-        jnt = getInfluencingJoints(sc)#cmds.listConnections("%s.matrix"%sc, source=True)
+        jnt = getInfluencingJoints(sc)
         jnts.append(jnt)
     utils.setProgress(33, progressBar, "get joint maps")
 
@@ -406,7 +406,7 @@ def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
     meshes = []
     percentage = 99.0 / len(allSkinClusters)
     for index, scl in enumerate(allSkinClusters):
-        jnts = getInfluencingJoints(scl)#cmds.listConnections("%s.matrix"%scl, source=True)
+        jnts = getInfluencingJoints(scl)
         geo = cmds.skinCluster(scl, q=1, g=1)[0]
         for jnt in currentJoints:
             if jnt in jnts and not geo in meshes:
@@ -428,7 +428,7 @@ def removeUnusedInfluences(inObject, progressBar = None):
     # @note: this will only remove the current connection with joints
     # check if we can remap the nodes index connections in weights, influenceColor, lockweights and matrix inputs
     sc = shared.skinCluster(inObject)
-    jointInfls = getInfluencingJoints(sc) #cmds.listConnections("%s.matrix"%sc, source=True)
+    jointInfls = getInfluencingJoints(sc) 
     weightedInfls = cmds.skinCluster(sc, q=1, wi=1)
 
     toRemove = list(set(jointInfls)-set(weightedInfls))
@@ -481,6 +481,8 @@ def convertClusterToJoint(inObject, jointName = None, progressBar = None):
 @shared.dec_undo
 def convertVerticesToJoint( inComponents, jointName = None, progressBar = None):
     verts, weights = mesh.softSelection()
+    if verts == []:
+        return
 
     expanded = shared.convertToVertexList(inComponents)
     inMesh = expanded[0].split(".")[0]

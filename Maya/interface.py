@@ -3,9 +3,9 @@
 #@note:
 #  this file will represent an interface between the ui and the actual commands
 # this is where all the selection gets logged and the right arguments get piped through 
-from maya import cmds
+from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
 from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster
-from SkinningTools.Maya import api
+from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.dialogs.jointLabel import JointLabel
 from SkinningTools.UI.dialogs.jointName import JointName
 from random import randint
@@ -31,6 +31,12 @@ def doSelect(input):
         cmds.select(cl=1)
         return
     cmds.select(input, r=1)
+
+def setSmoothAware(input):
+    cmds.softSelect(e=True, softSelectFalloff= input)
+
+def getSmoothAware():
+    return cmds.softSelect(q=True, softSelectFalloff= True)
 
 # --- maya menus ---
 
@@ -105,7 +111,7 @@ def labelJoints(doCheck = True, progressBar = None):
                 _reLabel = True
         if not _reLabel:
             return True
-    
+    from SkinningTools.Maya import api
     dialog = JointLabel(parent = api.get_maya_window())
     dialog.exec_()
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
@@ -141,6 +147,7 @@ def smooth(progressBar = None):
 @shared.dec_repeat
 def convertToJoint(inName = None, progressBar = None):
     if inName == True:
+        from SkinningTools.Maya import api
         dialog = JointName(parent = api.get_maya_window())
         dialog.exec_()
         inName = dialog.txt.text()
@@ -451,3 +458,69 @@ class NeighborSelection(object):
         borderSelect = list(set(self.__bdrSel) ^ set(self.__bdrSelBase))
         print borderSelect
         cmds.select(borderSelect, r=1)
+
+
+# ------------------ maya viewport function -------------------------
+
+def objectUnderMouse(margin = 4, selectionType = "joint"):
+    def selectFromScreenApi(x, y, x_rect=None, y_rect=None):
+        # find object under mouse, (silently select the object using api and clear selection)
+        # using old maya api as selectFromScreen does not exist in new version
+        sel = OldOpenMaya.MSelectionList()
+        OldOpenMaya.MGlobal.getActiveSelectionList(sel)
+            
+        args = [x, y]
+        if x_rect!=None and y_rect!=None:
+            OldOpenMaya.MGlobal.selectFromScreen(x, y, x_rect, y_rect, OldOpenMaya.MGlobal.kReplaceList)
+        else:
+            OldOpenMaya.MGlobal.selectFromScreen(x, y, OldOpenMaya.MGlobal.kReplaceList)
+        objects = OldOpenMaya.MSelectionList()
+        OldOpenMaya.MGlobal.getActiveSelectionList(objects)
+            
+        OldOpenMaya.MGlobal.setActiveSelectionList(sel, OldOpenMaya.MGlobal.kReplaceList)
+            
+        fromScreen = []
+        objects.getSelectionStrings(fromScreen)
+        return fromScreen
+
+    def getSelectionModeIcons():
+        # fix if anything other then object selection is used
+        if cmds.selectMode(q=1, object=1):
+            selectmode = "object"
+        elif cmds.selectMode(q=1, component=1):
+            selectmode = "component"
+        elif cmds.selectMode(q=1, hierarchical=1):
+            selectmode = "hierarchical"
+        return selectmode
+        
+    active_view = OldOpenMayaUI.M3dView.active3dView()
+    pos = QCursor.pos()
+    widget = QApplication.widgetAt(pos)
+        
+    try:
+        relpos = widget.mapFromGlobal(pos)
+    except:
+        return False
+    
+    if selectionType == "joint":
+        maskOn = cmds.selectType( q=True, joint=True )
+        sm = getSelectionModeIcons()   
+        cmds.selectMode(object=1) 
+        cmds.selectType( joint=True )
+    foundObjects = selectFromScreenApi( relpos.x()-margin, 
+                                        active_view.portHeight() - relpos.y()-margin, 
+                                        relpos.x()+margin, 
+                                        active_view.portHeight() - relpos.y()+margin )
+    if selectionType == "joint":
+        cmds.selectType( joint=maskOn )
+        eval("cmds.selectMode(%s=1)"%sm)
+
+
+    foundBone = False
+    boneName = ''
+    for fobj in foundObjects:
+        if cmds.objectType(fobj) == selectionType:
+            foundBone = True
+            boneName = fobj
+            break
+    return foundBone, boneName

@@ -8,6 +8,7 @@ import functools
 
 from SkinningTools.Maya.tools import shared
 from SkinningTools.Maya.tools import weightPaintUtils
+from SkinningTools.UI.markingMenu import MarkingMenuFilter
 from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
 from maya.api import OpenMaya
@@ -132,14 +133,16 @@ def dccInstallEventFilter():
     eventFilterTargets = _cleanEventFilter()
     for eventFilterTarget in eventFilterTargets:
         eventFilterTarget.installEventFilter(_EventFilter.singleton())
+        eventFilterTarget.installEventFilter(MarkingMenuFilter.singleton())
     return True
 
 def _cleanEventFilter():
     # joint MarkingMenu filter
     widgets = _eventFilterTargets()
-    for widget in widgets:
+    for widget in widgets: 
         try:
             widget.removeEventFilter(_EventFilter.singleton())
+            widget.removeEventFilter(MarkingMenuFilter.singleton())
         except:
             pass
     return widgets
