@@ -128,7 +128,7 @@ class _EventFilter(QObject):
         return _EventFilter._singleton
 
     def eventFilter(self, obj, event):
-        from UI.qt_util import Qt, QEvent
+        from SkinningTools.UI.qt_util import Qt, QEvent
         _arrows = {Qt.Key_Up: "up", Qt.Key_Down: "down"}
         if event.type() == QEvent.KeyPress and event.key() in _arrows.keys():
             return weightPaintUtils.pickWalkSkinClusterInfluenceList(_arrows[event.key()])

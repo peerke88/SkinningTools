@@ -1,5 +1,5 @@
 from SkinningTools.UI.qt_util import *
-from SkinningTools.Maya import interface, api
+from SkinningTools.Maya import interface
 from SkinningTools.Maya.tools import skinCluster
 from functools import partial
 from math import *
@@ -22,14 +22,12 @@ class MarkingMenuFilter(QObject):
         return MarkingMenuFilter._singleton
 
     def eventFilter(self, obj, event):
-        print(event)
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.AltModifier:
             self.getBoneUnderMouse = False
             return False
 
         if event.type() == QEvent.MouseButtonPress and event.button() == 4:
-            print("etestset")
             foundObjects = interface.objectUnderMouse()
             if self.__debug:
                 foundObjects = (True, "testBone")
@@ -250,6 +248,7 @@ class testWidget(QMainWindow):
 
 def showTest():
     window_name = 'testWidget'
+    from SkinningTools.Maya import api
     mainWindow = api.get_maya_window()
 
     if mainWindow:
