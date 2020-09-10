@@ -165,7 +165,6 @@ def freezeSkinnedJoints(jnts, rotate=1, scale=1, progressBar=None):
     # @note: this will not work when joints are connected through ik-handle!
     if len(jnts) == 1:
         jnts = shared.selectHierarchy(jnts)
-        print(jnts)
     if rotate:
         freezeRotate(jnts)
         utils.setProgress(33, progressBar, "freezeRotate")
@@ -242,7 +241,6 @@ def BoneSwitch(joint1, joint2, skin, progressBar=None):
         cmds.disconnectAttr("%s.lockInfluenceWeights" % key, "%s.lockWeights[%s]" % (sc, val))
     utils.setProgress(33, progressBar, "get influence map")
 
-    print(_connectDict)
     cmds.connectAttr(joint1 + '.worldMatrix', '%s.matrix[%i]' % (sc, _connectDict[joint2]), f=1)
     cmds.connectAttr(joint2 + '.worldMatrix', '%s.matrix[%i]' % (sc, _connectDict[joint1]), f=1)
     cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights[%s]" % (sc, _connectDict[joint2]), f=1)
@@ -376,7 +374,6 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         for jnt in jointsToRemove:
             if not jnt in jointsAttached:
                 continue
-            print(jnt)
             cmds.skinCluster(sc, e=True, ri=jnt)
 
     print("removed these joints from influence: ", jointsToRemove)

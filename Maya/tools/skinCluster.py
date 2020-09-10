@@ -237,7 +237,7 @@ def transferClosestSkinning(objects, smoothValue, progressBar=None):
 @shared.dec_undo
 def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False, progressBar=None):
     utils.setProgress(0, progressBar, "transfer skinning")
-    print(baseSkin)
+    
     sc = shared.skinCluster(baseSkin, silent=False)
     if sc == None:
         return False
@@ -671,8 +671,17 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
 
 
 # operation = { 0:removes the values, 1:sets the values, 2: adds the values}
+@shared.dec_undo
 def doSkinPercent(bone, value, operation=False):
-    vertices, weights = mesh.softSelection()
+    if cmds.softSelect(q=True, softSelectEnabled=1):
+        vertices, weights = mesh.softSelection()
+    else:
+        selection = cmds.ls(sl=1, l=1)
+        vertices = shared.convertToVertexList(selection)
+        weights = [1.0] * len(vertices)
+
+    cmds.select(vertices, r=1)
+    bone = cmds.ls(bone, l=1)[0]
     if vertices == []:
         return False
     inMesh = vertices[0].split('.')[0]
@@ -684,10 +693,10 @@ def doSkinPercent(bone, value, operation=False):
     if not bone in allBones:
         cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=bone)
 
-    _mult = [1, 0, -1]
+    _mult = [-1, 0, 1]
     for index, vert in enumerate(vertices):
         val = cmds.skinPercent(sc, vert, transform=bone, q=True, value=True)
-        newVal = weights[index]
+        newVal = weights[index] * value
         if operation != 1:
             newVal = (val + (weights[index] * _mult[operation] * value))
         clampVal = max(min(newVal, 1.0), 0.0)

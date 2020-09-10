@@ -231,7 +231,7 @@ def edgesToSmooth(inEdges):
             continue
         baseList.append([vert, vtx])
         edgeLengths.append(loopSize)
-    print(edgeLengths)
+    
     minSize = min(edgeLengths)
     maxSize = max(edgeLengths)
 

@@ -271,6 +271,7 @@ class SkinningTools(QMainWindow):
 
     def hideEvent(self, event):
         self.saveUIState()
+        api._cleanEventFilter()
 
 
 def showUI(newPlacement=False):

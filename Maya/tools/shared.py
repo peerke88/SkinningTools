@@ -166,7 +166,7 @@ def skinCluster(inObject=None, silent=False):
         inObject = cmds.ls(sl=1, l=1)
     if not inObject:
         return None
-    print("inObject: ", inObject)
+    
     inObject = getParentShape(inObject)
     sc = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
     if not sc:
@@ -181,7 +181,6 @@ def getParentShape(inObject):
         inObject = inObject[0]
     objType = cmds.objectType(inObject)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
-        print(inObject, cmds.listRelatives(inObject, p=True, f=True))
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
     if cmds.objectType(inObject) != "transform":
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]

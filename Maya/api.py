@@ -144,7 +144,6 @@ def dccInstallEventFilter():
 
 
 def _cleanEventFilter():
-    # joint MarkingMenu filter
     widgets = _eventFilterTargets()
     for widget in widgets:
         try:

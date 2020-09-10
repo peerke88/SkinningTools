@@ -22,6 +22,7 @@ class MarkingMenuFilter(QObject):
         return MarkingMenuFilter._singleton
 
     def eventFilter(self, obj, event):
+        super(MarkingMenuFilter, self).eventFilter(obj, event) 
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.AltModifier:
             self.getBoneUnderMouse = False
@@ -46,7 +47,7 @@ class MarkingMenuFilter(QObject):
 
         if event.type() == QEvent.MouseButtonRelease and event.button() == 4:
             if self.popup is None:
-                return True
+                return False
             _curItem = self.popup.getActiveItem()
             if _curItem is not None:
                 # this is the function of the button that is under the mouse
@@ -55,7 +56,7 @@ class MarkingMenuFilter(QObject):
             self.popup.hide()
             self.popup.deleteLater()
             self.popup = None
-        return True
+        return False
 
 
 class radialMenu(QMainWindow):

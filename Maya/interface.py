@@ -100,7 +100,6 @@ def avgVtx(useDistance=True, weightAverageWindow=None, progressBar=None):
 @shared.dec_repeat
 def copyVtx(progressBar=None):
     selection = getSelection()
-    print(selection)
     result = skinCluster.Copy2MultVertex(selection, selection[-1], progressBar)
     return result
 
@@ -483,10 +482,8 @@ class NeighborSelection(object):
             if i == 0:
                 toConvert = self.__bdrSelBase
             self.__bdrSel = getNeightbors(toConvert)
-            print(i, self.__bdrSel)
-
+            
         borderSelect = list(set(self.__bdrSel) ^ set(self.__bdrSelBase))
-        print(borderSelect)
         cmds.select(borderSelect, r=1)
 
 
