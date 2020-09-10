@@ -5,8 +5,8 @@ from SkinningTools.UI.ControlSlider.vertexinfluenceeditor import VertexInfluence
 
 
 class SkinningToolsSliderList(QWidget):
-    def __init__(self, parent = None):
-        super(SkinningToolsSliderList, self).__init__(parent = None)
+    def __init__(self, parent=None):
+        super(SkinningToolsSliderList, self).__init__(parent=None)
         self.setLayout(QVBoxLayout())
         self.update()
 

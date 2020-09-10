@@ -6,8 +6,11 @@ from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 
 _DEBUG = True
+
+
 def dec_undo(func):
     '''undo decorator'''
+
     @wraps(func)
     def _undo_func(*args, **kwargs):
         try:
@@ -25,9 +28,11 @@ def dec_undo(func):
 
     return _undo_func
 
-#@note check if this works later!
+
+# @note check if this works later!
 def dec_repeat(func):
     '''repeat last decorator'''
+
     @wraps(func)
     def _repeat_func(*args, **kwargs):
         ret = func(*args, **kwargs)
@@ -46,7 +51,7 @@ def dec_repeat(func):
                 args_string += '%s, ' % each
 
             kwargs_string = ''
-            for key, item in kwargs.iteritems():
+            for key, item in kwargs.items():
                 if isinstance(item, QWidget):
                     item = None
                 kwargs_string = '%s=%s, ' % (key, item)
@@ -54,19 +59,20 @@ def dec_repeat(func):
             repeat_command = '%s%s(%s%s)' % (modules, func.__name__, args_string, kwargs_string)
             if not '' in [args_string, kwargs_string]:
                 repeat_command = '%s%s(%s, %s)' % (modules, func.__name__, args_string, kwargs_string)
-            
+
             cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
         except Exception as e:
             if _DEBUG:
-                print "if this is fired the when repeating a command it means it uses MEL"
+                print("if this is fired the when repeating a command it means it uses MEL")
                 print(e)
                 print(e.__class__)
                 print(sys.exc_info())
                 cmds.warning(traceback.format_exc())
-        finally:  
+        finally:
             return ret
 
     return _repeat_func
+
 
 def dec_loadPlugin(plugin):
     def _loadPlugin_func(func):
@@ -79,8 +85,11 @@ def dec_loadPlugin(plugin):
                 cmds.loadPlugin(plugin)
 
             return func(*args, **kwargs)
+
         return inner
+
     return _loadPlugin_func
+
 
 class Graph(object):
     ''' dijkstra closest path technique (for nurbs and lattice)
@@ -157,17 +166,14 @@ def skinCluster(inObject=None, silent=False):
         inObject = cmds.ls(sl=1, l=1)
     if not inObject:
         return None
-    print "inObject: ",inObject
+    print("inObject: ", inObject)
     inObject = getParentShape(inObject)
-    skinCluster = cmds.ls(cmds.listHistory(inObject), type="skinCluster") or None
-    
-    if not skinCluster:
-        if silent == False:
-            cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % inObject, button=['Ok'],
-                               defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
-        else:
-            return None
-    return skinCluster[0]
+    sc = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
+    if not sc:
+        if not silent:
+            cmds.confirmDialog(title='Error', message='no SkinCluster found on: %s!' % inObject, button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
+        return None
+    return sc[0]
 
 
 def getParentShape(inObject):
@@ -175,7 +181,7 @@ def getParentShape(inObject):
         inObject = inObject[0]
     objType = cmds.objectType(inObject)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
-        print inObject, cmds.listRelatives(inObject, p=True, f=True)
+        print(inObject, cmds.listRelatives(inObject, p=True, f=True))
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
     if cmds.objectType(inObject) != "transform":
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
@@ -235,20 +241,23 @@ def convertToVertexList(inObject):
         else:
             return cmds.filterExpand('%s.pt[*]' % inObject, sm=46, fp=1)
 
+
 def selectHierarchy(node):
     ad = cmds.listRelatives(node, ad=1, f=1) or []
     ad.append(node[0])
     return ad[::-1]
 
+
 def getJointIndexMap(inSkinCluster):
-    inConns = cmds.listConnections('%s.matrix'%inSkinCluster, s=1, d=0,c=1, type="joint")
-    indices =[]
+    inConns = cmds.listConnections('%s.matrix' % inSkinCluster, s=1, d=0, c=1, type="joint")
+    indices = []
     _connectDict = {}
     for i in inConns[::2]:
         indices.append(int(i[i.index("[") + 1: -1]))
     for index, conn in enumerate(inConns[1::2]):
-        _connectDict[cmds.ls(conn,sl=0, l=1)[0]] = indices[index]
+        _connectDict[cmds.ls(conn, sl=0, l=1)[0]] = indices[index]
     return _connectDict
+
 
 def convertToIndexList(vertList):
     indices = []
@@ -257,13 +266,15 @@ def convertToIndexList(vertList):
         indices.append(index)
     return indices
 
-def convertToCompList(indices, mesh, comp = "vtx"):
+
+def convertToCompList(indices, mesh, comp="vtx"):
     vertices = []
     for i in list(indices):
-        vrt = "%s.%s[%s]" % (mesh,comp, i)
+        vrt = "%s.%s[%s]" % (mesh, comp, i)
 
         vertices.append(vrt)
     return vertices
+
 
 def toToEdgeNumber(vtx):
     toEdges = cmds.polyListComponentConversion(vtx, te=True)
@@ -273,7 +284,8 @@ def toToEdgeNumber(vtx):
         en.append(int(e[e.index("[") + 1: -1]))
     return en
 
-def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength = 40):
+
+def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength=40):
     e1n = toToEdgeNumber(vtx1)
     e2n = toToEdgeNumber(vtx2)
     found = []
@@ -287,8 +299,9 @@ def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength = 40):
             continue
         return loopSize
 
+
 def getDagpath(node, extendToShape=False):
-    sellist = OpenMaya.MGlobal.getSelectionListByName( node )
+    sellist = OpenMaya.MGlobal.getSelectionListByName(node)
     try:
         if extendToShape:
             return sellist.getDagPath(0).extendToShape()
@@ -296,12 +309,14 @@ def getDagpath(node, extendToShape=False):
     except:
         return sellist.getDependNode(0)
 
+
 def getMfnSkinCluster(mDag):
     if isinstance(mDag, OpenMaya.MDagPath):
         skinNode = skinCluster(mDag.fullPathName())
     else:
         skinNode = skinCluster(mDag)
-    return OpenMayaAnim.MFnSkinCluster( getDagpath(skinNode) )
+    return OpenMayaAnim.MFnSkinCluster(getDagpath(skinNode))
+
 
 # --- vertex island functions ---
 
@@ -369,53 +384,55 @@ def getWeights(mesh):
     sc = skinCluster(mesh)
     shape = cmds.listRelatives(mesh, s=1)[0]
 
-    skinNode = getDagpath( sc )       
+    skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
-    meshPath = getDagpath( shape )
+    meshPath = getDagpath(shape)
     meshNode = meshPath.node()
 
-    meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
-    indices = range( meshVerItFn.count() )
+    meshVerItFn = OpenMaya.MItMeshVertex(meshNode)
+    indices = range(meshVerItFn.count())
 
     singleIdComp = OpenMaya.MFnSingleIndexedComponent()
-    vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
-    singleIdComp.addElements( indices )
+    vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
+    singleIdComp.addElements(indices)
 
     infDags = skinFn.influenceObjects()
-    infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
-    for x in xrange( len( infDags ) ):
-        infIndexes[x] = int( skinFn.indexForInfluenceObject( infDags[x] ) )
+    infIndexes = OpenMaya.MIntArray(len(infDags), 0)
+    for x in range(len(infDags)):
+        infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
 
-    weightData = skinFn.getWeights( meshPath , vertexComp, infIndexes )
+    weightData = skinFn.getWeights(meshPath, vertexComp, infIndexes)
     return weightData
+
 
 def setWeigths(mesh, weightData):
     sc = skinCluster(mesh)
     shape = cmds.listRelatives(mesh, s=1)[0]
 
-    skinNode = getDagpath( sc )       
+    skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
-    meshPath = getDagpath( shape )
+    meshPath = getDagpath(shape)
     meshNode = meshPath.node()
 
-    meshVerItFn = OpenMaya.MItMeshVertex( meshNode )
-    indices = range( meshVerItFn.count() )
+    meshVerItFn = OpenMaya.MItMeshVertex(meshNode)
+    indices = range(meshVerItFn.count())
 
     singleIdComp = OpenMaya.MFnSingleIndexedComponent()
-    vertexComp = singleIdComp.create( OpenMaya.MFn.kMeshVertComponent )
-    singleIdComp.addElements( indices )
+    vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
+    singleIdComp.addElements(indices)
 
     infDags = skinFn.influenceObjects()
-    infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
-    for x in xrange( len( infDags ) ):
-        infIndexes[x] = int( skinFn.indexForInfluenceObject( infDags[x] ) )
+    infIndexes = OpenMaya.MIntArray(len(infDags), 0)
+    for x in range(len(infDags)):
+        infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
 
-    skinFn.setWeights( meshPath , vertexComp , infIndexes , weightData ) 
+    skinFn.setWeights(meshPath, vertexComp, infIndexes, weightData)
+
 
 # -------------
 
 def getPolyOnMesh(point, mesh):
-    meshDag =getDagpath(mesh, extendToShape=True)
+    meshDag = getDagpath(mesh, extendToShape=True)
 
     meshIntersector = OpenMaya.MMeshIntersector()
     meshIntersector.create(meshDag.node(), meshDag.inclusiveMatrix())
@@ -429,28 +446,29 @@ def getPolyOnMesh(point, mesh):
     u, v = meshPoint.getBarycentricCoords()
     return faceIndex, triangleIndex, u, v
 
+
 def getTriIndex(mesh, polygon_index, triangleIndex):
     meshDag = getDagpath(mesh, extendToShape=True)
     polyIt = OpenMaya.MItMeshPolygon(meshDag)
-    
-       
-    prevIndexPTR = polyIt.setIndex(polygon_index )
+
+    prevIndexPTR = polyIt.setIndex(polygon_index)
 
     points, vertex_list = polyIt.getTriangle(triangleIndex, OpenMaya.MSpace.kWorld)
 
     return (vertex_list[0], vertex_list[1], vertex_list[2])
-    
+
+
 def getTriWeight(mesh, polygon_index, triangleIndex, u, v):
     skin_cluster = skinCluster(mesh)
-    influences = cmds.listConnections("%s.matrix"%skinClusterName, source=True)
+    influences = cmds.listConnections("%s.matrix" % skinClusterName, source=True)
 
     vtxIndex = getTriIndex(mesh, polygon_index, triangleIndex)
-    barycentric_coordinates = [u, v, 1.0-u-v]
+    barycentric_coordinates = [u, v, 1.0 - u - v]
 
     weights = [0.0 for _ in range(len(influences))]
     for i, vertId in enumerate(vtxIndex):
-        vtxWeights = cmds.skinPercent(skin_cluster, '%s.vtx[%s]'%(mesh, vertId), query=True, value=True)
-        weights = [weights[j] + weight * barycentric_coordinates[i] for j,weight in enumerate(vtxWeights)]
+        vtxWeights = cmds.skinPercent(skin_cluster, '%s.vtx[%s]' % (mesh, vertId), query=True, value=True)
+        weights = [weights[j] + weight * barycentric_coordinates[i] for j, weight in enumerate(vtxWeights)]
 
     return influences, weights
 
@@ -464,20 +482,20 @@ def skinConstraint(mesh, transform, precision=2):
     matrix_node = createWeightedMM(transforms, weights, precision=precision)
 
     vector_product_node1 = cmds.createNode('vectorProduct')
-    cmds.setAttr('%s.operation'%vector_product_node1, 4)
-    cmds.setAttr('%s.input1'%vector_product_node1, *point)
-    cmds.connectAttr('%s.matrixSum'%matrix_node, '%s.matrix'%vector_product_node1)
+    cmds.setAttr('%s.operation' % vector_product_node1, 4)
+    cmds.setAttr('%s.input1' % vector_product_node1, *point)
+    cmds.connectAttr('%s.matrixSum' % matrix_node, '%s.matrix' % vector_product_node1)
 
     vector_product_node2 = cmds.createNode('vectorProduct')
-    cmds.setAttr('%s.operation'%vector_product_node2, 4)
-    cmds.connectAttr('%s.output'%vector_product_node1, '%s.input1'%vector_product_node2)
-    cmds.connectAttr('%s.parentInverseMatrix'%transform, '%s.matrix'%vector_product_node2)
-    cmds.connectAttr('%s.output'%vector_product_node2, '%s.translate'%transform, force=True)
+    cmds.setAttr('%s.operation' % vector_product_node2, 4)
+    cmds.connectAttr('%s.output' % vector_product_node1, '%s.input1' % vector_product_node2)
+    cmds.connectAttr('%s.parentInverseMatrix' % transform, '%s.matrix' % vector_product_node2)
+    cmds.connectAttr('%s.output' % vector_product_node2, '%s.translate' % transform, force=True)
 
     decompose_matrix_node = cmds.createNode('decomposeMatrix')
-    cmds.connectAttr('%s.matrixSum'%matrix_node, '%s.inputMatrix'%decompose_matrix_node)
-    cmds.connectAttr('%S.outputRotate'%decompose_matrix_node, '%s.rotate'%transform, force=True)
- 
+    cmds.connectAttr('%s.matrixSum' % matrix_node, '%s.inputMatrix' % decompose_matrix_node)
+    cmds.connectAttr('%s.outputRotate' % decompose_matrix_node, '%s.rotate' % transform, force=True)
+
 
 def createWeightedMM(transforms, weights, precision, epsilon=1e-6):
     Trs = []
@@ -493,19 +511,19 @@ def createWeightedMM(transforms, weights, precision, epsilon=1e-6):
 
     for i, weight in enumerate(Wgth):
         Wgth[i] *= 1.0 / max(wgthTotal, 1e-6)
-    
+
     addMM = cmds.createNode('wtAddMatrix')
 
     for i, (trsNode, weight) in enumerate(zip(Trs, Wgth)):
         mmNode = cmds.createNode('multMatrix')
-        mmInv = cmds.getAttr('%s.worldInverseMatrix'%trsNode)
-        cmds.setAttr('%s.matrixIn[0]'%mmNode, mmInv, type='matrix')
-        cmds.connectAttr('%s.worldMatrix'%trsNode, '%s.matrixIn[1]'%mmNode)
+        mmInv = cmds.getAttr('%s.worldInverseMatrix' % trsNode)
+        cmds.setAttr('%s.matrixIn[0]' % mmNode, mmInv, type='matrix')
+        cmds.connectAttr('%s.worldMatrix' % trsNode, '%s.matrixIn[1]' % mmNode)
 
-        cmds.connectAttr('%s.matrixSum'%mmNode, '%s.wtMatrix[%s].matrixIn'%(addMM, i))
-        cmds.setAttr('%s.wtMatrix[%s].weightIn'%(addMM, i), weight)
+        cmds.connectAttr('%s.matrixSum' % mmNode, '%s.wtMatrix[%s].matrixIn' % (addMM, i))
+        cmds.setAttr('%s.wtMatrix[%s].weightIn' % (addMM, i), weight)
 
         cmds.addAttr(addMM, ln=trsNode, dv=weight, at='double', k=True)
-        cmds.setAttr('%s.%s'%(addMM, trsNode), lock=True)
+        cmds.setAttr('%s.%s' % (addMM, trsNode), lock=True)
 
     return addMM

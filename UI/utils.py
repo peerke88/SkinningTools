@@ -32,7 +32,8 @@ def buttonsToAttach(name, command, *args):
     button.setMinimumHeight(23)
     return button
 
-def svgButton(name = '', pixmap = '', size = None):
+
+def svgButton(name='', pixmap='', size=None):
     btn = QPushButton(name.lower())
     if name != '':
         btn.setLayoutDirection(Qt.LeftToRight)
@@ -40,9 +41,9 @@ def svgButton(name = '', pixmap = '', size = None):
     _empty = False
     if isinstance(pixmap, str):
         if "empty" in pixmap.lower():
-            _empty = True        
+            _empty = True
         pixmap = QPixmap(pixmap)
-    btn.setIcon( QIcon(pixmap) )
+    btn.setIcon(QIcon(pixmap))
     btn.setFocusPolicy(Qt.NoFocus)
     if size is not None:
         _size = QSize(size, size)
@@ -74,7 +75,7 @@ def find_missing_items(int_list):
     original_set = set(int_list)
     smallest_item = min(original_set)
     largest_item = max(original_set)
-    full_set = set(xrange(smallest_item, largest_item + 1))
+    full_set = set(range(smallest_item, largest_item + 1))
     return sorted(list(full_set - original_set))
 
 
@@ -117,7 +118,8 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
         return False
     return True
 
-def setProgress(inValue, progressBar=None, inText = ''):
+
+def setProgress(inValue, progressBar=None, inText=''):
     if progressBar == None:
         from SkinningTools.Maya import api
         api.textProgressBar(inValue, inText)
@@ -126,10 +128,12 @@ def setProgress(inValue, progressBar=None, inText = ''):
     progressBar.setValue(inValue)
     QApplication.processEvents()
 
+
 def smart_round(value, ndigits):
     return int(value * (10 * ndigits)) / (10. * ndigits)
 
-def round_compare(vA, vB, debug = False):
+
+def round_compare(vA, vB, debug=False):
     for a, b in zip(vA, vB):
         x = smart_round(a, 5)
         y = smart_round(b, 5)
@@ -140,36 +144,43 @@ def round_compare(vA, vB, debug = False):
             return False
     return True
 
+
 def compare_vec3(a, b, epsilon=1e-5):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1]) +abs(a[2] - b[2]) < epsilon
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2]) < epsilon
 
 
 def lerp(a, b, t):
     return a * (1 - t) + b * t
 
+
 def vLerp(start, end, percent):
     return start + percent * (end - start)
+
 
 def invLerp(a, b, v):
     return (v - a) / (b - a)
 
+
 def remap(iMin, iMax, oMin, oMax, v):
     t = invLerp(iMin, iMax, v)
     return lerp(oMin, oMax, t)
+
 
 def widgetsAt(pos):
     widgets = []
     widget_at = QApplication.widgetAt(pos)
     return widget_at
 
-def addChecks(cls, button, checks = []):
-    v=nullVBoxLayout(size = 3)
-    h=nullHBoxLayout()
+
+def addChecks(cls, button, checks=None):
+    v = nullVBoxLayout(size=3)
+    h = nullHBoxLayout()
     v.addLayout(h)
     v.setAlignment(Qt.AlignRight)
     button.setLayout(v)
     button.setContextMenuPolicy(Qt.CustomContextMenu)
     button.checks = {}
+    checks = checks or []
     for check in checks:
         chk = QCheckBox()
         chk.setEnabled(False)
@@ -177,10 +188,11 @@ def addChecks(cls, button, checks = []):
         v.addWidget(chk)
         button.checks[check] = chk
 
-    functions, popup = add_contextToMenu(cls, checks, button )
+    functions, popup = add_contextToMenu(cls, checks, button)
     button.customContextMenuRequested.connect(functools.partial(on_context_menu, button, popup))
 
-def add_contextToMenu(cls, actionNames, btn ):
+
+def add_contextToMenu(cls, actionNames, btn):
     popMenu = QMenu(cls)
     allFunctions = []
     for actionName in actionNames:
@@ -189,16 +201,17 @@ def add_contextToMenu(cls, actionNames, btn ):
         check.toggled.connect(btn.checks[actionName].setChecked)
         popMenu.addAction(check)
         allFunctions.append(check)
-    
-    return allFunctions, popMenu  
+
+    return allFunctions, popMenu
+
 
 def on_context_menu(buttonObj, popMenu, point):
-    popMenu.exec_(buttonObj.mapToGlobal(point)) 
+    popMenu.exec_(buttonObj.mapToGlobal(point))
 
 
 def similarString(inString, inList):
     remove = .1
-    for i in xrange(10):
-        matches = difflib.get_close_matches(inString, inList, n=3, cutoff = 1.0 - (i * remove))
+    for i in range(10):
+        matches = difflib.get_close_matches(inString, inList, n=3, cutoff=1.0 - (i * remove))
         if matches:
             return matches[0]

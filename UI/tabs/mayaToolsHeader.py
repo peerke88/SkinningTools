@@ -5,14 +5,15 @@ from functools import partial
 import tempfile, os
 from SkinningTools.UI.remapDialog import RemapDialog
 
+
 class MayaToolsHeader(QWidget):
-    def __init__(self, inGraph = None, inProgressBar = None, parent = None):
+    def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(MayaToolsHeader, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
         self.BezierGraph = inGraph
 
-        self.__graphSize = 60    
+        self.__graphSize = 60
 
         self._skSaveLoad = interface.skinWeight()
         self._vtSaveLoad = interface.vertexWeight()
@@ -35,8 +36,8 @@ class MayaToolsHeader(QWidget):
         g.addWidget(QLabel("  Vtx :"), 1, 0)
         g.addWidget(self.skSave, 0, 1)
         g.addWidget(self.vtSave, 1, 1)
-        g.addWidget(self.skLine , 0, 2)
-        g.addWidget(self.vtLine , 1, 2)
+        g.addWidget(self.skLine, 0, 2)
+        g.addWidget(self.vtLine, 1, 2)
         g.addWidget(self.skLoad, 0, 3)
         g.addWidget(self.vtLoad, 1, 3)
 
@@ -49,7 +50,7 @@ class MayaToolsHeader(QWidget):
         h.addWidget(self.graph)
 
         self.layout().addLayout(h)
-    
+
     def __connections(self):
         self.skSave.clicked.connect(self._storeSkin)
         self.vtSave.clicked.connect(self._storeVtx)

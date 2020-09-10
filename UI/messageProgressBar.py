@@ -1,10 +1,11 @@
 from SkinningTools.UI.qt_util import *
 
-#@note: add warning messages or error messages in the progressbar? change color?
 
-class MessageProgressBar(QProgressBar): 
-    def __init__(self): 
-        super(MessageProgressBar, self).__init__() 
+# @note: add warning messages or error messages in the progressbar? change color?
+
+class MessageProgressBar(QProgressBar):
+    def __init__(self):
+        super(MessageProgressBar, self).__init__()
         self.setAlignment(Qt.AlignCenter)
         self.__currentMessage = ''
 
@@ -13,17 +14,16 @@ class MessageProgressBar(QProgressBar):
             self.__currentMessage = ''
             return
         if not inMessage.rstrip().endswith(":"):
-            inMessage = "%s : "%inMessage
+            inMessage = "%s : " % inMessage
         self.__currentMessage = inMessage
 
     def _getMessage(self):
         return self.__currentMessage.rsplit(":")[0]
-    
+
     message = property(_getMessage, _setMessage)
 
     def setValue(self, inValue):
         if inValue > 100.0:
             inValue = 100
         super(MessageProgressBar, self).setValue(inValue)
-        self.setFormat("%s%i%%"%(self.__currentMessage, inValue)) 
-    
+        self.setFormat("%s%i%%" % (self.__currentMessage, inValue))

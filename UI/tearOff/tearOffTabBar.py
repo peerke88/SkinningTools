@@ -72,20 +72,20 @@ class TearoffTabBar(QTabBar):
                 self.__pressedIndex = -1
                 self.setCursor(Qt.ArrowCursor)
         return QTabBar.event(self, event)
-    
+
     def setWest(self):
         self.__isWest = True
 
-    def tabSizeHint(self, index = 0):
+    def tabSizeHint(self, index=0):
         height = QTabBar.tabSizeHint(self, index).height()
         width = QTabBar.tabSizeHint(self, index).width()
-        if index == self.count()-1 :
+        if index == self.count() - 1:
             if self.__isWest:
                 return QSize(self.__size, height)
             else:
                 return QSize(width, self.__size)
-        else: 
-            return QTabBar.tabSizeHint(self, index) 
+        else:
+            return QTabBar.tabSizeHint(self, index)
 
 
 class EditableTabBar(TearoffTabBar):
@@ -133,7 +133,7 @@ class EditableTabBar(TearoffTabBar):
             oldText = self.tabText(self.__editIndex)
             newText = self.__editor.text()
             if oldText != newText:
-                names = [self.tabText(i) for i in xrange(self.count())]
+                names = [self.tabText(i) for i in range(self.count())]
                 newText = getNumericName(newText, names)
                 self.setTabText(self.__editIndex, newText)
                 self.tabLabelRenamed.emit(oldText, newText)

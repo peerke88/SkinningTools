@@ -44,7 +44,7 @@ class SkinWeightsModel(QObject):
         remaindersum = 0.0
         remainderIds = []
         one = 1.0
-        for i in xrange(len(values)):
+        for i in range(len(values)):
             if visibleColumns is not None and i not in visibleColumns:
                 continue
             if i in setcols:
@@ -56,7 +56,7 @@ class SkinWeightsModel(QObject):
                 remaindersum += values[i]
         if one <= 0.0:
             # zero out everything if the locked data is already at maximum
-            for i in xrange(len(values)):
+            for i in range(len(values)):
                 if visibleColumns is not None and i not in visibleColumns:
                     continue
                 if not self.__lockedColumns[i]:
@@ -117,7 +117,7 @@ class SkinWeightsModel(QObject):
         self.__lockedColumns[col] = state
 
     def unlockAllColumns(self):
-        for i in xrange(len(self.__influences)):
+        for i in range(len(self.__influences)):
             self.__lockedColumns[i] = False
 
     def isZeroColumn(self, col):
@@ -125,7 +125,7 @@ class SkinWeightsModel(QObject):
             c = len(self.__influences)
             v = 0
             rc = self.rowCount()
-            for i in xrange(rc):
+            for i in range(rc):
                 v += self.__data[i * c + col]
             self.__zeroColumns[col] = (v == 0)
         return self.__zeroColumns[col]
@@ -138,7 +138,7 @@ class SkinWeightsModel(QObject):
         return len(self.__influences)
 
     def rows(self):
-        for i in xrange(self.rowCount()):
+        for i in range(self.rowCount()):
             yield i
 
     def value(self, col, row):
@@ -200,7 +200,7 @@ class SkinWeightsProxyModel(object):
         self.__columnMap = []
         self.__zeroColumns = [None] * self.__model.columnCount()
         c = self.__model.columnCount()
-        for i in xrange(c):
+        for i in range(c):
             if self.__hideZeroColumns and self.__isZeroColumn(i):
                 continue
             self.__columnMap.append(i)
@@ -252,7 +252,7 @@ class SkinWeightsProxyModel(object):
         return len(self.__rowMap)
 
     def rows(self):
-        for i in xrange(self.rowCount()):
+        for i in range(self.rowCount()):
             yield i
 
     def rowLabel(self, index):
@@ -271,10 +271,10 @@ class SkinWeightsProxyModel(object):
         self.__model.setValue(self.__columnMap[col], row, value)
 
     def setValues(self, cols, rows, values):
-        for i in xrange(len(cols)):
+        for i in range(len(cols)):
             cols[i] = self.__columnMap[cols[i]]
         if self.__rowMap is not None:
-            for i in xrange(len(rows)):
+            for i in range(len(rows)):
                 rows[i] = self.__rowMap[rows[i]]
         self.__model.setValues(cols, rows, values, self.__columnMap)
 

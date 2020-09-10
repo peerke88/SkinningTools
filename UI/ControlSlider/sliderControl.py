@@ -44,7 +44,7 @@ class SliderControl(AbstractControl):
         self.slider.valueChanged.connect(self.evaluateLogic)
 
     def editBegin(self, value):
-        print "editBegin"
+        print("editBegin")
         self.editModeRequested.emit()
         self.slider.hide()
         self.lineEdit.setText(value)

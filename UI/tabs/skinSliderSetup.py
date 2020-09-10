@@ -4,8 +4,9 @@ from SkinningTools.UI.utils import *
 from functools import partial
 from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
 
+
 class SkinSliderSetup(QWidget):
-    def __init__(self, inGraph = None, inProgressBar = None, parent = None):
+    def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(SkinSliderSetup, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
@@ -15,7 +16,7 @@ class SkinSliderSetup(QWidget):
         self.__notConnected = QPixmap(":/hsNothing.png")
 
         self.inflEdit = SkinningToolsSliderList(self)
-        
+
         self.__skinSliderSetup()
 
     def __skinSliderSetup(self):
@@ -23,7 +24,7 @@ class SkinSliderSetup(QWidget):
         cnct = toolButton(self.__notConnected)
         rfr = toolButton(":/playbackLoopingContinuous_100.png")
         live = toolButton(self.__liveIMG)
-        
+
         cnct.setCheckable(True)
         live.setCheckable(True)
 

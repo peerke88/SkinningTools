@@ -14,8 +14,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
 
+sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +27,6 @@ author = u'Trevor v Hoof, Jan Pijpers, Perry Leijten'
 version = u'5.0'
 # The full version, including alpha/beta/rc tags
 release = u'5.0.20200822'
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -70,7 +69,6 @@ exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -105,7 +103,6 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'SkinningToolsdoc'
 
-
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {
@@ -134,7 +131,6 @@ latex_documents = [
      u'Trevor v Hoof, Jan Pijpers, Perry Leijten', 'manual'),
 ]
 
-
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
@@ -143,7 +139,6 @@ man_pages = [
     (master_doc, 'skinningtools', u'SkinningTools Documentation',
      [author], 1)
 ]
-
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -155,7 +150,6 @@ texinfo_documents = [
      author, 'SkinningTools', 'One line description of project.',
      'Miscellaneous'),
 ]
-
 
 # -- Options for Epub output -------------------------------------------------
 
@@ -173,7 +167,6 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
-
 
 # -- Extension configuration -------------------------------------------------
 

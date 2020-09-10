@@ -27,7 +27,7 @@ class BezierFunctions(object):
     @staticmethod
     def bezierCurveYfromX(inX, points):
         fullList = {}
-        for i in xrange(101):
+        for i in range(101):
             x, y = BezierFunctions.bezier(i * 0.01, points)
 
             fullList[x] = y
@@ -41,7 +41,7 @@ class BezierFunctions(object):
 
     @staticmethod
     def bezier_curve_range(n, points):
-        for i in xrange(n):
+        for i in range(n):
             t = i / float(n - 1)
             yield BezierFunctions.bezier(t, points)
 
@@ -212,14 +212,13 @@ class NodeScene(QGraphicsScene):
         self.undoAction = self.getUndoStack().createUndoAction(self)
         self.redoAction = self.getUndoStack().createRedoAction(self)
 
-        
         self.createGrid()
         self.createGrid(10, Qt.black, Qt.DotLine)
         self.createControls()
 
     def createGrid(self, divider=4, color=Qt.darkGray, line=Qt.DashLine):
         pos = float(self.baseSize) / divider
-        for div in xrange(divider):
+        for div in range(divider):
             if div == 0:
                 continue
             lineItem = QGraphicsLineItem(0, pos * div, self.baseSize, pos * div)
@@ -398,7 +397,7 @@ class BezierGraph(QMainWindow):
             self.but1.setEnabled(True)
 
     def delValues(self):
-        if self.cbox.currentText() in ['bezier' ,'linear']:
+        if self.cbox.currentText() in ['bezier', 'linear']:
             return
         del self.BezierDict[self.cbox.currentText()]
         self.settings.setValue("graphPos", self.BezierDict)
@@ -416,7 +415,7 @@ class BezierGraph(QMainWindow):
         inDict = self.settings.value("graphPos", {})
         if len(inDict) > 2:
             self.BezierDict = inDict
-        for key, value in self.BezierDict.iteritems():
+        for key, value in self.BezierDict.items():
             self.cbox.addItem(key)
 
         self.scene.getUndoStack().clear()
@@ -424,14 +423,13 @@ class BezierGraph(QMainWindow):
     def changeCurve(self):
         if self.cbox.currentText() == '':
             return
-        self.but2.setEnabled(not (self.cbox.currentText() in ['bezier' ,'linear']))
+        self.but2.setEnabled(not (self.cbox.currentText() in ['bezier', 'linear']))
 
         cp = self.BezierDict[self.cbox.currentText()]
         self.scene.getUndoStack().push(NodeSwitchCommand(self.scene, self.scene.getPoints(), cp))
 
     def curveAsPoints(self):
         pts = self.scene.bCurve.points
-
         npts = []
         for pt in pts:
             npts.append([pt.x(), pt.y()])
@@ -440,7 +438,7 @@ class BezierGraph(QMainWindow):
     def getDivisionData(self, divisions=11):
         percentage = 1 / (divisions - 1.0)
         l = []
-        for i in xrange(divisions):
+        for i in range(divisions):
             l.append(i * percentage)
         return self.getDataOnPoints(l)
 
@@ -450,8 +448,7 @@ class BezierGraph(QMainWindow):
 
         return BezierFunctions.getDataOnPercentage(percentage, npts)
 
-    def getDataOnPoints(self, inList=[0.0, 0.2, 0.25, 0.5, 0.6, 0.66, 0.8, 1.0]):
-        npts = self.curveAsPoints()
+    def getDataOnPoints(self, inList=(0.0, 0.2, 0.25, 0.5, 0.6, 0.66, 0.8, 1.0)):
         percentageList = []
         for i in inList:
             percentageList.append(self.getDataOnPerc(i))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#@note:
+# @note:
 #  this file will represent an interface between the ui and the actual commands
 # this is where all the selection gets logged and the right arguments get piped through 
 from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
@@ -13,18 +13,23 @@ import os
 
 cmds.selectPref(tso=True)
 
+
 def getInterfaceDir():
-	return os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.abspath(__file__))
+
 
 def showToolTip(inBool):
-	cmds.help(popupMode = inBool)
+    cmds.help(popupMode=inBool)
+
 
 def getAllJoints():
-	return cmds.ls(sl=0, type="joint")
+    return cmds.ls(sl=0, type="joint")
 
-#ensure we get ordered selection and all in long names
+
+# ensure we get ordered selection and all in long names
 def getSelection():
     return cmds.ls(os=1, l=1, fl=1)
+
 
 def doSelect(input):
     if input == '':
@@ -32,11 +37,14 @@ def doSelect(input):
         return
     cmds.select(input, r=1)
 
+
 def setSmoothAware(input):
-    cmds.softSelect(e=True, softSelectFalloff= input)
+    cmds.softSelect(e=True, softSelectFalloff=input)
+
 
 def getSmoothAware():
-    return cmds.softSelect(q=True, softSelectFalloff= True)
+    return cmds.softSelect(q=True, softSelectFalloff=True)
+
 
 # --- maya menus ---
 
@@ -80,92 +88,101 @@ def dccToolButtons():
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
 
+
 # --- tools ---
 @shared.dec_repeat
-def avgVtx(useDistance=True, weightAverageWindow = None, progressBar = None):
+def avgVtx(useDistance=True, weightAverageWindow=None, progressBar=None):
     selection = getSelection()
     result = skinCluster.AvarageVertex(selection, useDistance, weightAverageWindow, progressBar)
     return result
 
+
 @shared.dec_repeat
-def copyVtx(progressBar = None):
+def copyVtx(progressBar=None):
     selection = getSelection()
-    print selection
+    print(selection)
     result = skinCluster.Copy2MultVertex(selection, selection[-1], progressBar)
     return result
 
+
 @shared.dec_repeat
-def switchVtx(progressBar = None):
+def switchVtx(progressBar=None):
     selection = getSelection()
     result = skinCluster.switchVertexWeight(selection[0], selection[1], progressBar)
     return result
-    
+
+
 @shared.dec_repeat
-def labelJoints(doCheck = True, progressBar = None):
-    jnts = cmds.ls(type = "joint")
-    jntAmount = len( jnts )
+def labelJoints(doCheck=True, progressBar=None):
+    jnts = cmds.ls(type="joint")
+    jntAmount = len(jnts)
     if doCheck:
         _reLabel = False
-        for i in xrange(5):
-            if cmds.getAttr( jnts[ randint( 0, jntAmount -1) ] + '.type' ) == 0: 
+        for _ in range(5):
+            if cmds.getAttr(jnts[randint(0, jntAmount - 1)] + '.type') == 0:
                 _reLabel = True
         if not _reLabel:
             return True
     from SkinningTools.Maya import api
-    dialog = JointLabel(parent = api.get_maya_window())
+    dialog = JointLabel(parent=api.get_maya_window())
     dialog.exec_()
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
     return result
 
+
 @shared.dec_repeat
-def unifyShells(progressBar = None):
+def unifyShells(progressBar=None):
     selection = getSelection()
     result = skinCluster.hardSkinSelectionShells(selection, progressBar)
     return result
 
+
 @shared.dec_repeat
-def copySkin(inplace, smooth, uvSpace, progressBar = None):
+def copySkin(inplace, smooth, uvSpace, progressBar=None):
     labelJoints()
     selection = getSelection()
     result = skinCluster.transferSkinning(selection[0], selection[1:], inplace, smooth, uvSpace, progressBar)
     return result
 
+
 @shared.dec_repeat
-def neighbors(both, growing, full, progressBar = None):
+def neighbors(both, growing, full, progressBar=None):
     selection = getSelection()
-    result = skinCluster.smoothAndSmoothNeighbours(selection, both, growing, full,progressBar)
+    result = skinCluster.smoothAndSmoothNeighbours(selection, both, growing, full, progressBar)
     return result
 
 
 @shared.dec_repeat
 @shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/averageWeightPlugin.py"))
-def smooth(progressBar = None):
+def smooth(progressBar=None):
     selection = getSelection()
-    result = skinCluster.neighbourAverage(selection, progressBar= progressBar)
+    result = skinCluster.neighbourAverage(selection, progressBar=progressBar)
     return result
 
+
 @shared.dec_repeat
-def convertToJoint(inName = None, progressBar = None):
+def convertToJoint(inName=None, progressBar=None):
     if inName == True:
         from SkinningTools.Maya import api
-        dialog = JointName(parent = api.get_maya_window())
+        dialog = JointName(parent=api.get_maya_window())
         dialog.exec_()
         inName = dialog.txt.text()
-    
+
     if inName in ['', False, None]:
         inName = None
 
     selection = getSelection()
     if "." in selection[0]:
-        result = joints.convertVerticesToJoint(selection,inName, progressBar)
+        result = joints.convertVerticesToJoint(selection, inName, progressBar)
         return result
 
-    #@Todo: split selection in mesh and cluster selection
+    # @Todo: split selection in mesh and cluster selection
     result = joints.convertClusterToJoint(selection, progressBar)
     return result
 
+
 @shared.dec_repeat
-def resetPose(progressBar = None):
+def resetPose(progressBar=None):
     selection = getSelection()
     jnts = []
     sc = []
@@ -178,8 +195,9 @@ def resetPose(progressBar = None):
     result = joints.resetSkinnedJoints(jnts, sc, progressBar)
     return result
 
+
 @shared.dec_repeat
-def moveBones(swap = False, progressBar = None):
+def moveBones(swap=False, progressBar=None):
     selection = getSelection()
     jnts = []
     mesh = ''
@@ -190,15 +208,15 @@ def moveBones(swap = False, progressBar = None):
         mesh = obj
 
     if swap:
-
         result = joints.BoneSwitch(jnts[0], jnts[1], mesh, progressBar)
         return result
 
     result = joints.BoneMove(jnts[0], jnts[1], mesh, progressBar)
     return result
 
+
 @shared.dec_repeat
-def showInfVerts(progressBar = None):
+def showInfVerts(progressBar=None):
     selection = getSelection()
     jnts = []
     mesh = ''
@@ -210,6 +228,7 @@ def showInfVerts(progressBar = None):
 
     result = joints.ShowInfluencedVerts(mesh, jnts, progressBar)
     return result
+
 
 @shared.dec_repeat
 def removeJoint(useParent=True, delete=True, fast=False, progressBar=None):
@@ -225,8 +244,9 @@ def removeJoint(useParent=True, delete=True, fast=False, progressBar=None):
     result = joints.removeJoints(mesh, jnts, useParent, delete, fast, progressBar)
     return result
 
+
 @shared.dec_repeat
-def addNewJoint( progressBar=None):
+def addNewJoint(progressBar=None):
     selection = getSelection()
     jnts = []
     mesh = ''
@@ -239,29 +259,33 @@ def addNewJoint( progressBar=None):
     result = joints.addCleanJoint(jnts, mesh, progressBar)
     return result
 
+
 @shared.dec_repeat
-def unifySkeletons(query = False, progressBar = None):
+def unifySkeletons(query=False, progressBar=None):
     selection = getSelection()
     result = joints.comparejointInfluences(selection, query, progressBar)
     if query:
         cmds.select(result, r=1)
     return result
 
+
 @shared.dec_repeat
-def selectJoints(progressBar = None):
+def selectJoints(progressBar=None):
     selection = getSelection()
     result = joints.getInfluencingJoints(selection, progressBar)
     cmds.select(result, r=1)
     return result
 
+
 @shared.dec_repeat
-def seperateSkinned(progressBar = None):
+def seperateSkinned(progressBar=None):
     selection = getSelection()
     result = skinCluster.extractSkinnedShells(selection, progressBar)
     return result
 
+
 @shared.dec_repeat
-def keepOnlyJoints(invert = False, progressBar = None):
+def keepOnlyJoints(invert=False, progressBar=None):
     selection = getSelection()
     jnts = []
     for obj in selection:
@@ -272,28 +296,32 @@ def keepOnlyJoints(invert = False, progressBar = None):
     result = skinCluster.keepOnlySelectedInfluences(selection, jnts, invert, progressBar)
     return result
 
+
 @shared.dec_repeat
-def getMeshFromJoints(progressBar = None):
+def getMeshFromJoints(progressBar=None):
     selection = getSelection()
     result = joints.getMeshesInfluencedByJoint(selection, progressBar)
     cmds.select(result, r=1)
     return result
 
+
 @shared.dec_repeat
-def setMaxInfl( amountInfluences = 8, progressBar = None):
+def setMaxInfl(amountInfluences=8, progressBar=None):
     selection = getSelection()
     result = skinCluster.setMaxJointInfluences(selection[0], amountInfluences, progressBar)
     return result
 
+
 @shared.dec_repeat
-def getMaxInfl( amountInfluences = 8, progressBar = None ):
+def getMaxInfl(amountInfluences=8, progressBar=None):
     selection = getSelection()
     result = skinCluster.getVertOverMaxInfluence(selection[0], amountInfluences, progressBar)
     cmds.select(result[0], r=1)
     return result
 
+
 @shared.dec_repeat
-def freezeJoint( progressBar = None ):
+def freezeJoint(progressBar=None):
     selection = getSelection()
     result = joints.freezeSkinnedJoints(selection, progressBar=progressBar)
     return result
@@ -308,32 +336,33 @@ def paintSmoothBrush():
 
     if not cmds.artUserPaintCtx(_ctx, query=True, exists=True):
         cmds.artUserPaintCtx(_ctx)
-            
-    cmds.artUserPaintCtx( _ctx, edit=True, ic=_brush_init, 
-                          svc=_brush_update, whichTool="userPaint", fullpaths=True,
-                          outwhilepaint=True, brushfeedback=False, selectedattroper="additive")
+
+    cmds.artUserPaintCtx(_ctx, edit=True, ic=_brush_init,
+                         svc=_brush_update, whichTool="userPaint", fullpaths=True,
+                         outwhilepaint=True, brushfeedback=False, selectedattroper="additive")
 
     cmds.setToolTo(_ctx)
 
+
 def getNeightbors(inComps):
     objType = cmds.objectType(inComps[0])
-    if objType == 'mesh': 
+    if objType == 'mesh':
         convertedFaces = cmds.polyListComponentConversion(inComps, tf=True)
         return shared.convertToVertexList(convertedFaces)
-    
+
     if objType == "nurbsSurface":
         cmds.select(cl=1)
-        cmds.nurbsSelect(inComps,  gs=1 )
+        cmds.nurbsSelect(inComps, gs=1)
         return cmds.ls(sl=1, fl=1)
-    
+
     if objType == "lattice":
         return shared.growLatticePoints(inComps)
-    
-    cmds.error( "current type --%s-- not valid for this commmand, only surface or polygon can be used!"%objType )
+
+    cmds.error("current type --%s-- not valid for this commmand, only surface or polygon can be used!" % objType)
 
 
 class vertexWeight(object):
-    def __init__(self, inProgressBar = None):
+    def __init__(self, inProgressBar=None):
         self.vertexWeightInfo = None
         self.boneInfo = None
         self.__progressBar = inProgressBar
@@ -346,13 +375,13 @@ class vertexWeight(object):
         vtxs = shared.convertToVertexList(selection)
         sc = shared.skincluster(vtxs[0].split('.')[0])
         index = int(vtxs[0][vtxs[0].index("[") + 1: -1])
-        self.boneInfo = cmds.listConnections("%s.matrix"%sc, source=True)
+        self.boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
 
         averageList = []
         for vtx in vtxs:
-            averageList.append( cmds.skinPercent ( sc, vtx, q=1 ,v =1 ) )
+            averageList.append(cmds.skinPercent(sc, vtx, q=1, v=1))
 
-        self.vertexWeightInfo = [sum(x)/vertAmount for x in zip(*averageList)]
+        self.vertexWeightInfo = [sum(x) / len(vtxs) for x in zip(*averageList)]
         return index
 
     @shared.dec_undo
@@ -364,7 +393,7 @@ class vertexWeight(object):
         vtxs = shared.convertToVertexList(selection)
         mesh = vtxs[0].split('.')[0]
         sc = shared.skincluster(mesh)
-        boneInfo = cmds.listConnections("%s.matrix"%sc, source=True)
+        boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
 
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)
@@ -372,12 +401,13 @@ class vertexWeight(object):
         transformValueList = []
         for i, jnt in enumerate(self.boneInfo):
             transformValueList.append([jnt, self.vertexWeightInfo[i]])
-        
-        cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize = 1, zeroRemainingInfluences = True )
+
+        cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)
+
 
 class skinWeight(object):
-	# @TODO: check to make sure when remapped if skinweights neew remap as well!
-    def __init__(self, inProgressBar = None):
+    # @TODO: check to make sure when remapped if skinweights neew remap as well!
+    def __init__(self, inProgressBar=None):
         self.weightInfo = None
         self.boneInfo = None
         self.__progressBar = inProgressBar
@@ -389,10 +419,10 @@ class skinWeight(object):
 
         mesh = selection[0]
         if "." in mesh:
-        	mesh = mesh.split('.')[0]
+            mesh = mesh.split('.')[0]
 
         sc = shared.skincluster(mesh)
-        self.boneInfo = cmds.listConnections("%s.matrix"%sc, source=True)
+        self.boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
         self.weightInfo = shared.getWeights(mesh)
         return mesh
 
@@ -401,23 +431,23 @@ class skinWeight(object):
         return (not list(toCheck) == self.boneInfo)
 
     def calcRemap(self, remapDict):
-    	joints = []
-    	for jnt in self.boneInfo:
-    		joints.append(remapDict[jnt])
-    	self.boneInfo = joints
-        	
-    def  setSkinWeigths(self):
-    	selection = getSelection()
+        joints = []
+        for jnt in self.boneInfo:
+            joints.append(remapDict[jnt])
+        self.boneInfo = joints
+
+    def setSkinWeigths(self):
+        selection = getSelection()
         if not selection:
             cmds.error("nothing selected")
 
         mesh = selection[0]
         if "." in mesh:
-        	mesh = mesh.split('.')[0]
+            mesh = mesh.split('.')[0]
 
         sc = shared.skincluster(mesh)
-        
-        boneInfo = cmds.listConnections("%s.matrix"%sc, source=True)
+
+        boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
 
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)
@@ -434,87 +464,81 @@ class NeighborSelection(object):
     def getBorderIndex(self):
         return self.__bdrIndex
 
-    def storeSel(self, *args):
+    def storeSel(self, *_):
         self.__bdrSelBase = shared.convertToVertexList(getSelection())
         self.__bdrSel = None
         self.__bdrIndex = 0
 
-    def shrink(self, *args):
+    def shrink(self, *_):
         self.__bdrIndex -= 1
         self.__borderSel()
 
-    def grow(self, *args):
+    def grow(self, *_):
         self.__bdrIndex += 1
         self.__borderSel()
-            
-    def __borderSel(self, *args):
-        for i in xrange(self.__bdrIndex):
+
+    def __borderSel(self, *_):
+        for _ in range(self.__bdrIndex):
             toConvert = self.__bdrSel
             if i == 0:
                 toConvert = self.__bdrSelBase
             self.__bdrSel = getNeightbors(toConvert)
-            print i, self.__bdrSel
-            
+            print(i, self.__bdrSel)
+
         borderSelect = list(set(self.__bdrSel) ^ set(self.__bdrSelBase))
-        print borderSelect
+        print(borderSelect)
         cmds.select(borderSelect, r=1)
 
 
 # ------------------ maya viewport function -------------------------
 
-def objectUnderMouse(margin = 4, selectionType = "joint"):
+def objectUnderMouse(margin=4, selectionType="joint"):
     def selectFromScreenApi(x, y, x_rect=None, y_rect=None):
         # find object under mouse, (silently select the object using api and clear selection)
         # using old maya api as selectFromScreen does not exist in new version
         sel = OldOpenMaya.MSelectionList()
         OldOpenMaya.MGlobal.getActiveSelectionList(sel)
-            
-        args = [x, y]
-        if x_rect!=None and y_rect!=None:
+
+        if None not in (x_rect, y_rect):
             OldOpenMaya.MGlobal.selectFromScreen(x, y, x_rect, y_rect, OldOpenMaya.MGlobal.kReplaceList)
         else:
             OldOpenMaya.MGlobal.selectFromScreen(x, y, OldOpenMaya.MGlobal.kReplaceList)
         objects = OldOpenMaya.MSelectionList()
         OldOpenMaya.MGlobal.getActiveSelectionList(objects)
-            
+
         OldOpenMaya.MGlobal.setActiveSelectionList(sel, OldOpenMaya.MGlobal.kReplaceList)
-            
+
         fromScreen = []
         objects.getSelectionStrings(fromScreen)
         return fromScreen
 
     def getSelectionModeIcons():
         # fix if anything other then object selection is used
+        selectionMode = None
         if cmds.selectMode(q=1, object=1):
-            selectmode = "object"
+            selectionMode = "object"
         elif cmds.selectMode(q=1, component=1):
-            selectmode = "component"
+            selectionMode = "component"
         elif cmds.selectMode(q=1, hierarchical=1):
-            selectmode = "hierarchical"
-        return selectmode
-        
+            selectionMode = "hierarchical"
+        return selectionMode
+
     active_view = OldOpenMayaUI.M3dView.active3dView()
     pos = QCursor.pos()
     widget = QApplication.widgetAt(pos)
-        
-    try:
-        relpos = widget.mapFromGlobal(pos)
-    except:
-        return False
-    
-    if selectionType == "joint":
-        maskOn = cmds.selectType( q=True, joint=True )
-        sm = getSelectionModeIcons()   
-        cmds.selectMode(object=1) 
-        cmds.selectType( joint=True )
-    foundObjects = selectFromScreenApi( relpos.x()-margin, 
-                                        active_view.portHeight() - relpos.y()-margin, 
-                                        relpos.x()+margin, 
-                                        active_view.portHeight() - relpos.y()+margin )
-    if selectionType == "joint":
-        cmds.selectType( joint=maskOn )
-        eval("cmds.selectMode(%s=1)"%sm)
 
+    relPos = widget.mapFromGlobal(pos)
+
+    foundObjects = selectFromScreenApi(relPos.x() - margin,
+                                       active_view.portHeight() - relPos.y() - margin,
+                                       relPos.x() + margin,
+                                       active_view.portHeight() - relPos.y() + margin)
+    if selectionType == "joint":
+        maskOn = cmds.selectType(q=True, joint=True)
+        sm = getSelectionModeIcons()
+        cmds.selectMode(object=True)
+        cmds.selectType(joint=maskOn)
+        cmds.selectMode(**{sm: 1})
 
     foundBone = False
     boneName = ''

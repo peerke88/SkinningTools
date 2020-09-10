@@ -146,7 +146,7 @@ class SkinWeightsView(QWidget):
             c += 1
 
         # draw row labels
-        for r in xrange(self._view.headerData[1], self._view.model().rowCount()):
+        for r in range(self._view.headerData[1], self._view.model().rowCount()):
             area = QRect(SkinWeightsViewport.PADDING,
                          r * SkinWeightsViewport.CELL_HEIGHT + margins[1],
                          SkinWeightsViewport.CELL_WIDTH - SkinWeightsViewport.PADDING,

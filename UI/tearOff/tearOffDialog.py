@@ -43,7 +43,7 @@ class TearOffDialog(QDialog):
 
     def closeEvent(self, event):
         mainWindow = self.__tabWidget.window()
-        maintabNames = [self.__tabWidget.tabText(i) for i in xrange(self.__tabWidget.count())]
+        maintabNames = [self.__tabWidget.tabText(i) for i in range(self.__tabWidget.count())]
         if self.__tabName not in maintabNames:
             self.__tabWidget.addView(self.__tabName, self.__index, self.__listView)
         self.closed.emit(self)

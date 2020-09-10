@@ -38,9 +38,9 @@ class VertexInfluenceEditor(QGroupBox):
         self.sender().setStyleSheet('')
         if set(self.sender().displayText()).difference(set(".0123456789")):
             self.sender().setStyleSheet('background-color: #f00;')
-        
-    def __init__(self, skinCluster, vtxLName, skinBones, weights, parent = None):
-        super(VertexInfluenceEditor, self).__init__( parent = None)
+
+    def __init__(self, skinCluster, vtxLName, skinBones, weights, parent=None):
+        super(VertexInfluenceEditor, self).__init__(parent=None)
         self.setMinimumHeight(0)
 
         self.setCheckable(True)
@@ -134,7 +134,7 @@ class VertexInfluenceEditor(QGroupBox):
         offset = newValue
 
         totalLength = 0.0
-        for i in xrange(numSliders):
+        for i in range(numSliders):
             if i == setId:
                 continue
             slider, __ = self.__sliders[i]
@@ -146,7 +146,7 @@ class VertexInfluenceEditor(QGroupBox):
             newValue = offset
 
         weights = [0.0] * numSliders
-        for i in xrange(numSliders):
+        for i in range(numSliders):
             if i == setId:
                 continue
             slider, __ = self.__sliders[i]
@@ -161,7 +161,7 @@ class VertexInfluenceEditor(QGroupBox):
             scale = (1.0 - offset) / (numSliders - 1)
         else:
             scale = (1.0 - offset) / totalValue
-        for i in xrange(numSliders):
+        for i in range(numSliders):
             if i == setId:
                 continue
             slider, __ = self.__sliders[i]
@@ -181,7 +181,7 @@ class VertexInfluenceEditor(QGroupBox):
 
         # apply to skincluster
         stack = []
-        for i in xrange(numSliders):
+        for i in range(numSliders):
             stack.append((self.__influences[i], weights[i]))
 
         api.skinPercent(*self.__target, normalize=True, transformValue=stack)

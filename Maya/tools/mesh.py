@@ -6,12 +6,13 @@ from SkinningTools.Maya.tools import shared, mathUtils
 from SkinningTools.UI.fallofCurveUI import BezierFunctions
 from collections import OrderedDict
 
+
 def getShellFaces(poly):
     shells = []
     faces = set()
     total = cmds.polyEvaluate(s=True)
 
-    for f in xrange(cmds.polyEvaluate(poly, f=True)):
+    for f in range(cmds.polyEvaluate(poly, f=True)):
 
         if len(shells) >= total:
             break
@@ -34,7 +35,7 @@ def shortestPathVertex(start, end):
         return (pos1 - pos2).length()
 
     mesh = start.split('.')[0]
-    
+
     firstExtendedEdges = cmds.polyListComponentConversion(start, te=True)
     firstExtended = cmds.filterExpand(firstExtendedEdges, sm=32, fp=1)
     secondExtendedEdges = cmds.polyListComponentConversion(end, te=True)
@@ -90,11 +91,12 @@ def shortestPathVertex(start, end):
     inOrder = shared.convertToCompList(inOrder, mesh)
     return [start] + inOrder + [end]
 
+
 def shortestPathNurbsSurface(start, end, diagonal=False):
     surface = start.split('.')[0]
     allCvs = cmds.filterExpand("%s.cv[*][*]" % surface, sm=28, fp=1)
     graph = shared.Graph()
-    
+
     recomputeDict = {}
     for node in allCvs:
         base = (node)
@@ -128,11 +130,12 @@ def shortestPathNurbsSurface(start, end, diagonal=False):
         inOrder.append(recomputeDict[sh])
     return inOrder
 
+
 def shortestPathNurbsCurve(start, end):
     startIndex = int(start[start.index("[") + 1: -1])
     endIndex = int(end[end.index("[") + 1: -1])
     numbers = [startIndex, endIndex]
-    rangeList = xrange(min(numbers), max(numbers) + 1)
+    rangeList = range(min(numbers), max(numbers) + 1)
 
     inOrder = []
     for i, num in enumerate(rangeList):
@@ -141,6 +144,7 @@ def shortestPathNurbsCurve(start, end):
     if numbers[0] == endindex:
         inOrder.reverse()
     return inOrder
+
 
 def shortestPathLattice(start, end):
     allCvs = cmds.filterExpand("%s.pt[*]" % surface, sm=46, fp=1)
@@ -167,6 +171,7 @@ def shortestPathLattice(start, end):
         inOrder.append(recomputeDict[sh])
     return inOrder
 
+
 def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=None):
     start = selection[0]
     end = selection[-1]
@@ -181,23 +186,23 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
         inOrder = shortestPathLattice(start, end)
     else:
         inOrder = shortestPathNurbsCurve(start, end)
-    
+
     lengths = []
     for index, vertex in enumerate(inOrder):
         if index == 0:
             continue
         if useDistance:
-            lengths.append(mathUtils.measureLength(inOrder[index-1], vertex))
+            lengths.append(mathUtils.measureLength(inOrder[index - 1], vertex))
             continue
         lengths.append(1)
 
     fullLength = sum(lengths)
-    percentage = 1.0/ len(lengths)
+    percentage = 1.0 / len(lengths)
     currentLength = 0.0
     _vertMap = OrderedDict()
     for index, vertex in enumerate(inOrder):
         currentPercentage = index * percentage
-        currentLength = sum(lengths[:index+1])
+        currentLength = sum(lengths[:index + 1])
         if weightWindow is None:
             currentPercentage = (currentLength / fullLength)
         elif type(weightWindow) in [list, tuple]:
@@ -205,18 +210,18 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
         else:
             currentPercentage = weightWindow.getDataOnPerc(currentPercentage)
         _vertMap[vertex] = currentPercentage
-    
+
     return _vertMap
 
 
 def edgesToSmooth(inEdges):
     mesh = inEdges[0].split('.')[0]
     convertToVerts = shared.convertToIndexList(shared.convertToVertexList(inEdges))
-    
+
     selectionLists = shared.getConnectedVerts(mesh, convertToVerts)
     list1 = shared.convertToCompList(selectionLists[0], mesh)
     list2 = shared.convertToCompList(selectionLists[1], mesh)
-    
+
     baseList = []
     edgeLengths = []
     combinations = list(itertools.product(list1, list2))
@@ -226,11 +231,11 @@ def edgesToSmooth(inEdges):
             continue
         baseList.append([vert, vtx])
         edgeLengths.append(loopSize)
-    print edgeLengths
+    print(edgeLengths)
     minSize = min(edgeLengths)
     maxSize = max(edgeLengths)
 
-    _testSize = (minSize*1.5) # <- might need to change this to get accurate reading of edgelengths in list
+    _testSize = (minSize * 1.5)  # <- might need to change this to get accurate reading of edgelengths in list
     if maxSize > _testSize:
         fixed = []
         for i, value in enumerate(edgeLengths):
@@ -239,6 +244,7 @@ def edgesToSmooth(inEdges):
             fixed.append(baseList[i])
         return fixed
     return baseList
+
 
 @shared.dec_undo
 def polySkeleton(radius=5):
@@ -283,13 +289,13 @@ def polySkeleton(radius=5):
 def softSelection():
     _sel = cmds.ls(sl=1) or None
     if _sel is None or not '.' in _sel[0]:
-        print ("no components selected to get information from, current selection: %s"%_sel)
-        return [],[]
+        print("no components selected to get information from, current selection: %s" % _sel)
+        return [], []
 
     richSelection = OpenMaya.MGlobal.getRichSelection()
     selection = richSelection.getSelection()
-    
-    iter = OpenMaya.MItSelectionList( selection )
+
+    iter = OpenMaya.MItSelectionList(selection)
 
     elements, weights = [], []
     while not iter.isDone():
@@ -299,11 +305,11 @@ def softSelection():
         fnComp = OpenMaya.MFnSingleIndexedComponent(component)
         selectedIndex = fnComp.getElements()
 
-        getWeight = lambda i: fnComp.weight( i ).influence if fnComp.hasWeights else 1.0
-        
-        for i in range( fnComp.elementCount ):
-            elements.append( '%s.vtx[%i]' % ( node, fnComp.element( i ) ) )
-            weights.append( getWeight( i ) ) 
+        getWeight = lambda i: fnComp.weight(i).influence if fnComp.hasWeights else 1.0
+
+        for i in range(fnComp.elementCount):
+            elements.append('%s.vtx[%i]' % (node, fnComp.element(i)))
+            weights.append(getWeight(i))
         iter.next()
 
     return elements, weights

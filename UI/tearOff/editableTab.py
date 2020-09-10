@@ -24,7 +24,7 @@ class TabWidget(QTabWidget):
         tabBar.tearOff.connect(self.tearOff.emit)
 
     def addGraphicsTab(self, text="NewTAB", changeCurrent=True):
-        names = [self.tabText(i) for i in xrange(self.count())]
+        names = [self.tabText(i) for i in range(self.count())]
         text = getNumericName(text, names)
         tab = QWidget()
         tab.prefix = ''
@@ -64,7 +64,7 @@ class TabWidget(QTabWidget):
         return None
 
     def clear(self):
-        allTabs = [self.widget(i) for i in xrange(self.count())]
+        allTabs = [self.widget(i) for i in range(self.count())]
         self.blockSignals(True)
         for tab in allTabs:
             tab.deleteLater()

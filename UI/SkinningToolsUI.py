@@ -19,8 +19,9 @@ from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
 __VERSION__ = "5.0.20200820"
 
+
 class SkinningTools(QMainWindow):
-    def __init__(self, newPlacement = False, parent=None):
+    def __init__(self, newPlacement=False, parent=None):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
 
@@ -55,7 +56,7 @@ class SkinningTools(QMainWindow):
         api.dccInstallEventFilter()
 
         interface.doSelect(__sel)
-        
+
     def __uiElements(self):
         self.settings = QSettings("uiSkinSave", "SkinningTools")
         self.progressBar = MessageProgressBar()
@@ -151,7 +152,7 @@ class SkinningTools(QMainWindow):
 
         v.addWidget(widget)
         tab.view.frame.setLayout(v)
-        
+
     def __componentEditSetup(self):
         self.tabs.addGraphicsTab("Component Editor")
 
@@ -182,7 +183,7 @@ class SkinningTools(QMainWindow):
     # -------------------- tool tips -------------------------------------
 
     def recurseMouseTracking(self, parent, flag):
-        if hasattr(parent, "mouseMoveEvent"):        
+        if hasattr(parent, "mouseMoveEvent"):
             parent.setMouseTracking(flag)
             parent.__mouseMoveEvent = parent.mouseMoveEvent
             parent.mouseMoveEvent = partial(self.childMouseMoveEvent, parent)
@@ -198,7 +199,7 @@ class SkinningTools(QMainWindow):
         else:
             point = QPoint(event.globalPos().x(), event.globalPos().y())
         curWidget = widgetsAt(point)
-        
+
         def _removeTT():
             if self.toolTipWindow is not None:
                 self.toolTipWindow.deleteLater()
@@ -211,34 +212,34 @@ class SkinningTools(QMainWindow):
             if self.toolTipWindow != None:
                 _removeTT()
 
-            if not isinstance(curWidget, QPushButton): # <- add multiple checks if more implemented then just buttons
+            if not isinstance(curWidget, QPushButton):  # <- add multiple checks if more implemented then just buttons
                 _removeTT()
                 self.curentWidgetAtMouse = None
                 return
 
             self.curentWidgetAtMouse = curWidget
-            self._timer.start(self.__timing) 
+            self._timer.start(self.__timing)
 
     def childMouseMoveEvent(self, child, event):
         self._mouseTracking(event)
         return child.__mouseMoveEvent(event)
-        
+
     def mouseMoveEvent(self, event):
         self._mouseTracking(event)
-        super( SkinningTools, self ).mouseMoveEvent( event )
+        super(SkinningTools, self).mouseMoveEvent(event)
 
     def _displayToolTip(self):
         self._timer.stop()
-        if self.curentWidgetAtMouse == None or self.tooltipAction.isChecked()== False:
+        if self.curentWidgetAtMouse == None or self.tooltipAction.isChecked() == False:
             return
-        tip =  self.curentWidgetAtMouse.whatsThis()
+        tip = self.curentWidgetAtMouse.whatsThis()
 
         size = 250
         if QDesktopWidget().screenGeometry().height() > 1080:
-            size *=1.5
-        rct = QRect(QCursor.pos().x()+20, QCursor.pos().y()-(40+size), size, size)
-        if (self.window().pos().y() + (self.height()/2)) > QCursor.pos().y():
-            rct = QRect(QCursor.pos().x()+20, QCursor.pos().y()+20, size, size)
+            size *= 1.5
+        rct = QRect(QCursor.pos().x() + 20, QCursor.pos().y() - (40 + size), size, size)
+        if (self.window().pos().y() + (self.height() / 2)) > QCursor.pos().y():
+            rct = QRect(QCursor.pos().x() + 20, QCursor.pos().y() + 20, size, size)
 
         self.toolTipWindow = AdvancedToolTip(rct)
         # @TODO: change this to only display text if gif does not exist
@@ -261,18 +262,18 @@ class SkinningTools(QMainWindow):
             return
         self.restoreGeometry(getGeo)
         tools = {"tools": self.mayaToolsTab,
-                "tabs": self.tabs}
-        for key, comp in tools.iteritems():
+                 "tabs": self.tabs}
+        for key, comp in tools.items():
             index = self.settings.value(key)
             if index is None:
                 index = 0
-            comp.setCurrentIndex(index)            
+            comp.setCurrentIndex(index)
 
     def hideEvent(self, event):
         self.saveUIState()
 
 
-def showUI(newPlacement = False):
+def showUI(newPlacement=False):
     window_name = 'SkinningTools: %s' % __VERSION__
     mainWindow = api.get_maya_window()
 

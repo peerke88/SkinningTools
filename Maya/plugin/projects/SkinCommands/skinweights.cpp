@@ -42,7 +42,7 @@ singleIdComp.addElements( indices )
 
 infDags = skinFn.influenceObjects()
 infIndexes = OpenMaya.MIntArray( len( infDags ) , 0 )
-for x in xrange( len( infDags ) ):
+for x in range( len( infDags ) ):
     infIndexes[x] = int( skinFn.indexForInfluenceObject( infDags[x] ) )
 
 weightData = skinFn.getWeights( meshPath , vertexComp, infIndexes )
