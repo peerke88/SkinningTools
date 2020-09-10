@@ -13,6 +13,7 @@ from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
 from maya.api import OpenMaya
 
+
 def get_maya_window():
     for widget in QApplication.allWidgets():
         try:
@@ -21,6 +22,7 @@ def get_maya_window():
         except:
             pass
     return None
+
 
 def selectedObjectVertexList(includeObjects=False):
     step = cmds.ls(sl=True, l=True)
@@ -65,7 +67,7 @@ skinClusterForObjectHeadless = functools.partial(shared.skinCluster, silent=True
 
 
 def skinClusterInfluences(skinCluster):
-    return cmds.listConnections("%s.matrix"%skinCluster, source=True)
+    return cmds.listConnections("%s.matrix" % skinCluster, source=True)
 
 
 def getSkinWeights(geometry, skinCluster):
@@ -77,6 +79,7 @@ def setSkinWeights(geometry, skinCluster, weights, influenceIndices=None):
         cmds.skinPercent(skinCluster, geometry, tv=zip(influenceIndices, weights))
     else:
         cmds.SkinWeights(geometry, skinCluster, nwt=weights)
+
 
 def getSingleVertexWeight(skinClusterHandle, vertexHandle, influenceHandle):
     # given a skin,  a vertex and a joint, return the weight
@@ -90,6 +93,7 @@ def getSingleVertexWeights(skinClusterHandle, vertexHandle):
     # skin cluster can be obtained with skinClusterForObject
     # vertex can be obtained with selectedObjectVertexList(True)
     return cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, v=True)
+
 
 def selectVertices(meshVertexPairs):
     cmds.select([v for m, v in meshVertexPairs[:20]])
@@ -121,6 +125,7 @@ class _EventFilter(QObject):
     def singleton():
         if _EventFilter._singleton is None:
             _EventFilter._singleton = _EventFilter()
+        return _EventFilter._singleton
 
     def eventFilter(self, obj, event):
         from UI.qt_util import Qt, QEvent
@@ -129,6 +134,7 @@ class _EventFilter(QObject):
             return weightPaintUtils.pickWalkSkinClusterInfluenceList(_arrows[event.key()])
         return False
 
+
 def dccInstallEventFilter():
     eventFilterTargets = _cleanEventFilter()
     for eventFilterTarget in eventFilterTargets:
@@ -136,10 +142,11 @@ def dccInstallEventFilter():
         eventFilterTarget.installEventFilter(MarkingMenuFilter.singleton())
     return True
 
+
 def _cleanEventFilter():
     # joint MarkingMenu filter
     widgets = _eventFilterTargets()
-    for widget in widgets: 
+    for widget in widgets:
         try:
             widget.removeEventFilter(_EventFilter.singleton())
             widget.removeEventFilter(MarkingMenuFilter.singleton())
@@ -147,17 +154,19 @@ def _cleanEventFilter():
             pass
     return widgets
 
-def textProgressBar(progress, message = ''):
-    barLength = 10 
+
+def textProgressBar(progress, message=''):
+    barLength = 10
     status = ""
     if progress <= 0:
         progress = 0
-    progress = progress/100.0
+    progress = progress / 100.0
     if progress >= 1:
         progress = 1
-    block = int(round(barLength*progress))
-    text = "[%s] %.1f%%, %s"%("#"*block + "-"*(barLength-block), progress*100, message)
+    block = int(round(barLength * progress))
+    text = "[%s] %.1f%%, %s" % ("#" * block + "-" * (barLength - block), progress * 100, message)
     OpenMaya.MGlobal.displayInfo(text)
 
+
 def displayToolTips():
-    cmds.help( popupMode =True)
+    cmds.help(popupMode=True)
