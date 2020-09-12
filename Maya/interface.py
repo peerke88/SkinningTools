@@ -520,6 +520,8 @@ def objectUnderMouse(margin=4, selectionType="joint"):
             selectionMode = "hierarchical"
         return selectionMode
 
+    maskOn = cmds.selectType(q=True, joint=True)
+    cmds.selectType(joint=True)
     active_view = OldOpenMayaUI.M3dView.active3dView()
     pos = QCursor.pos()
     widget = QApplication.widgetAt(pos)
@@ -531,7 +533,7 @@ def objectUnderMouse(margin=4, selectionType="joint"):
                                        relPos.x() + margin,
                                        active_view.portHeight() - relPos.y() + margin)
     if selectionType == "joint":
-        maskOn = cmds.selectType(q=True, joint=True)
+        
         sm = getSelectionModeIcons()
         cmds.selectMode(object=True)
         cmds.selectType(joint=maskOn)

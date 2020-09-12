@@ -67,11 +67,12 @@ skinClusterForObjectHeadless = functools.partial(shared.skinCluster, silent=True
 
 
 def skinClusterInfluences(skinCluster):
-    return cmds.listConnections("%s.matrix" % skinCluster, source=True)
+    return cmds.ls(cmds.listConnections("%s.matrix" % skinCluster, source=True), l=1)
 
 
-def getSkinWeights(geometry, skinCluster):
-    return cmds.SkinWeights(geometry, skinCluster, q=True)
+def getSkinWeights(geometry):
+    return shared.getWeights(geometry)
+    
 
 
 def setSkinWeights(geometry, skinCluster, weights, influenceIndices=None):

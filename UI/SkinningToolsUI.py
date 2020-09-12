@@ -46,6 +46,7 @@ class SkinningTools(QMainWindow):
         self.__componentEditSetup()
         self.__weightManagerSetup()
 
+        self.__connections()
         mainLayout.addWidget(self.tabs)
         mainLayout.addWidget(self.progressBar)
 
@@ -69,6 +70,9 @@ class SkinningTools(QMainWindow):
         self.curentWidgetAtMouse = None
         self.toolTipWindow = None
         self.__timing = 700
+
+    def __connections(self):
+        self.tabs.currentChanged.connect(self._tabChanged)
 
     # ------------------------- ui Setups ---------------------------------
     def __menuSetup(self):
@@ -101,6 +105,7 @@ class SkinningTools(QMainWindow):
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.tearOff.connect(self.tearOff)
         self.tabs.tabBar().setWest()
+        
 
     def __mayaToolsSetup(self):
         tab = self.tabs.addGraphicsTab("Maya Tools")
@@ -148,18 +153,24 @@ class SkinningTools(QMainWindow):
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")
         v = nullVBoxLayout()
-        widget = SkinSliderSetup(self)
+        self.__skinSlider = SkinSliderSetup(self)
 
-        v.addWidget(widget)
+        v.addWidget(self.__skinSlider)
         tab.view.frame.setLayout(v)
 
     def __componentEditSetup(self):
-        self.tabs.addGraphicsTab("Component Editor")
+        tab = self.tabs.addGraphicsTab("Component Editor")
+        
 
     def __weightManagerSetup(self):
         self.tabs.addGraphicsTab("Weight Manager")
 
     # ------------------------- utilities ---------------------------------
+
+    def _tabChanged(self, index):
+        if index == 1:
+            self.__skinSlider.inflEdit.update() 
+          
 
     def _tabName(self, index=-1, mainTool=None):
         if mainTool is None:

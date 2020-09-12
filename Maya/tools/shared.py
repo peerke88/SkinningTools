@@ -73,7 +73,6 @@ def dec_repeat(func):
 
     return _repeat_func
 
-
 def dec_loadPlugin(plugin):
     def _loadPlugin_func(func):
         @wraps(func)
@@ -90,6 +89,16 @@ def dec_loadPlugin(plugin):
 
     return _loadPlugin_func
 
+# @note: add this for debugging?
+def dec_timer(func):
+    @wraps(func)
+    def _timer_func(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print 'Execution time :', func.__name__, end - start
+        return result
+    return _timer_func
 
 class Graph(object):
     ''' dijkstra closest path technique (for nurbs and lattice)

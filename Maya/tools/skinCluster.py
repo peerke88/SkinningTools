@@ -673,6 +673,7 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
 # operation = { 0:removes the values, 1:sets the values, 2: adds the values}
 @shared.dec_undo
 def doSkinPercent(bone, value, operation=False):
+    _sel = cmds.ls(sl=1, fl=1)
     if cmds.softSelect(q=True, softSelectEnabled=1):
         vertices, weights = mesh.softSelection()
     else:
@@ -680,7 +681,6 @@ def doSkinPercent(bone, value, operation=False):
         vertices = shared.convertToVertexList(selection)
         weights = [1.0] * len(vertices)
 
-    cmds.select(vertices, r=1)
     bone = cmds.ls(bone, l=1)[0]
     if vertices == []:
         return False
@@ -701,4 +701,6 @@ def doSkinPercent(bone, value, operation=False):
             newVal = (val + (weights[index] * _mult[operation] * value))
         clampVal = max(min(newVal, 1.0), 0.0)
         cmds.skinPercent(sc, vert, tv=[bone, clampVal], normalize=True)
+    #@todo: make sure that this is displaying the correct hilite in maya
+    cmds.select(_sel, r=1)
     return True
