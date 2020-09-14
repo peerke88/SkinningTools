@@ -215,3 +215,12 @@ def similarString(inString, inList):
         matches = difflib.get_close_matches(inString, inList, n=3, cutoff=1.0 - (i * remove))
         if matches:
             return matches[0]
+
+# override the focus steal on the lineedit
+class LineEdit(QLineEdit):
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key.Key_Control or key == Qt.Key.Key_Shift:
+            return
+        else:
+            super(self.__class__, self).keyPressEvent(event)

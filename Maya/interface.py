@@ -45,6 +45,10 @@ def setSmoothAware(input):
 def getSmoothAware():
     return cmds.softSelect(q=True, softSelectFalloff=True)
 
+def skinnedJointColors():
+    return [[161, 105,  48], [159, 161,  48], [104, 161,  48],
+                        [ 48, 161,  93], [ 48, 161, 161], [ 48, 103, 161],
+                        [111,  48, 161], [161,  48, 105]]
 
 # --- maya menus ---
 
