@@ -248,8 +248,34 @@ def convertToVertexList(inObject):
             return cmds.filterExpand(inObject, sm=46, fp=1)
         else:
             return cmds.filterExpand('%s.pt[*]' % inObject, sm=46, fp=1)
+    return []
 
-
+def getComponents(meshDag, component):
+    vtxArray = OpenMaya.MIntArray()
+    meshFn = OpenMaya.MFnMesh(meshDag)
+    if component.hasFn(OpenMaya.MFn.kMeshVertComponent):
+        compFn = OpenMaya.MFnSingleIndexedComponent(component)
+        vtxArray = compFn.getElements()
+    elif component.hasFn(OpenMaya.MFn.kMeshEdgeComponent):
+        compFn = OpenMaya.MFnSingleIndexedComponent(component)
+        edges = compFn.getElements()
+        verts = []
+        for edge in edges:
+            edgeVtx = meshFn.getEdgeVertices(edge)
+            verts.extend(edgeVtx)
+        [vtxArray.append(i) for i in list(set(verts))]
+    elif component.hasFn(OpenMaya.MFn.kMeshPolygonComponent):
+        compFn = OpenMaya.MFnSingleIndexedComponent(component)
+        faces = compFn.getElements()
+        verts = []
+        for f in faces:
+            faceVtx = meshFn.getPolygonVertices(f)
+            verts.extend(faceVtx)
+        [vtxArray.append(i) for i in list(set(verts))]
+    else:
+        [vtxArray.append(i) for i in xrange(meshFn.numVertices)]
+    return vtxArray 
+    
 def selectHierarchy(node):
     ad = cmds.listRelatives(node, ad=1, f=1) or []
     ad.append(node[0])
@@ -325,6 +351,24 @@ def getMfnSkinCluster(mDag):
         skinNode = skinCluster(mDag)
     return OpenMayaAnim.MFnSkinCluster(getDagpath(skinNode))
 
+
+def traverseHierarchy(inObject):
+    if not isinstance(inObject, list):
+        inObject = [inObject]
+    polygonMesh = []
+    
+    parentNodes = inObject
+    for node in parentNodes:
+        nodes = cmds.listRelatives(node, ad=True, c=True, typ='transform', fullPath=True, s=False) or None
+        if nodes is not None:
+            inObject.extend(nodes)
+
+    for node in inObject:
+        meshnode = cmds.listRelatives(node, s=True, pa=True, type='mesh', fullPath=True) or None
+        if meshnode:
+            polygonMesh.append(node)
+        
+    return polygonMesh
 
 # --- vertex island functions ---
 

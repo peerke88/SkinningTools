@@ -120,7 +120,9 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
 
 
 def setProgress(inValue, progressBar=None, inText=''):
-    if progressBar == None:
+    if progressBar is False:
+        return
+    if progressBar is None:
         from SkinningTools.Maya import api
         api.textProgressBar(inValue, inText)
         return

@@ -4,9 +4,9 @@ Maya stub of imports used in the UI library.
 The idea is to make this file as short as possible
 while leaving room for other packages to implement features.
 """
-import functools
+import functools,os
 
-from SkinningTools.Maya.tools import shared
+from SkinningTools.Maya.tools import shared, joints
 from SkinningTools.Maya.tools import weightPaintUtils
 from SkinningTools.UI.markingMenu import MarkingMenuFilter
 from SkinningTools.UI.qt_util import QObject, QApplication
@@ -36,7 +36,7 @@ def selectedObjectVertexList(includeObjects=False):
 
 skinPercent = cmds.skinPercent
 meshVertexList = shared.convertToVertexList
-
+addCleanJoint = joints.addCleanJoint
 
 def selectedSkinnedShapes():
     selectedShapes = set(cmds.ls(sl=True, l=True, o=True, type='shape') or [])
@@ -64,6 +64,14 @@ def disconnectCallback(handle):
 
 skinClusterForObject = shared.skinCluster
 skinClusterForObjectHeadless = functools.partial(shared.skinCluster, silent=True)
+dec_undo = shared.dec_undo
+
+def getApiDir():
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+def dec_loadPlugin(input):
+    return shared.dec_loadPlugin(os.path.join(getApiDir(), "plugin/%s"%input))
 
 
 def skinClusterInfluences(skinCluster):
@@ -118,6 +126,11 @@ def _eventFilterTargets():
 
     return mainWin, qt_active_view
 
+def convertlistToOpenMayaArray(inList, arrayType):
+    array = arrayType()
+    for elem in inList:
+        array.append(elem)
+    return array
 
 class _EventFilter(QObject):
     _singleton = None

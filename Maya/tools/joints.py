@@ -431,12 +431,11 @@ def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
     return meshes
 
 
-def getInfluencingJoints(inObject, progressBar=None):
+def getInfluencingJoints(inObject):
     if cmds.objectType(inObject) == "mesh":
         inObject = shared.skinCluster(inObject, silent=True)
     if inObject != None:
         jointInfls = cmds.ls(cmds.listConnections("%s.matrix" % inObject, source=True), l=1)
-        utils.setProgress(100, progressBar, "get influencing joints")
         return jointInfls
 
 

@@ -1,6 +1,6 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
-from SkinningTools.Maya.tools import interface
+from SkinningTools.Maya import interface
 
 class WeightsTableModel(QAbstractTableModel):
     
@@ -15,7 +15,7 @@ class WeightsTableModel(QAbstractTableModel):
     _baseColor  = [200]*3
 
     def __init__(self, data, parent=None, window = None, meshIndex=[], jointNames=[], vtxSideBar=[], jointColorList=[]):
-        super(TableModel, self).__init__(parent)
+        super(WeightsTableModel, self).__init__(parent)
         
         self.__parentWidget = window
         
@@ -31,6 +31,7 @@ class WeightsTableModel(QAbstractTableModel):
         self.lockedWeigths = set()
         self.cellToCopy = []
         self.copyVertWeight = []
+
     
     def rowCount(self, parent=None):
         return len(self._data)
@@ -91,7 +92,7 @@ class WeightsTableModel(QAbstractTableModel):
         elif role == Qt.BackgroundRole:
             if row in self.meshIndexRows:
                 color_id = self.jointColorList[col]
-                return QColor(*self.joint_color_list[color_id]) 
+                return QColor(*interface.skinnedJointColors()[color_id]) 
             if row in self.copyVertWeight and index in self.cellToCopy:
                 return QColor(*self.cell_vertex_copy_color)
             if row in self.copyVertWeight:
@@ -129,7 +130,7 @@ class WeightsTableModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             return Qt.AlignRight
                 
-    def get_data(self, index=None, row=0, col=0):
+    def getCellData(self, index=None, row=0, col=0):
         if index:
             row = index.row()
             col = index.column()
@@ -144,7 +145,6 @@ class WeightsTableModel(QAbstractTableModel):
     def setData(self, index, value, role=Qt.EditRole):
         if not isinstance(index, tuple):
             if not index.isValid() or not 0 <= index.row() < len(self._data):
-                print 'can not set data : retrun'
                 return
             row = index.row()
             col = index.column()
@@ -166,13 +166,14 @@ class WeightsTableModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
         
-        if row in self.__parentWidget.vtxDataDict.keys():
+        try:
             node = self.__parentWidget.vtxDataDict[row][6]
             influencesList = self.__parentWidget.jointIndexList[node]
             local_column = influencesList[col]
             value = self._data[row][local_column]
-        else:
+        except:
             value = None
+            
         if row in self.meshIndexRows or value is None:
             return Qt.ItemIsEnabled
         else:

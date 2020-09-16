@@ -14,16 +14,15 @@ class VertHeaderView(QHeaderView):
         super(VertHeaderView, self).__init__(Qt.Horizontal, parent)
         self._parent = parent 
         
-        if QT_VERSION != "pyside2"
+        if QT_VERSION != "pyside2":
             self.setClickable(True)
         else:
             self.setSectionsClickable(True)
         
         self.setHighlightSections(True)
-        self.sectionDoubleClicked.connect(self.doubleClickedSection)
         
     def mouseReleaseEvent(self, event):
-        self._parent.view_widget.mouse_pos = QCursor.pos()
+        self._parent.view.mouse_pos = QCursor.pos()
         if event.button() == Qt.RightButton:
             self.rightClicked.emit()
         else:

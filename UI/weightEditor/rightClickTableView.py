@@ -5,8 +5,8 @@ class RightClickTableView(QTableView):
     keyPressed = pyqtSignal(str)
     
     def __init__(self, parent = None):
-        super(RightClickTableView, self),__init__(parent)
-        self.ignore_key_input = False
+        super(RightClickTableView, self).__init__(parent)
+        self.ignoreInput = False
     
     def mouseReleaseEvent(self, event):
         self.mouse_pos = QCursor.pos()
@@ -19,6 +19,6 @@ class RightClickTableView(QTableView):
     def keyPressEvent(self, event):
         self.keyPressed.emit(event.text())
         
-        if self.ignore_key_input:
+        if self.ignoreInput:
             return
         super(RightClickTableView, self).keyPressEvent(event)

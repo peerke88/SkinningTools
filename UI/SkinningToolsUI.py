@@ -9,6 +9,7 @@ from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
 from SkinningTools.UI.advancedToolTip import AdvancedToolTip
+from SkinningTools.UI.weightEditor import weightEditor
 import tempfile, os
 from functools import partial
 
@@ -159,7 +160,13 @@ class SkinningTools(QMainWindow):
         tab.view.frame.setLayout(v)
 
     def __componentEditSetup(self):
+        interface.forceLoadPlugin("SkinEditPlugin")
         tab = self.tabs.addGraphicsTab("Component Editor")
+        v = nullVBoxLayout()
+        self.__editor = weightEditor.WeightEditorWindow(self)
+        
+        v.addWidget(self.__editor)
+        tab.view.frame.setLayout(v)
         
 
     def __weightManagerSetup(self):
@@ -168,11 +175,17 @@ class SkinningTools(QMainWindow):
     # ------------------------- utilities ---------------------------------
 
     def _tabChanged(self, index):
+        # self.__editor.clearCallback()
+        self.__editor.isInView = False
         if index == 1:
             self.__skinSlider.inflEdit.update() 
+        if index == 2:
+            self.__editor.isInView = True
+            # self.__editor.update() 
           
 
     def _tabName(self, index=-1, mainTool=None):
+
         if mainTool is None:
             raise NotImplementedError()
         if index < 0:
@@ -281,6 +294,7 @@ class SkinningTools(QMainWindow):
             comp.setCurrentIndex(index)
 
     def hideEvent(self, event):
+        self.__editor.setClose()
         self.saveUIState()
         api._cleanEventFilter()
 
