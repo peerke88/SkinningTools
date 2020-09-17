@@ -16,6 +16,8 @@ from SkinningTools.UI.weightEditor.vertHeaderView import VertHeaderView
 from SkinningTools.UI.weightEditor.popupSpinBox import PopupSpinBox
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
 
+# from SkinningTools.UI.dispatcher import ThreadDispatcher
+
 class WeightEditorWindow(QWidget):
     def __init__(self, parent = None):
         super(WeightEditorWindow, self).__init__(parent)
@@ -40,6 +42,9 @@ class WeightEditorWindow(QWidget):
 
         self.mainLay.addLayout(searchLay)
         
+        # self.dispatcher = ThreadDispatcher(self)
+        # self.dispatcher.start()
+
         self._data = []
         self.jointSearch = []
         self.selectedCells = []
@@ -193,11 +198,11 @@ class WeightEditorWindow(QWidget):
         startCol = self.cellToCopy[0].column()
         for cell in self.cellToCopy:
             row = cell.row()
-            column = cell.column() 
+            col = cell.column() 
             sub_row = row - startRow
-            sub_column = column - startCol
+            sub_column = col - startCol
             self.copyCellPos.append([sub_row, sub_column])
-            value = self.weightTable.getCellData(row=row, column=column)
+            value = self.weightTable.getCellData(row=row, col=col)
             self.copyValues.append(value)
         smallestRow = min(self.copyCellPos, key=lambda x: x[0])[0]
         biggestRot = max(self.copyCellPos, key=lambda x: x[0])[0]
@@ -216,12 +221,12 @@ class WeightEditorWindow(QWidget):
         toIgnore = self.getIgnoreList(startRow, startCol, self.rowLen, self.colLen )
         for cell in pastedCells[1:]:
             row = cell.row()
-            column = cell.column() 
-            index = [row, column]
+            col = cell.column() 
+            index = [row, col]
             if index in toIgnore:
                 continue
             cellPos.append(index)
-            toIgnore += self.getIgnoreList(row, column, self.rowLen, self.colLen )
+            toIgnore += self.getIgnoreList(row, col, self.rowLen, self.colLen )
         
 
         self.rowsToUpdate = set()
@@ -230,17 +235,17 @@ class WeightEditorWindow(QWidget):
         for [startRow, startCol] in cellPos:
             for value, pos in zip(self.copyValues,  self.copyCellPos):
                 row = startRow + pos[0]
-                column = startCol + pos[1]
-                if (row, column) in self.lockedCells:
+                col = startCol + pos[1]
+                if (row, col) in self.lockedCells:
                     continue
                 wghtList = self._data[row]
                 node = self.vtxDataDict[row][6]
                 jointIdx = self.jointIndexList[node]
-                wghtList[jointIdx[column]] = value
+                wghtList[jointIdx[col]] = value
                 
                 if row in self.cellDict.keys():
                     self.rowsToUpdate.add(row)
-                    self.cellDict[row].append(column)
+                    self.cellDict[row].append(col)
         
         self.tryNormalizeWeights()
             
@@ -351,10 +356,10 @@ class WeightEditorWindow(QWidget):
         xPos = pos.x() - width - 2
         yPos = pos.y() - height - 2
         row = self.view.rowAt(yPos)
-        column = self.view.columnAt(xPos)
-        if column == -1:
-            column = len(self.allInfJoints)
-        text = self.weightTable.getCellData(row=row, column=column)
+        col = self.view.columnAt(xPos)
+        if col == -1:
+            col = len(self.allInfJoints)
+        text = self.weightTable.getCellData(row=row, col=col)
         if text is None or shiftPressed or ctrlPressed:
             self.copyMenu()
             return
@@ -381,7 +386,7 @@ class WeightEditorWindow(QWidget):
         self.view.ignoreInput = False
         
     def getSkinWeights(self):
-        print "WORKS"
+        
         if not self.isInView:
             return
         
@@ -507,8 +512,8 @@ class WeightEditorWindow(QWidget):
             lock_influences = lock_data[1]
             for influence in lock_influences:
                 if influence in self.jointIndexDict.keys():
-                    column = self.jointIndexDict[influence]
-                    self.weightLockData.add((row, column))
+                    col = self.jointIndexDict[influence]
+                    self.weightLockData.add((row, col))
                 self.vtxlockedDAta[vtx_name].add(nodeInfIDs[influence])
         
         try:      
@@ -625,18 +630,18 @@ class WeightEditorWindow(QWidget):
 
         for cell in self.selectedCells:
             row = cell.row()
-            column = cell.column() 
+            col = cell.column() 
 
-            if (row, column) in self.lockedCells:
+            if (row, col) in self.lockedCells:
                 continue
 
             weightList = self._data[row]
             node = self.vtxDataDict[row][6]
             jointIdx = self.jointIndexList[node]
-            weightList[jointIdx[column]] = newVal
+            weightList[jointIdx[col]] = newVal
 
             self.rowsToUpdate.add(row)
-            self.cellDict[row].append(column)
+            self.cellDict[row].append(col)
         
         self.tryNormalizeWeights()
 
@@ -790,6 +795,10 @@ class WeightEditorWindow(QWidget):
         if self._doSelectCB is not None:
             api.disconnectCallback(self._doSelectCB)
             self._doSelectCB = None
+
+    # def doCommand(self ):
+    #     self.dispatcher.idle_add(self.getSkinWeights())
+    #     return
 
     def cleanupTable(self):
         del self.weightTable._data

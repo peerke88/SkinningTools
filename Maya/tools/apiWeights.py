@@ -9,9 +9,9 @@ from SkinningTools.Maya.tools import shared
 
 class ApiWeights():
     def __init__(self):
-        self.nodeTypes = {}
-        self.shapeTrs = {}
+        self.doInit()
 
+    def doInit(self):
         self.meshWeights = {}
         self.meshVerts = {}
         self.meshInfluences = {}
@@ -37,6 +37,7 @@ class ApiWeights():
         return skinFn, skinCluster
 
     def getData(self):
+        self.doInit()
         selection = interface.getSelection()
         currentNodes = []
         for node in selection:

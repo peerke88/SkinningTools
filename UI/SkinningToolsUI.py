@@ -175,14 +175,12 @@ class SkinningTools(QMainWindow):
     # ------------------------- utilities ---------------------------------
 
     def _tabChanged(self, index):
-        # self.__editor.clearCallback()
         self.__editor.isInView = False
         if index == 1:
             self.__skinSlider.inflEdit.update() 
         if index == 2:
             self.__editor.isInView = True
-            # self.__editor.update() 
-          
+            self.__editor.getSkinWeights()
 
     def _tabName(self, index=-1, mainTool=None):
 
@@ -294,9 +292,12 @@ class SkinningTools(QMainWindow):
             comp.setCurrentIndex(index)
 
     def hideEvent(self, event):
-        self.__editor.setClose()
         self.saveUIState()
+        self.__editor.setClose()
         api._cleanEventFilter()
+        del self.__editor
+        self.deleteLater()
+
 
 
 def showUI(newPlacement=False):

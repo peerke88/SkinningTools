@@ -46,9 +46,9 @@ def getSmoothAware():
     return cmds.softSelect(q=True, softSelectFalloff=True)
 
 def skinnedJointColors():
-    return [[161, 105,  48], [159, 161,  48], [104, 161,  48],
-                        [ 48, 161,  93], [ 48, 161, 161], [ 48, 103, 161],
-                        [111,  48, 161], [161,  48, 105]]
+    return [[161, 106,  48], [159, 161,  48], [104, 161,  48],
+            [ 48, 161,  93], [ 48, 161, 161], [ 48, 103, 161],
+            [111,  48, 161], [161,  48, 106]]
 
 def setJointLocked(inJoint, inValue):
     cmds.setAttr("%s.liw"%inJoint, inValue)
@@ -66,7 +66,11 @@ def forceLoadPlugin(inPlugin):
     if not inPlugin.endswith(".py"):
         inPlugin = "%s.py"%inPlugin
     pluginPath = os.path.join(getInterfaceDir(), "plugin/%s"%inPlugin)
+    loaded = cmds.pluginInfo(pluginPath, q=True, loaded=True)
+    registered = cmds.pluginInfo(pluginPath, q=True, registered=True)
 
+    if not registered or not loaded:
+        cmds.loadPlugin(pluginPath)
 
 # --- maya menus ---
 
