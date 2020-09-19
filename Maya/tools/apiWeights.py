@@ -5,8 +5,6 @@ from maya import cmds
 from SkinningTools.Maya import interface, api
 from SkinningTools.Maya.tools import shared
 
-   
-
 class ApiWeights():
     def __init__(self):
         self.doInit()
@@ -18,6 +16,8 @@ class ApiWeights():
         self.allInfJoints = list()
         self.meshSkinClusters = {}
         self.meshNodes = list()
+        self.meshPositions = {}
+        self.inflPositions = {}
 
     def selectedVertIds(self, node, show_bad=False):
         selection = interface.getSelection()
@@ -69,16 +69,27 @@ class ApiWeights():
             vtxArry = shared.getComponents(meshPath, component)
             self.meshVerts[node] = vtxArry
 
+            meshFn = OpenMaya.MFnMesh(meshPath)
+            positions = meshFn.getPoints(OpenMaya.MSpace.kWorld)
             
             singleIdComp = OpenMaya.MFnSingleIndexedComponent()
             vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent )
             singleIdComp.addElements(vtxArry)
+
+            nPos = []
+            for index in vtxArry:
+                nPos.append(positions[index])
+            self.meshPositions[node] = nPos
             
+            jPos = []
             infDags = skinFn.influenceObjects()
             infIndices = OpenMaya.MIntArray( len(infDags), 0 )
-            for x in xrange(len(infDags)):
+            for x, jntDag in enumerate(infDags):
                 infIndices[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
-            
+                jntTRS = OpenMaya.MFnTransform(jntDag)
+                jPos.append(jntTRS.translation(OpenMaya.MSpace.kWorld))
+
+            self.inflPositions[node] = jPos
             amountInfluences = len(infIndices)
 
             weights = skinFn.getWeights( meshPath , vertexComp)
