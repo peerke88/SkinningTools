@@ -5,8 +5,6 @@ from maya import cmds
 from SkinningTools.Maya import interface, api
 from SkinningTools.Maya.tools import shared
 
-   
-
 class ApiWeights():
     def __init__(self):
         self.doInit()

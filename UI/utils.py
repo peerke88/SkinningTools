@@ -47,10 +47,6 @@ def svgButton(name='', pixmap='', size=None):
     btn.setFocusPolicy(Qt.NoFocus)
     if size is not None:
         _size = QSize(size, size)
-        # if _empty:
-        #     print name, "is empty"
-        #     _size = QSize(size, 1)
-        # btn.setFixedSize(_size)
         btn.setIconSize(_size)
     return btn
 
@@ -71,32 +67,31 @@ def toolButton(pixmap='', orientation=0, size=None):
     return btn
 
 
-def find_missing_items(int_list):
-    original_set = set(int_list)
-    smallest_item = min(original_set)
-    largest_item = max(original_set)
-    full_set = set(range(smallest_item, largest_item + 1))
-    return sorted(list(full_set - original_set))
-
+def findMissingItems(inList):
+    origSet = set(inList)
+    smallest = min(origSet)
+    largest = max(origSet)
+    fullSet = set(range(smallest, largest + 1))
+    return sorted(list(fullSet - origSet))
 
 def getNumericName(text, names):
     if text in names:
         text = re.sub('\\d*$', '', text)
         names = [n for n in names if n.startswith(text)]
-        int_list = []
+        ints = []
         for name in names:
             m = re.match('^%s(\\d+)' % text, name)
             if m:
-                int_list.append(int(m.group(1)))
+                ints.append(int(m.group(1)))
             else:
-                int_list.append(0)
+                ints.append(0)
 
-        int_list.sort()
-        missing_int = find_missing_items(int_list)
-        if missing_int:
-            _id = str(missing_int[0])
+        ints.sort()
+        missingIntegers = findMissingItems(ints)
+        if missingIntegers:
+            _id = str(missingIntegers[0])
         else:
-            _id = str(int_list[-1] + 1)
+            _id = str(ints[-1] + 1)
     else:
         _id = ''
     text += _id

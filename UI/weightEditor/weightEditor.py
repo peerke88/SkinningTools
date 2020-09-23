@@ -16,8 +16,6 @@ from SkinningTools.UI.weightEditor.vertHeaderView import VertHeaderView
 from SkinningTools.UI.weightEditor.popupSpinBox import PopupSpinBox
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
 
-# from SkinningTools.UI.dispatcher import ThreadDispatcher
-
 class WeightEditorWindow(QWidget):
     def __init__(self, parent = None):
         super(WeightEditorWindow, self).__init__(parent)
@@ -42,9 +40,6 @@ class WeightEditorWindow(QWidget):
 
         self.mainLay.addLayout(searchLay)
         
-        # self.dispatcher = ThreadDispatcher(self)
-        # self.dispatcher.start()
-
         self._data = []
         self.jointSearch = []
         self.selectedCells = []
@@ -228,7 +223,6 @@ class WeightEditorWindow(QWidget):
             cellPos.append(index)
             toIgnore += self.getIgnoreList(row, col, self.rowLen, self.colLen )
         
-
         self.rowsToUpdate = set()
         self.cellDict = {}
         self.lockedCells = self.weightTable.lockedWeigths
@@ -795,10 +789,6 @@ class WeightEditorWindow(QWidget):
         if self._doSelectCB is not None:
             api.disconnectCallback(self._doSelectCB)
             self._doSelectCB = None
-
-    # def doCommand(self ):
-    #     self.dispatcher.idle_add(self.getSkinWeights())
-    #     return
 
     def cleanupTable(self):
         del self.weightTable._data
