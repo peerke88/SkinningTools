@@ -79,7 +79,7 @@ class SliderControl(AbstractControl):
             elif event.type() == QEvent.MouseButtonDblClick:
                 self.editBegin(self.slider.getValueAsString())
             elif event.type() == QEvent.KeyPress:
-                if event.key() in (Qt.Key_Asterisk, Qt.Key_Plus, Qt.Key_Comma, Qt.Key_MinusQt.Key_Period, Qt.Key_Slash, Qt.Key_Colon,
+                if event.key() in (Qt.Key_Asterisk, Qt.Key_Plus, Qt.Key_Comma, Qt.Key_Minus, Qt.Key_Period, Qt.Key_Slash, Qt.Key_Colon,
                                    Qt.Key_0, Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4, Qt.Key_5, Qt.Key_6, Qt.Key_7, Qt.Key_8, Qt.Key_9):
                     self.editBegin(event.text())
             elif event.type() == QEvent.Enter:

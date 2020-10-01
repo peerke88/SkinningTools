@@ -185,11 +185,11 @@ def addChecks(cls, button, checks=None):
         v.addWidget(chk)
         button.checks[check] = chk
 
-    functions, popup = add_contextToMenu(cls, checks, button)
-    button.customContextMenuRequested.connect(functools.partial(on_context_menu, button, popup))
+    functions, popup = addContextToMenu(cls, checks, button)
+    button.customContextMenuRequested.connect(functools.partial(onContextMenu, button, popup))
 
 
-def add_contextToMenu(cls, actionNames, btn):
+def addContextToMenu(cls, actionNames, btn):
     popMenu = QMenu(cls)
     allFunctions = []
     for actionName in actionNames:
@@ -202,7 +202,7 @@ def add_contextToMenu(cls, actionNames, btn):
     return allFunctions, popMenu
 
 
-def on_context_menu(buttonObj, popMenu, point):
+def onContextMenu(buttonObj, popMenu, point):
     popMenu.exec_(buttonObj.mapToGlobal(point))
 
 

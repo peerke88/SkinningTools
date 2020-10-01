@@ -46,7 +46,14 @@ class VertexInfluenceEditor(QGroupBox):
         self.setCheckable(True)
         self.setChecked(True)
         self.toggled.connect(self._toggleGroupBox)
-        self.setTitle(vtxLName.rsplit('|', 1)[-1])
+
+        if type(vtxLName) in [list, tuple]:
+            self.setTitle("Multi Slider")
+            self.setToolTip(str(api.getIds(vtxLName)))
+        else:
+            self.setTitle(vtxLName.rsplit('|', 1)[-1])
+            self.setToolTip(str(vtxLName))
+
         self.setLayout(nullVBoxLayout())
 
         self.__target = (skinCluster, vtxLName)

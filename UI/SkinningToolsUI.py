@@ -113,11 +113,11 @@ class SkinningTools(QMainWindow):
         self.mayaToolsTab = EditableTabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
 
-        v = nullVBoxLayout()
+        vLayout = nullVBoxLayout()
         widget = MayaToolsHeader(self.BezierGraph, self.progressBar, self)
-        v.addWidget(widget)
-        v.addWidget(self.mayaToolsTab)
-        tab.view.frame.setLayout(v)
+        vLayout.addWidget(widget)
+        vLayout.addWidget(self.mayaToolsTab)
+        tab.view.frame.setLayout(vLayout)
 
         self.__addVertNBoneFunc()
         self.__addCopyRangeFunc()
@@ -125,47 +125,47 @@ class SkinningTools(QMainWindow):
 
     def __addSimpleTools(self):
         tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools")
-        v = nullVBoxLayout()
-        tab.view.frame.setLayout(v)
+        vLayout = nullVBoxLayout()
+        tab.view.frame.setLayout(vLayout)
         buttons = interface.dccToolButtons()
         for btn in buttons:
-            v.addWidget(btn)
-        v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+            vLayout.addWidget(btn)
+        vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __addVertNBoneFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("Vertex & bone functions")
-        v = nullVBoxLayout()
+        vLayout = nullVBoxLayout()
         widget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
-        v.addWidget(widget)
-        tab.view.frame.setLayout(v)
+        vLayout.addWidget(widget)
+        tab.view.frame.setLayout(vLayout)
 
     def __addCopyRangeFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("copy functions")
-        v = nullVBoxLayout()
-        tab.view.frame.setLayout(v)
+        vLayout = nullVBoxLayout()
+        tab.view.frame.setLayout(vLayout)
 
         closest = ClosestVertexWeightWidget(self)
         transfer = TransferWeightsWidget(self)
         for w in [closest, transfer]:
-            v.addWidget(w)
-        v.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+            vLayout.addWidget(w)
+        vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider")
-        v = nullVBoxLayout()
+        vLayout = nullVBoxLayout()
         self.__skinSlider = SkinSliderSetup(self)
 
-        v.addWidget(self.__skinSlider)
-        tab.view.frame.setLayout(v)
+        vLayout.addWidget(self.__skinSlider)
+        tab.view.frame.setLayout(vLayout)
 
     def __componentEditSetup(self):
         interface.forceLoadPlugin("SkinEditPlugin")
         tab = self.tabs.addGraphicsTab("Component Editor")
-        v = nullVBoxLayout()
+        vLayout = nullVBoxLayout()
         self.__editor = weightEditor.WeightEditorWindow(self)
         
-        v.addWidget(self.__editor)
-        tab.view.frame.setLayout(v)
+        vLayout.addWidget(self.__editor)
+        tab.view.frame.setLayout(vLayout)
         
 
     def __weightManagerSetup(self):
@@ -192,13 +192,13 @@ class SkinningTools(QMainWindow):
     def tearOff(self, index, pos=QPoint()):
         tabs = self.sender()
         view = tabs.viewAtIndex(index)
-        dlg = TearOffDialog(self._tabName(index, tabs), self)
-        dlg.setOriginalState(index, tabs)
-        dlg.addwidget(view)
+        dialog = TearOffDialog(self._tabName(index, tabs), self)
+        dialog.setOriginalState(index, tabs)
+        dialog.addwidget(view)
         if pos.y() > -1:
-            dlg.move(pos)
+            dialog.move(pos)
 
-        dlg.show()
+        dialog.show()
         tabs.removeTab(index)
 
     # -------------------- tool tips -------------------------------------
@@ -258,11 +258,11 @@ class SkinningTools(QMainWindow):
         size = 250
         if QDesktopWidget().screenGeometry().height() > 1080:
             size *= 1.5
-        rct = QRect(QCursor.pos().x() + 20, QCursor.pos().y() - (40 + size), size, size)
+        rect = QRect(QCursor.pos().x() + 20, QCursor.pos().y() - (40 + size), size, size)
         if (self.window().pos().y() + (self.height() / 2)) > QCursor.pos().y():
-            rct = QRect(QCursor.pos().x() + 20, QCursor.pos().y() + 20, size, size)
+            rect = QRect(QCursor.pos().x() + 20, QCursor.pos().y() + 20, size, size)
 
-        self.toolTipWindow = AdvancedToolTip(rct)
+        self.toolTipWindow = AdvancedToolTip(rect)
         # @TODO: change this to only display text if gif does not exist
         # if not self.toolTipWindow.toolTipExists(tip):
         #     return 

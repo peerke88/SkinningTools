@@ -28,7 +28,7 @@ def selectedObjectVertexList(includeObjects=False):
     step = cmds.ls(sl=True, l=True)
     if not step:
         return []
-    res = shared.convertToVertexList(step[0]) or []
+    res = shared.convertToVertexList(step) or []
     if includeObjects:
         return [(r.split('.', 1)[0], r) for r in res]
     return res
@@ -167,6 +167,9 @@ def _cleanEventFilter():
             pass
     return widgets
 
+
+def getIds(inList):
+    return shared.convertToIndexList(inList)
 
 def textProgressBar(progress, message=''):
     barLength = 10
