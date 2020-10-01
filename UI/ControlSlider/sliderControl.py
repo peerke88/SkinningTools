@@ -101,34 +101,3 @@ class SliderControl(AbstractControl):
         elif event.type() == QEvent.FocusOut:
             self.editEnd()
         return True
-
-
-if __name__ == '__main__':
-    import sys
-
-    app = QApplication(sys.argv)
-
-
-    def logic1():
-        print('hey hey')
-        pippo = 2 + 3
-        print('pippo', pippo)
-        print(sys)
-
-
-    def logic2(who):
-        print('hello from %s' % who)
-
-
-    w = QWidget()
-    w.setWindowTitle('Slider Controls')
-    l = QVBoxLayout(w)
-    s1 = SliderControl('slider_1', mn=-10, mx=10, parent=w)
-    s1.setLogicFunction(logic1)
-    s2 = SliderControl('slider_2', mn=-100, mx=100, parent=w)
-    s2.setLogicFunction(logic2, s2)
-    l.addWidget(s1)
-    l.addWidget(s2)
-    w.show()
-
-    sys.exit(app.exec_())

@@ -62,66 +62,61 @@ class Slider(QWidget):
         self.setMaximum(maxValue)
 
     def paintEvent(self, _):
-        qp = QPainter()
-        qp.begin(self)
-        self.drawWidget(qp)
-        qp.end()
+        painter = QPainter()
+        painter.begin(self)
+        self.drawWidget(painter)
+        painter.end()
 
-    def drawWidget(self, qp):
+    def drawWidget(self, painter):
         size = self.size()
         w = size.width()
         h = size.height()
 
-        # background
-        qp.setPen(Qt.NoPen)
-        qp.setBrush(QColor(101, 101, 101))
-        qp.drawRoundedRect(0, 0, w - 1, h - 1, 3, 3)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor(101, 101, 101))
+        painter.drawRoundedRect(0, 0, w - 1, h - 1, 3, 3)
 
-        # slider bar
-        qp.setPen(Qt.NoPen)
-        qp.setBrush(Qt.SolidPattern)
-        # qp.setBrush(QColor(255,170, 0)) ## orange but too bright? 
-        qp.setBrush(QColor(128, 155, 172))
-        qp.drawRoundedRect(0, 0, self.sliderPosition() - 1, h - 1, 3, 3)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(Qt.SolidPattern)
 
-        # draw
-        qp.setBrush(Qt.NoBrush)
+        painter.setBrush(QColor(128, 155, 172))
+        painter.drawRoundedRect(0, 0, self.sliderPosition() - 1, h - 1, 3, 3)
+
+        painter.setBrush(Qt.NoBrush)
         if self.hasFocus():
             pen = QPen(QColor(96, 127, 156), 2, Qt.SolidLine)
-            qp.setPen(pen)
-            qp.drawLine(2, 1, w - 2, 1)
-            qp.drawLine(w - 1, 2, w - 1, h - 2)
-            qp.drawLine(2, h - 1, w - 2, h - 1)
-            qp.drawLine(1, 2, 1, h - 2)
+            painter.setPen(pen)
+            painter.drawLine(2, 1, w - 2, 1)
+            painter.drawLine(w - 1, 2, w - 1, h - 2)
+            painter.drawLine(2, h - 1, w - 2, h - 1)
+            painter.drawLine(1, 2, 1, h - 2)
         else:
             pen = QPen(QColor(20, 20, 20), 1, Qt.SolidLine)
-            qp.setPen(pen)
-            qp.drawRoundedRect(0, 0, w - 1, h - 1, 3, 3)
+            painter.setPen(pen)
+            painter.drawRoundedRect(0, 0, w - 1, h - 1, 3, 3)
 
-        # print value
         pen = QPen(QColor(230, 230, 230), 1, Qt.SolidLine)
-        qp.setPen(pen)
+        painter.setPen(pen)
         if self.__label is not None and self.paintLabel:
             valueStr = self.__label
         else:
             valueStr = unicode(self.getValueAsString())
-        fontMetrics = qp.fontMetrics()
+        fontMetrics = painter.fontMetrics()
         valueStrLength = fontMetrics.width(valueStr)
-        qp.drawText(QPointF(w * 0.5 - valueStrLength * 0.5, h - 6), valueStr)
+        painter.drawText(QPointF(w * 0.5 - valueStrLength * 0.5, h - 6), valueStr)
 
     def sliderPosition(self):
-        val = self.value()
         w = float(self.width())
         d = self.maximum() - self.minimum()
-        ival = val - self.__min
+        ival = self.value() - self.__min
         if ival <= 0:
             ival = 0.0
 
         p = ival / d
         return w * p
 
-    def mouseMoveEvent(self, evt):
-        pos = float(evt.pos().x())
+    def mouseMoveEvent(self, event):
+        pos = float(event.pos().x())
         w = float(self.width())
         d = self.maximum() - self.minimum()
         val = d * (pos / w)

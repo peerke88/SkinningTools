@@ -10,8 +10,7 @@ class SkinningToolsSliderList(QWidget):
         self.setLayout(QVBoxLayout())
         self.update()
 
-    def update(self):
-        # clear
+    def clear(self):
         while True:
             child = self.layout().takeAt(0)
             if not child:
@@ -21,7 +20,8 @@ class SkinningToolsSliderList(QWidget):
                 continue
             widget.deleteLater()
 
-        # get long selection
+    def update(self):
+        self.clear()
         vertices = api.selectedObjectVertexList(True)
         if not vertices:
             return

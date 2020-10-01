@@ -263,8 +263,8 @@ class WeightEditorWindow(QWidget):
     def evalHeaderWidth(self, index=None, add=3):
         if self.weightTable is None:
             return
-        _max = 45 + add
         _space = 45
+        _max = _space + add
         if hasattr(self.view.horizontalHeader(), 'setResizeMode'):
             resize_mode = self.view.horizontalHeader().setResizeMode  
         else:
@@ -347,20 +347,17 @@ class WeightEditorWindow(QWidget):
         height = self.view.horizontalHeader().sizeHint().height()
         
         pos = self.view.mapFromGlobal(QCursor.pos())
-        xPos = pos.x() - width - 2
-        yPos = pos.y() - height - 2
-        row = self.view.rowAt(yPos)
-        col = self.view.columnAt(xPos)
+        row = self.view.rowAt(pos.y() - height - 2)
+        col = self.view.columnAt(pos.x() - width - 2)
         if col == -1:
             col = len(self.allInfJoints)
         text = self.weightTable.getCellData(row=row, col=col)
+        
         if text is None or shiftPressed or ctrlPressed:
             self.copyMenu()
             return
-        else:
-            text = text
-        value = float(text)
-        self.popupBox = PopupSpinBox(value=value)
+
+        self.popupBox = PopupSpinBox(value=float(text))
         self.popupBox.closed.connect(self.setPopupValue)
     
     def setPopupValue(self, direct=True):

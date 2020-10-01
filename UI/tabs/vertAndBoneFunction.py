@@ -7,13 +7,12 @@ import os
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG = True
 
-
 class VertAndBoneFunction(QWidget):
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(VertAndBoneFunction, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
-        self.__iconSize = 40
+        self.__IS = 40
 
         self.progressBar = inProgressBar
         self.BezierGraph = inGraph
@@ -24,47 +23,48 @@ class VertAndBoneFunction(QWidget):
         g = nullGridLayout()
         self.layout().addLayout(g)
 
-        AvgWght_Btn = svgButton("avarage vtx", os.path.join(_DIR, "Icons/AvarageVerts.svg"), size=self.__iconSize)
-        cpyWght_Btn = svgButton("copy vtx", os.path.join(_DIR, "Icons/copy2Mult.svg"), size=self.__iconSize)
-        swchVtx_Btn = svgButton("switch vtx", os.path.join(_DIR, "Icons/vert2vert.svg"), size=self.__iconSize)
-        BoneLbl_Btn = svgButton("label joints", os.path.join(_DIR, "Icons/jointLabel.svg"), size=self.__iconSize)
-        shellUn_btn = svgButton("unify shells", os.path.join(_DIR, "Icons/shellUnify.svg"), size=self.__iconSize)
-        trsfrSK_Btn = svgButton("skin to skin", os.path.join(_DIR, "Icons/skinToSkin.svg"), size=self.__iconSize)
-        trsfrPS_Btn = svgButton("skin to pose", os.path.join(_DIR, "Icons/skinToPose.svg"), size=self.__iconSize)
-        nghbors_Btn = svgButton("neighbors", os.path.join(_DIR, "Icons/neighbors.svg"), size=self.__iconSize)
-        nghbrsP_Btn = svgButton("neighbors + ", os.path.join(_DIR, "Icons/neighborsPlus.svg"), size=self.__iconSize)
-        smthVtx_Btn = svgButton("smooth", os.path.join(_DIR, "Icons/smooth.svg"), size=self.__iconSize)
-        smthBrs_Btn = svgButton("smooth Brush", os.path.join(_DIR, "Icons/brush.svg"), size=self.__iconSize)
-        toJoint_Btn = svgButton("convert to joint", os.path.join(_DIR, "Icons/toJoints.svg"), size=self.__iconSize)
-        rstPose_Btn = svgButton("recalc bind", os.path.join(_DIR, "Icons/resetJoint.svg"), size=self.__iconSize)
-        cutMesh_Btn = svgButton("create proxy", os.path.join(_DIR, "Icons/proxy.svg"), size=self.__iconSize)
+        def _svgPath(svg):
+            return os.path.join(_DIR, "Icons/%s.svg"%svg)
 
-        copy2bn_Btn = svgButton("move bone infl.", os.path.join(_DIR, "Icons/Bone2Bone.svg"), size=self.__iconSize)
-        b2bSwch_Btn = svgButton("swap bone infl.", os.path.join(_DIR, "Icons/Bone2Boneswitch.svg"), size=self.__iconSize)
-        showInf_Btn = svgButton("influenced vtx", os.path.join(_DIR, "Icons/selectinfl.svg"), size=self.__iconSize)
-        delBone_Btn = svgButton("remove joint", os.path.join(_DIR, "Icons/jointDelete.svg"), size=self.__iconSize)
-        addinfl_Btn = svgButton("add joint", os.path.join(_DIR, "Icons/addJoint.svg"), size=self.__iconSize)
-        unifyBn_Btn = svgButton("unify bind map", os.path.join(_DIR, "Icons/unify.svg"), size=self.__iconSize)
-        seltInf_Btn = svgButton("attached joints", os.path.join(_DIR, "Icons/selectJnts.svg"), size=self.__iconSize)
-        sepMesh_Btn = svgButton("extract skinned mesh", os.path.join(_DIR, "Icons/seperate.svg"), size=self.__iconSize)
-        onlySel_Btn = svgButton("prune excluded infl.", os.path.join(_DIR, "Icons/onlySel.svg"), size=self.__iconSize)
-        infMesh_Btn = svgButton("influenced meshes", os.path.join(_DIR, "Icons/infMesh.svg"), size=self.__iconSize)
+        AvgWght_Btn = svgButton("avarage vtx", _svgPath("AvarageVerts"), size=self.__IS)
+        cpyWght_Btn = svgButton("copy vtx", _svgPath("copy2Mult"), size=self.__IS)
+        swchVtx_Btn = svgButton("switch vtx", _svgPath("vert2vert"), size=self.__IS)
+        BoneLbl_Btn = svgButton("label joints", _svgPath("jointLabel"), size=self.__IS)
+        shellUn_btn = svgButton("unify shells", _svgPath("shellUnify"), size=self.__IS)
+        trsfrSK_Btn = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS)
+        trsfrPS_Btn = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS)
+        nghbors_Btn = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS)
+        smthBrs_Btn = svgButton("smooth Brush", _svgPath("brush"), size=self.__IS)
+        toJoint_Btn = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS)
+        rstPose_Btn = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS)
+        cutMesh_Btn = svgButton("create proxy", _svgPath("proxy"), size=self.__IS)
+
+        copy2bn_Btn = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS)
+        b2bSwch_Btn = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS)
+        showInf_Btn = svgButton("influenced vtx", _svgPath("selectinfl"), size=self.__IS)
+        delBone_Btn = svgButton("remove joint", _svgPath("jointDelete"), size=self.__IS)
+        addinfl_Btn = svgButton("add joint", _svgPath("addJoint"), size=self.__IS)
+        unifyBn_Btn = svgButton("unify bind map", _svgPath("unify"), size=self.__IS)
+        seltInf_Btn = svgButton("attached joints", _svgPath("selectJnts"), size=self.__IS)
+        sepMesh_Btn = svgButton("extract skinned mesh", _svgPath("seperate"), size=self.__IS)
+        onlySel_Btn = svgButton("prune excluded infl.", _svgPath("onlySel"), size=self.__IS)
+        infMesh_Btn = svgButton("influenced meshes", _svgPath("infMesh"), size=self.__IS)
 
         maxL = nullHBoxLayout()
         self._maxSpin = QSpinBox()
-        self._maxSpin.setFixedSize(self.__iconSize, self.__iconSize + 10)
+        self._maxSpin.setFixedSize(self.__IS, self.__IS + 10)
         self._maxSpin.setMinimum(1)
         self._maxSpin.setValue(4)
-        vtexMax_Btn = svgButton("force max infl.", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
-        frzBone_Btn = svgButton("freeze joints", os.path.join(_DIR, "Icons/FreezeJoint.svg"), size=self.__iconSize)
+        vtexMax_Btn = svgButton("force max infl.", _svgPath("Empty"), size=self.__IS)
+        frzBone_Btn = svgButton("freeze joints", _svgPath("FreezeJoint"), size=self.__IS)
         for w in [self._maxSpin, vtexMax_Btn]:
             maxL.addWidget(w)
-        vtxOver_Btn = svgButton("sel infl. > max", os.path.join(_DIR, "Icons/vertOver.svg"), size=self.__iconSize)
+        vtxOver_Btn = svgButton("sel infl. > max", _svgPath("vertOver"), size=self.__IS)
 
         growL = nullHBoxLayout()
-        storsel_Btn = svgButton("store internal", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
-        self.shrinks_Btn = svgButton("-", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
-        self.growsel_Btn = svgButton("+", os.path.join(_DIR, "Icons/Empty.svg"), size=self.__iconSize)
+        storsel_Btn = svgButton("store internal", _svgPath("Empty"), size=self.__IS)
+        self.shrinks_Btn = svgButton("-", _svgPath("Empty"), size=self.__IS)
+        self.growsel_Btn = svgButton("+", _svgPath("Empty"), size=self.__IS)
         for i, w in enumerate([self.shrinks_Btn, storsel_Btn, self.growsel_Btn]):
             if i != 1:
                 w.setEnabled(False)
@@ -73,23 +73,23 @@ class VertAndBoneFunction(QWidget):
             growL.addWidget(w)
 
         self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn,
-                          trsfrPS_Btn, nghbors_Btn, nghbrsP_Btn, smthVtx_Btn, smthBrs_Btn, toJoint_Btn, rstPose_Btn,
-                          cutMesh_Btn, copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn,
-                          seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, frzBone_Btn, growL]
+                          trsfrPS_Btn, nghbors_Btn, smthBrs_Btn, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, 
+                          copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn,
+                          seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn,  growL]
+        _rc = int(len(self.__buttons)*.5)
         for index, btn in enumerate(self.__buttons):
-            row = index / 14
+            row = index / _rc
             if isinstance(btn, QLayout):
-                g.addLayout(btn, index - (row * 14), row)
+                g.addLayout(btn, index - (row * _rc), row)
                 continue
-            g.addWidget(btn, index - (row * 14), row)
+            g.addWidget(btn, index - (row * _rc), row)
 
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
         addChecks(self, AvgWght_Btn, ["use distance"])
         addChecks(self, trsfrSK_Btn, ["smooth", "uvSpace"])
         addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"])
-        addChecks(self, nghbors_Btn, ["full"])
-        addChecks(self, nghbrsP_Btn, ["full"])
+        addChecks(self, nghbors_Btn, ["growing", "full"])
         addChecks(self, toJoint_Btn, ["specify name"])
         addChecks(self, cutMesh_Btn, ["internal", "fast"])
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"])
@@ -97,30 +97,28 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, onlySel_Btn, ["invert"])
         onlySel_Btn.checks["invert"].stateChanged.connect(partial(self._pruneOption, onlySel_Btn))
 
-        AvgWght_Btn.clicked.connect(self._AvgWght_func)
+        AvgWght_Btn.clicked.connect(partial(self._AvgWght_func, AvgWght_Btn))
         cpyWght_Btn.clicked.connect(partial(interface.copyVtx, self.progressBar))
         swchVtx_Btn.clicked.connect(partial(interface.switchVtx, self.progressBar))
         BoneLbl_Btn.clicked.connect(partial(interface.labelJoints, False, self.progressBar))
         shellUn_btn.clicked.connect(partial(interface.unifyShells, self.progressBar))
         trsfrSK_Btn.clicked.connect(partial(self._trsfrSK_func, trsfrSK_Btn, False))
         trsfrPS_Btn.clicked.connect(partial(self._trsfrSK_func, trsfrPS_Btn, True))
-        nghbors_Btn.clicked.connect(partial(self._nghbors_func, nghbors_Btn, False))
-        nghbrsP_Btn.clicked.connect(partial(self._nghbors_func, nghbrsP_Btn, True))
-        smthVtx_Btn.clicked.connect(partial(interface.smooth, self.progressBar))
+        nghbors_Btn.clicked.connect(partial(self._nghbors_func, nghbors_Btn))
         smthBrs_Btn.clicked.connect(interface.paintSmoothBrush)
         toJoint_Btn.clicked.connect(partial(self._convertToJoint_func, toJoint_Btn))
         rstPose_Btn.clicked.connect(partial(interface.resetPose, self.progressBar))
-        cutMesh_Btn.clicked.connect(partial(self._cutMesh_func, self.progressBar))
+        cutMesh_Btn.clicked.connect(partial(self._cutMesh_func, cutMesh_Btn))
 
         copy2bn_Btn.clicked.connect(partial(interface.moveBones, False, self.progressBar))
         b2bSwch_Btn.clicked.connect(partial(interface.moveBones, True, self.progressBar))
         showInf_Btn.clicked.connect(partial(interface.showInfVerts, self.progressBar))
-        delBone_Btn.clicked.connect(self._delBone_func)
+        delBone_Btn.clicked.connect(partial(self._delBone_func, delBone_Btn))
         addinfl_Btn.clicked.connect(partial(interface.addNewJoint, self.progressBar))
-        unifyBn_Btn.clicked.connect(self._unifyBn_func)
+        unifyBn_Btn.clicked.connect(partial(self._unifyBn_func, unifyBn_Btn))
         seltInf_Btn.clicked.connect(partial(interface.selectJoints, self.progressBar))
         sepMesh_Btn.clicked.connect(partial(interface.seperateSkinned, self.progressBar))
-        onlySel_Btn.clicked.connect(self._pruneSel_func)
+        onlySel_Btn.clicked.connect(partial(self._pruneSel_func, onlySel_Btn))
         infMesh_Btn.clicked.connect(partial(interface.getMeshFromJoints, self.progressBar))
         vtexMax_Btn.clicked.connect(partial(self._vtexMax_func, False))
         vtxOver_Btn.clicked.connect(partial(self._vtexMax_func, True))
@@ -130,52 +128,42 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect(self._growsel_func)
 
         if _DEBUG:
-            notChecked = [smthVtx_Btn, smthBrs_Btn, toJoint_Btn, cutMesh_Btn]
-
-            for chk in notChecked:
+            for chk in [smthBrs_Btn, toJoint_Btn, cutMesh_Btn]:
                 chk.setStyleSheet("background-color: red")
 
     # -- checkbox modifiers    
     def _pruneOption(self, btn, value):
-        btn.setText("prune excluded infl.")
-        if btn.checks["invert"].isChecked():
-            btn.setText("prune selected infl.")
+        btn.setText("prune %s infl."%["excluded, selected"][btn.checks["invert"].isChecked()])
 
     # -- buttons with extra functionality
-    def _AvgWght_func(self):
-        print(self.sender())
-        interface.avgVtx(self.sender().checks["use distance"].isChecked(), self.BezierGraph, self.progressBar)
+    def _AvgWght_func(self, sender):
+        interface.avgVtx(sender.checks["use distance"].isChecked(), self.BezierGraph, self.progressBar)
 
     def _trsfrSK_func(self, sender, inPlace):
-        chkbxs = sender.checks
-        interface.copySkin(inPlace, chkbxs["smooth"].isChecked(), chkbxs["uvSpace"].isChecked(), self.progressBar)
+        interface.copySkin(inPlace, sender.checks["smooth"].isChecked(), sender.checks["uvSpace"].isChecked(), self.progressBar)
 
-    def _nghbors_func(self, sender, both):
-        growing = both
-        interface.neighbors(both, growing, sender.checks["full"].isChecked(), self.progressBar)
+    def _nghbors_func(self, sender):
+        interface.neighbors(both, sender.checks["growing"].isChecked(), sender.checks["full"].isChecked(), self.progressBar)
 
     def _convertToJoint_func(self, sender):
         interface.convertToJoint(sender.checks["specify name"].isChecked(), self.progressBar)
 
-    def _delBone_func(self):
-        chkbxs = self.sender().checks
-        interface.removeJoint(chkbxs["use parent"].isChecked(), chkbxs["delete"].isChecked(), chkbxs["fast"].isChecked(), self.progressBar)
+    def _delBone_func(self, sender):
+        interface.removeJoint(sender.checks["use parent"].isChecked(), sender.checks["delete"].isChecked(), sender.checks["fast"].isChecked(), self.progressBar)
 
-    def _unifyBn_func(self):
-        interface.unifySkeletons(self.sender().checks["query"].isChecked(), self.progressBar)
+    def _unifyBn_func(self, sender):
+        interface.unifySkeletons(sender.checks["query"].isChecked(), self.progressBar)
 
     def _vtexMax_func(self, query):
         if query:
-            interface.getMaxInfl(self._maxSpin.value(), self.progressBar)
-            return
+            return interface.getMaxInfl(self._maxSpin.value(), self.progressBar)
         interface.setMaxInfl(self._maxSpin.value(), self.progressBar)
 
-    def _cutMesh_func(self):
-        chkbxs = self.sender().checks
+    def _cutMesh_func(self, sender):
+        raise NotImplementedError
 
-    def _pruneSel_func(self):
-        inverse = self.sender().checks["invert"].isChecked()
-        interface.keepOnlyJoints(inverse)
+    def _pruneSel_func(self, sender):
+        interface.keepOnlyJoints(sender.checks["invert"].isChecked())
 
     def _storesel_func(self, *args):
         self.borderSelection.storeSel()
@@ -184,11 +172,8 @@ class VertAndBoneFunction(QWidget):
 
     def _shrinks_func(self, *args):
         self.borderSelection.shrink()
-        if self.borderSelection.getBorderIndex() == 0:
-            self.shrinks_Btn.setEnabled(False)
+        self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
 
     def _growsel_func(self, *args):
-        self.shrinks_Btn.setEnabled(True)
-        if self.borderSelection.getBorderIndex() == 0:
-            self.shrinks_Btn.setEnabled(False)
+        self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
         self.borderSelection.grow()

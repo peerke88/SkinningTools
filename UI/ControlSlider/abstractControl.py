@@ -11,7 +11,6 @@ class AbstractControl(QWidget):
 
         self.name = name
         self.selected = False
-        ## pointer to a function
         self._logic = None
         self._logicArgs = (self,), {}
 
@@ -19,28 +18,28 @@ class AbstractControl(QWidget):
         self._logic = function
         self._logicArgs = (args, kwargs)
 
-    def paintEvent(self, e):
-        QWidget.paintEvent(self, e)
-        qp = QPainter()
-        qp.begin(self)
+    def paintEvent(self, event):
+        QWidget.paintEvent(self, event)
+        painter = QPainter()
+        painter.begin(self)
 
         size = self.size()
         w = size.width()
         h = size.height()
 
         if not self.selected:
-            qp.end()
+            painter.end()
             return
 
-        qp.setBrush(Qt.NoBrush)
+        painter.setBrush(Qt.NoBrush)
         pen = QPen(QColor(96, 127, 156), 1, Qt.SolidLine)
-        qp.setPen(pen)
-        qp.drawLine(2, 1, w - 2, 1)
-        qp.drawLine(w - 1, 2, w - 1, h - 2)
-        qp.drawLine(2, h - 1, w - 2, h - 1)
-        qp.drawLine(1, 2, 1, h - 2)
+        painter.setPen(pen)
+        painter.drawLine(2, 1, w - 2, 1)
+        painter.drawLine(w - 1, 2, w - 1, h - 2)
+        painter.drawLine(2, h - 1, w - 2, h - 1)
+        painter.drawLine(1, 2, 1, h - 2)
 
-        qp.end()
+        painter.end()
 
     def evaluateLogic(self):
         self.preLogicEvaluation.emit()

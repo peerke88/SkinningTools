@@ -33,7 +33,6 @@ class SkinningTools(QMainWindow):
         self.setWindowFlags(Qt.Tool)
 
         self.__uiElements()
-
         self.__defaults()
 
         mainLayout = nullVBoxLayout(None, 3)
@@ -53,8 +52,8 @@ class SkinningTools(QMainWindow):
 
         if not newPlacement:
             self.loadUIState()
-        self.recurseMouseTracking(self, True)
 
+        self.recurseMouseTracking(self, True)
         api.dccInstallEventFilter()
 
         interface.doSelect(__sel)
