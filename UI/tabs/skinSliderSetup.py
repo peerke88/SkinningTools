@@ -12,6 +12,8 @@ class SkinSliderSetup(QWidget):
 
         self.inflEdit = SkinningToolsSliderList(self)
 
+        self._doSelectCB = None
+
         self.__skinSliderSetup()
 
     def __skinSliderSetup(self):
@@ -24,5 +26,33 @@ class SkinSliderSetup(QWidget):
         for btn in [cnct, rfr, live]:
             h.addWidget(btn)
 
+        cnct.clicked.connect(self._mutliSelection)
+        rfr.clicked.connect(self._update)
+        live.clicked.connect(self._live)
+        
         self.layout().addLayout(h)
         self.layout().addWidget(self.inflEdit)
+
+    def _mutliSelection(self):
+        doMulti = self.sender().isChecked()
+        self.inflEdit.setMultiAtOnce(doMulti)
+
+    def _update(self):
+        self.inflEdit.update()
+
+    def _live(self):
+        doLive = self.sender().isChecked()
+        if doLive:
+            self.createCallback()
+            return
+        self.clearCallback()            
+
+    def createCallback(self):
+        self.clearCallback()
+        self._update()
+        self._doSelectCB = api.connectSelectionChangedCallback(self._update) 
+        
+    def clearCallback(self):
+        if self._doSelectCB is not None:
+            api.disconnectCallback(self._doSelectCB)
+            self._doSelectCB = None

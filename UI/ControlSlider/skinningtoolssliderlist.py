@@ -37,18 +37,19 @@ class SkinningToolsSliderList(QWidget):
         if not vertices:
             return
 
+        #@todo: always live?? check with component editor!
         # use 1 view for many vertices if requested, 
         # show multiple vertices if this setting is off
         # truncate based on spinbox?
 
         self.skinClusterCache = {}
+        
+        vertexList = vertex[0]
         if self.__doMultiAtOnce:
             vertexList = [vertex for mesh, vertex in vertices]
-            print vertexList
-            self.__addSliders(mesh, vertexList)
-        else:
-            for mesh, vertex in vertices[:20]:  # truncate the list so it will never cause a leak
-                self.__addSliders(mesh, vertex)
+            #@todo: doulbe check that all vertices are from the same mesh!
+        
+        self.__addSliders(mesh, vertexList)
 
         self.layout().addStretch(1)
 
@@ -69,6 +70,10 @@ class SkinningToolsSliderList(QWidget):
 
         if type(vertex) in [list, tuple]:
             weights = api.getSingleVertexWeights(skinCluster, vertex[0])
+            amount = len(vertex)
+            for vert in vertex[1:]:
+                nWeights = api.getSingleVertexWeights(skinCluster, vert)
+
         else:
             weights = api.getSingleVertexWeights(skinCluster, vertex)
 
