@@ -96,7 +96,7 @@ def dec_timer(func):
         start = time.time()
         result = func(*args, **kwargs)
         end = time.time()
-        print 'Execution time :', func.__name__, end - start
+        print('Execution time :', func.__name__, end - start)
         return result
     return _timer_func
 
