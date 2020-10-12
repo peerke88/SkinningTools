@@ -174,11 +174,14 @@ class SkinningTools(QMainWindow):
     # ------------------------- utilities ---------------------------------
 
     def _tabChanged(self, index):
-        self.__editor.isInView = False
+        # self.__editor.isInView = False
+
+        #@ todo:
+        # this probablt does not work once tabs are torn off, needs a better way to manage!
         if index == 1:
             self.__skinSlider.inflEdit.update() 
         if index == 2:
-            self.__editor.isInView = True
+            # self.__editor.isInView = True
             self.__editor.getSkinWeights()
 
     def _tabName(self, index=-1, mainTool=None):

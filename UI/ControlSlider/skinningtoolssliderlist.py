@@ -43,8 +43,8 @@ class SkinningToolsSliderList(QWidget):
         # truncate based on spinbox?
 
         self.skinClusterCache = {}
-        
-        vertexList = vertex[0]
+        mesh = vertices[0][0]
+        vertexList = vertices[0][1]
         if self.__doMultiAtOnce:
             vertexList = [vertex for mesh, vertex in vertices]
             #@todo: doulbe check that all vertices are from the same mesh!

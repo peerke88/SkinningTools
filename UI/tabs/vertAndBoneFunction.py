@@ -143,7 +143,7 @@ class VertAndBoneFunction(QWidget):
         interface.copySkin(inPlace, sender.checks["smooth"].isChecked(), sender.checks["uvSpace"].isChecked(), self.progressBar)
 
     def _nghbors_func(self, sender):
-        interface.neighbors(both, sender.checks["growing"].isChecked(), sender.checks["full"].isChecked(), self.progressBar)
+        interface.neighbors(sender.checks["growing"].isChecked(), sender.checks["full"].isChecked(), self.progressBar)
 
     def _convertToJoint_func(self, sender):
         interface.convertToJoint(sender.checks["specify name"].isChecked(), self.progressBar)
