@@ -1,5 +1,5 @@
 from maya import cmds
-from maya.OpenMaya import MVector
+from maya.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFnMesh
 from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
@@ -313,3 +313,57 @@ def softSelection():
         iter.next()
 
     return elements, weights
+
+@shared.dec_undo
+def extractFacesByVertices(vertices, internal=False):
+    vertices = cmds.filterExpand(vertices, sm=31)
+
+    dup = cmds.duplicate(vertices[0].rsplit('.',1)[0])[0]
+    try:
+        cmds.parent(dup, w=True)
+    except:
+        pass
+    
+    dup = '|' + dup
+    for i in range(len(vertices)):
+        vertices[i] = dup + '.' + vertices[i].rsplit('.',1)[-1]
+    
+    cmds.polyTriangulate(dup)
+    if not vertices:
+        cmds.delete(dup)
+        return None
+    faces = cmds.polyListComponentConversion(vertices, tf=True, internal=internal)
+    if not faces:
+        cmds.delete(dup)
+        return None
+    if not internal:
+        vertices = cmds.filterExpand(cmds.polyListComponentConversion(faces, tv=True), sm=31)
+    faces = cmds.filterExpand(faces, sm=34)
+    if not faces:
+        cmds.delete(dup)
+        return None
+        
+    vertexPositions = MFloatPointArray()
+    vertexMap = {}
+    i = 0
+    for vertex in vertices:
+        vertexPositions.append(MFloatPoint(*cmds.xform(vertex, q=True, ws=True, t=True)))
+        vertexMap[vertex.rsplit('[',1)[-1].split(']',1)[0]] = i
+        i += 1
+
+    ids = MIntArray()
+    counts = MIntArray()
+    for face in faces:
+        faceVertices = cmds.filterExpand(cmds.polyListComponentConversion(face, tv=True), sm=31)
+        counts.append(len(faceVertices))
+        for vertex in faceVertices:
+            ids.append(vertexMap[vertex.rsplit('[',1)[-1].split(']',1)[0]])
+
+    m = MFnMesh()
+    m.create(vertexPositions.length(), counts.length(), vertexPositions, counts, ids)
+
+    path = m.fullPathName()
+    cmds.delete(dup)
+    if cmds.ls(path, type='mesh'):
+        path = cmds.listRelatives(path, parent=True, f=True)
+    return path

@@ -202,7 +202,10 @@ def convertToJoint(inName=None, progressBar=None):
         return result
 
     # @Todo: split selection in mesh and cluster selection
-    result = joints.convertClusterToJoint(selection, progressBar)
+    # if len(selection) > 1:
+    #     result = joints.convertClustersToJoint(selection, progressBar)
+    # else:    
+    result = joints.convertClusterToJoint(selection, inName, progressBar)
     return result
 
 

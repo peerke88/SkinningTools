@@ -477,7 +477,7 @@ def convertClusterToJoint(inObject, jointName=None, progressBar=None):
     else:
         jnt = cmds.createNode("joint", n=jointName)
 
-    cmds.matchTransform(jnt, clusterDeformer, pos=1, rot=0)
+    cmds.matchTransform(jnt, inObject, pos=1, rot=0)
 
     inMesh = allConnected[0].split('.')[0]
 
@@ -523,54 +523,54 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     return jnt
 
 
-def convertClustersToJoint(inMesh, inClusters, progressBar=True):
-    meshDag = shared.getDagpath(inMesh)
-    mfnMesh = MFnMesh(meshDag)
-    origPos = mfnMesh.getPoints(MSpace.kObject)
-    vertices = {}
-    for index, vtx in enumerate(origPos):
-        vertices[index] = {}
+# def convertClustersToJoint(inMesh, inClusters, progressBar=True):
+#     meshDag = shared.getDagpath(inMesh)
+#     mfnMesh = MFnMesh(meshDag)
+#     origPos = mfnMesh.getPoints(MSpace.kObject)
+#     vertices = {}
+#     for index, vtx in enumerate(origPos):
+#         vertices[index] = {}
 
-    jnts = []
-    for deform in inClusters:
-        deformDag = shared.getDagpath(deform)
+#     jnts = []
+#     for deform in inClusters:
+#         deformDag = shared.getDagpath(deform)
 
-        jnt = cmds.createNode("joint", n="temp%s" % (deform))
-        cmds.matchTransform(jnt, deform, pos=1, rot=1)
+#         jnt = cmds.createNode("joint", n="temp%s" % (deform))
+#         cmds.matchTransform(jnt, deform, pos=1, rot=1)
 
-        mfnTrs = MFnTransform(deformDag)
-        vec = MVector(1, 0, 0)
-        mfnTrs.setTranslation(vec, MSpace.kTransform)
+#         mfnTrs = MFnTransform(deformDag)
+#         vec = MVector(1, 0, 0)
+#         mfnTrs.setTranslation(vec, MSpace.kTransform)
 
-        deformPos = mfnMesh.getPoints(MSpace.kObject)
-        zero = MVector(0, 0, 0)
-        mfnTrs.setTranslation(zero, MSpace.kTransform)
+#         deformPos = mfnMesh.getPoints(MSpace.kObject)
+#         zero = MVector(0, 0, 0)
+#         mfnTrs.setTranslation(zero, MSpace.kTransform)
 
-        weights = []
-        for index, origVec in enumerate(origPos):
-            deformVec = deformPos[index]
-            vertices[index][jnt] = (origVec - deformVec).length()
-        jnts.append(jnt)
+#         weights = []
+#         for index, origVec in enumerate(origPos):
+#             deformVec = deformPos[index]
+#             vertices[index][jnt] = (origVec - deformVec).length()
+#         jnts.append(jnt)
 
-    sc = shared.skinCluster(inMesh)
-    if sc is not None:
-        addCleanJoint(jnts, inMesh)
-    else:
-        sc = cmds.skinCluster(jnts, inMesh, tsb=1)[0]
+#     sc = shared.skinCluster(inMesh)
+#     if sc is not None:
+#         addCleanJoint(jnts, inMesh)
+#     else:
+#         sc = cmds.skinCluster(jnts, inMesh, tsb=1)[0]
 
-    for key, value in vertices.items():
-        vtx = "%s.vtx[%i]" % (inMesh, key)
-        tv = []
-        totalVal = 0
-        for jnt in jnts:
-            totalVal += value[jnt]
-        if totalVal < 1e-6:
-            continue
+#     for key, value in vertices.items():
+#         vtx = "%s.vtx[%i]" % (inMesh, key)
+#         tv = []
+#         totalVal = 0
+#         for jnt in jnts:
+#             totalVal += value[jnt]
+#         if totalVal < 1e-6:
+#             continue
 
-        for jnt in jnts:
-            weight = value[jnt]
-            if totalVal > 1.0:
-                weight = remap(0, totalVal, 0, 1, weight)
-            tv.append([jnt, weight])
+#         for jnt in jnts:
+#             weight = value[jnt]
+#             if totalVal > 1.0:
+#                 weight = remap(0, totalVal, 0, 1, weight)
+#             tv.append([jnt, weight])
 
-        cmds.skinPercent(sc, vtx, transformValue=tv)
+#         cmds.skinPercent(sc, vtx, transformValue=tv)

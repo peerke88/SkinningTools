@@ -128,7 +128,7 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect(self._growsel_func)
 
         if _DEBUG:
-            for chk in [smthBrs_Btn, toJoint_Btn, cutMesh_Btn]:
+            for chk in [smthBrs_Btn, cutMesh_Btn]:
                 chk.setStyleSheet("background-color: red")
 
     # -- checkbox modifiers    
