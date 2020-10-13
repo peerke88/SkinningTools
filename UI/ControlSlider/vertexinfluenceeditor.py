@@ -46,12 +46,12 @@ class VertexInfluenceEditor(QGroupBox):
         self.setCheckable(True)
         self.setChecked(True)
         self.toggled.connect(self._toggleGroupBox)
-
-        if type(vtxLName) in [list, tuple]:
+        
+        if len(vtxLName) > 1:
             self.setTitle("Multi Slider")
             self.setToolTip(str(api.getIds(vtxLName)))
         else:
-            self.setTitle(vtxLName.rsplit('|', 1)[-1])
+            self.setTitle(vtxLName[0].rsplit('|', 1)[-1])
             self.setToolTip(str(vtxLName))
 
         self.setLayout(nullVBoxLayout())

@@ -18,7 +18,7 @@ from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
-__VERSION__ = "5.0.20200820"
+__VERSION__ = "5.0.20201013"
 
 
 class SkinningTools(QMainWindow):
@@ -56,6 +56,7 @@ class SkinningTools(QMainWindow):
         self.recurseMouseTracking(self, True)
         api.dccInstallEventFilter()
 
+        self._callbackFilter()
         interface.doSelect(__sel)
 
     def __uiElements(self):
@@ -72,7 +73,7 @@ class SkinningTools(QMainWindow):
         self.__timing = 700
 
     def __connections(self):
-        self.tabs.currentChanged.connect(self._tabChanged)
+        self.tabs.currentChanged.connect(self._callbackFilter)
 
     # ------------------------- ui Setups ---------------------------------
     def __menuSetup(self):
@@ -106,7 +107,6 @@ class SkinningTools(QMainWindow):
         self.tabs.tearOff.connect(self.tearOff)
         self.tabs.tabBar().setWest()
         
-
     def __mayaToolsSetup(self):
         tab = self.tabs.addGraphicsTab("Maya Tools")
 
@@ -154,6 +154,8 @@ class SkinningTools(QMainWindow):
         tab = self.tabs.addGraphicsTab("Skin Slider")
         vLayout = nullVBoxLayout()
         self.__skinSlider = SkinSliderSetup(self)
+        self.__skinSlider.isInView = False
+        self.__skinSlider.createCallback()
 
         vLayout.addWidget(self.__skinSlider)
         tab.view.frame.setLayout(vLayout)
@@ -163,25 +165,23 @@ class SkinningTools(QMainWindow):
         tab = self.tabs.addGraphicsTab("Component Editor")
         vLayout = nullVBoxLayout()
         self.__editor = weightEditor.WeightEditorWindow(self)
-        
+        self.__editor.isInView = False
+
         vLayout.addWidget(self.__editor)
         tab.view.frame.setLayout(vLayout)
         
-
     def __weightManagerSetup(self):
         self.tabs.addGraphicsTab("Weight Manager")
 
     # ------------------------- utilities ---------------------------------
 
-    def _tabChanged(self, index):
-        # self.__editor.isInView = False
-
-        #@ todo:
-        # this probablt does not work once tabs are torn off, needs a better way to manage!
-        if index == 1:
-            self.__skinSlider.inflEdit.update() 
-        if index == 2:
-            # self.__editor.isInView = True
+    def _callbackFilter(self, *args):
+        self.__skinSlider.isInView = not self.__skinSlider.visibleRegion().isEmpty() 
+        self.__editor.isInView = not self.__editor.visibleRegion().isEmpty()
+        
+        if self.__skinSlider.isInView :
+            self.__skinSlider._update()
+        if self.__editor.isInView :
             self.__editor.getSkinWeights()
 
     def _tabName(self, index=-1, mainTool=None):
@@ -205,6 +205,10 @@ class SkinningTools(QMainWindow):
         tabs.removeTab(index)
 
     # -------------------- tool tips -------------------------------------
+
+    def enterEvent(self, event):
+        self._callbackFilter()
+        return super(SkinningTools, self).enterEvent(event)
 
     def recurseMouseTracking(self, parent, flag):
         if hasattr(parent, "mouseMoveEvent"):
@@ -299,8 +303,6 @@ class SkinningTools(QMainWindow):
         api._cleanEventFilter()
         del self.__editor
         self.deleteLater()
-
-
 
 def showUI(newPlacement=False):
     window_name = 'SkinningTools: %s' % __VERSION__

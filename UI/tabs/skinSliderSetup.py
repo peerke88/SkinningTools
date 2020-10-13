@@ -9,43 +9,17 @@ class SkinSliderSetup(QWidget):
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(SkinSliderSetup, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
-
+        self.isInView = True
         self.inflEdit = SkinningToolsSliderList(self)
 
         self._doSelectCB = None
 
-        self.__skinSliderSetup()
-
-    def __skinSliderSetup(self):
-        h = nullHBoxLayout()
-        cnct = HoverIconButton(icon = ":/hsNothing.png", checked = ":/hsDownStreamCon.png", parent = self)
-        rfr = HoverIconButton(icon = ":/playbackLoopingContinuous_100.png")
-        live = HoverIconButton(icon = ":/UVPivotLeft.png", checked = ":/enabled.png")
-
-        h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        for btn in [cnct, rfr, live]:
-            h.addWidget(btn)
-
-        cnct.clicked.connect(self._mutliSelection)
-        rfr.clicked.connect(self._update)
-        live.clicked.connect(self._live)
-        
-        self.layout().addLayout(h)
         self.layout().addWidget(self.inflEdit)
 
-    def _mutliSelection(self):
-        doMulti = self.sender().isChecked()
-        self.inflEdit.setMultiAtOnce(doMulti)
-
     def _update(self):
-        self.inflEdit.update()
-
-    def _live(self):
-        doLive = self.sender().isChecked()
-        if doLive:
-            self.createCallback()
+        if not self.isInView:
             return
-        self.clearCallback()            
+        self.inflEdit.update()
 
     def createCallback(self):
         self.clearCallback()

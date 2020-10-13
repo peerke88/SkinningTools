@@ -19,7 +19,7 @@ from SkinningTools.Maya.tools.apiWeights import ApiWeights
 class WeightEditorWindow(QWidget):
     def __init__(self, parent = None):
         super(WeightEditorWindow, self).__init__(parent)
-        # self.isInView = True
+        self.isInView = True
         self.limit = 4
         self.apiWeights = ApiWeights()
         
@@ -378,8 +378,8 @@ class WeightEditorWindow(QWidget):
         
     def getSkinWeights(self):
         
-        # if not self.isInView:
-        #     return
+        if not self.isInView:
+            return
         
         if self.selectMode:
             self.selectMode = False
