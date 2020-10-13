@@ -144,3 +144,8 @@ dmypy.json
 .vs/SkinningTools/v15/.suo
 *.db
 *.sqlite
+
+# Plugin C++ build files and libs.
+Maya/plugin/build/
+Maya/plugin/x64/
+
