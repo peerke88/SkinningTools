@@ -3,6 +3,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface, api
 
+#@todo: make sure all cmds modules are moved over to interface/api
 from maya import cmds
 from maya.api import OpenMaya
 
@@ -385,7 +386,7 @@ class WeightEditorWindow(QWidget):
             self.selectMode = False
             return
 
-        self.baseSelection = cmds.ls(sl=1, l=1)
+        self.baseSelection =  interface.getSelection() 
         
         self.apiWeights.getData()
         self.nodesToHilite = list(set(self.apiWeights.meshNodes))
@@ -396,7 +397,6 @@ class WeightEditorWindow(QWidget):
         self.meshSkinClusters = self.apiWeights.meshSkinClusters
         
         if self._beforeCtx:
-            cmds.setToolTo(self._beforeCtx)
             self._beforeCtx = None
         
         self._headerSelection = []
@@ -529,16 +529,6 @@ class WeightEditorWindow(QWidget):
     def cell_changed(self, selected, deselected):
 
         if self._beforeCtx:
-            self.selectMode = True
-            if self._beforeMode:
-                cmds.selectMode(co=True)
-            else:
-                cmds.selectMode(o=True)
-            if self._beforeCtx:
-                cmds.setToolTo(self._beforeCtx)
-            if self._headerSelection:
-                cmds.hilite(self.nodesToHilite, r=True)
-                cmds.select(self._headerSelection, r=True)
             self._beforeCtx = None
             self._headerSelection = None
         
@@ -546,48 +536,6 @@ class WeightEditorWindow(QWidget):
         
         self.pre_add_value = 0.0
         self.sel_rows = self.getRows()
-        
-        self.hilite_vertices()
-    
-    @api.dec_undo
-    def hilite_vertices(self):
-        self.selectMode = True
-        
-        vertices = []
-        if not self.weightSelectModel.currentIndex():
-            return
-
-        rows = self.getRows()
-        if not rows:
-            interface.doSelect(self.baseSelection)
-            return
-
-        prevVtxID = None
-        prevMesh = None
-        vtxConn = []
-        for i, r in enumerate(rows+[rows[0]]):
-            meshNode = self.vtxDataDict[r][6]
-            vertexID = self.vtxDataDict[r][0]
-            if prevMesh == meshNode or prevMesh is None:
-                if prevVtxID == vertexID-1 or prevVtxID is None:
-                    prevMesh = meshNode
-                    prevVtxID = vertexID
-                    vtxConn.append(vertexID)
-                    continue
-            
-            curNode = meshNode
-            if prevMesh != meshNode:
-                curNode = prevMesh
-            
-            vertices.append('%s.vtx[%s:%s]'%(curNode, vtxConn[0], vtxConn[-1]))
-            prevMesh = meshNode
-            vtxConn = [vertexID]
-        
-        if cmds.selectMode(q=True, o=True): #< how to transfer this in interface?
-            interface.doSelect(self.baseSelection + vertices)
-            return
-
-        interface.doSelect(vertices)
         
     @api.dec_undo
     def selectFromHeader(self):

@@ -1,10 +1,11 @@
 from maya import cmds
-from maya.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFnMesh
+from maya.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFnMesh, MFloatVector, MSpace, MFloatVectorArray
 from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
+from SkinningTools.UI import utils
 from SkinningTools.UI.fallofCurveUI import BezierFunctions
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 
 def getShellFaces(poly):
@@ -317,40 +318,37 @@ def softSelection():
 @shared.dec_undo
 def extractFacesByVertices(vertices, internal=False):
     vertices = cmds.filterExpand(vertices, sm=31)
+    if not vertices:
+        return None
 
-    dup = cmds.duplicate(vertices[0].rsplit('.',1)[0])[0]
-    try:
+    mesh = vertices[0].rsplit('.',1)[0]
+    dup = cmds.duplicate(mesh)[0]
+    if cmds.listRelatives(dup, p=1):
         cmds.parent(dup, w=True)
-    except:
-        pass
     
     dup = '|' + dup
-    for i in range(len(vertices)):
-        vertices[i] = dup + '.' + vertices[i].rsplit('.',1)[-1]
+    for i, vert in enumerate(vertices):
+        vertices[i] = dup + '.' + vert.rsplit('.',1)[-1]
     
     cmds.polyTriangulate(dup)
-    if not vertices:
-        cmds.delete(dup)
-        return None
+
     faces = cmds.polyListComponentConversion(vertices, tf=True, internal=internal)
-    if not faces:
-        cmds.delete(dup)
-        return None
-    if not internal:
-        vertices = cmds.filterExpand(cmds.polyListComponentConversion(faces, tv=True), sm=31)
     faces = cmds.filterExpand(faces, sm=34)
     if not faces:
         cmds.delete(dup)
         return None
-        
+
+    if not internal:
+        vertices = cmds.filterExpand(cmds.polyListComponentConversion(faces, tv=True), sm=31)
+
     vertexPositions = MFloatPointArray()
     vertexMap = {}
-    i = 0
-    for vertex in vertices:
+    normals = []
+    for i, vertex in enumerate(vertices):
         vertexPositions.append(MFloatPoint(*cmds.xform(vertex, q=True, ws=True, t=True)))
         vertexMap[vertex.rsplit('[',1)[-1].split(']',1)[0]] = i
-        i += 1
-
+        normals.append( cmds.polyNormalPerVertex(vertex, q=1, xyz=1 )[:3] )
+        
     ids = MIntArray()
     counts = MIntArray()
     for face in faces:
@@ -363,7 +361,65 @@ def extractFacesByVertices(vertices, internal=False):
     m.create(vertexPositions.length(), counts.length(), vertexPositions, counts, ids)
 
     path = m.fullPathName()
-    cmds.delete(dup)
     if cmds.ls(path, type='mesh'):
         path = cmds.listRelatives(path, parent=True, f=True)
+    cmds.transferAttributes(dup, path, transferPositions = 0, transferNormals =  1, transferUVs = 2, sampleSpace = 0, sourceUvSpace = "map1", targetUvSpace = "map1", searchMethod = 3 ,flipUVs = 0)
+    cmds.delete(path, ch=1)
+    cmds.sets(path, edit=True, forceElement="initialShadingGroup")
+    cmds.delete(dup)
     return path
+
+@shared.dec_undo
+def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressBar = None):    
+    from SkinningTools.Maya.tools import joints
+    skinClusterName = shared.skinCluster( inObject, silent=True )
+    
+    if skinClusterName == None:
+        return
+    
+    utils.setProgress(0, progressBar, "processing: %s"%inObject )
+    objectShape = cmds.listRelatives(inObject, s=1)[0]
+    infArray = shared.getWeights(inObject)
+
+    expandedList = shared.convertToVertexList(inObject)
+    attachedJoints = joints.getInfluencingJoints(skinClusterName)
+    
+    objList = []    
+    indexConns = defaultdict(lambda : [])
+    
+    percentage = 19.0 / len(expandedList)    
+    for vId, vtx in enumerate(expandedList):
+        val = cmds.skinPercent(skinClusterName, vtx, q=1, v = True)
+        index = val.index(max(val))
+        joint = cmds.skinPercent(skinClusterName, vtx, q=1, t = None)[index]
+        indexConns[joint].append(vtx)
+        utils.setProgress((vId * percentage), progressBar, "getting vtx data: %s"%(vId))
+
+    utils.setProgress(20, progressBar, "data gathered: %s"%inObject )
+
+    percentage = 79.0 / len(indexConns)
+    for index, (shortJointName, val) in enumerate(indexConns.iteritems()):
+        obj = extractFacesByVertices(val, internal = internal)
+        if obj is None:
+            continue
+
+        newObj = cmds.rename(obj[0], "%s_%s_Proxy"%(shortJointName, inObject))
+
+        grp = cmds.group(n= "%s_%s_ProxyGrp"%(shortJointName, inObject), em=1)
+
+        if not maya2020:
+            decomp = cmds.createNode("decomposeMatrix", n = "%s_%s_ProxyDCP"%(shortJointName, inObject) )
+            cmds.connectAttr( "%s.worldMatrix[0]"%shortJointName, "%s.inputMatrix"%decomp )
+            cmds.connectAttr( "%s.outputTranslate"%decomp, "%s.translate"%grp )
+            cmds.connectAttr( "%s.outputRotate"%decomp, "%s.rotate"%grp )
+        else:
+            cmds.connectAttr( "%s.worldMatrix[0]"%shortJointName, "%s.offsetParentMatrix"%grp )
+
+        cmds.parent(newObj, grp)
+        objList.append(grp)
+        utils.setProgress(20.0 + (index * percentage), progressBar, "%s > %s proxy created"%(inObject, shortJointName))
+
+
+    utils.setProgress(100, progressBar, "%s proxys generated"%inObject)
+    return cmds.group(objList, n="LowRez_%s"%inObject)
+    

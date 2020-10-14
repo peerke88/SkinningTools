@@ -388,6 +388,18 @@ def getNeightbors(inComps):
 
     cmds.error("current type --%s-- not valid for this commmand, only surface or polygon can be used!" % objType)
 
+def cutMesh(internal, maya2020, progressBar= None ):
+    selection = getSelection()
+    if "." in selection[0]:
+        selection = [selection[0].split(".")[0]]
+    
+    meshes = []
+    for obj in selection:
+        msh = mesh.cutCharacterFromSkin(obj, internal, maya2020, progressBar)
+        meshes.append(msh)
+    print meshes
+    # cmds.group(meshes, n = "lowRez")
+
 
 class vertexWeight(object):
     def __init__(self, inProgressBar=None):

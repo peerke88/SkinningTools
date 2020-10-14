@@ -24,8 +24,7 @@ def dec_undo(func):
                 cmds.warning(traceback.format_exc())
         finally:
             cmds.undoInfo(cck=True)
-            return False
-
+            
     return _undo_func
 
 
