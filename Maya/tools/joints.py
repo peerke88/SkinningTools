@@ -7,10 +7,21 @@ from maya import cmds, mel
 from maya.api.OpenMaya import MSpace, MFnTransform, MVector, MFnMesh
 
 
-# @note all functions must have connection wiuth progressbar and sensible progress messages,
+# @note all functions must have connection with progressbar and sensible progress messages,
 # look into warning messages later
 @shared.dec_undo
 def autoLabelJoints(inputLeft="L_*", inputRight="R_*", progressBar=None):
+    """ 
+    joint labeling function
+    :param inputLeft: search function that allocates which joints are part of the left side of the rig "*" used as a wildcard to replace part of the string
+    :type inputLeft: string
+    :param inputRight: search function that allocates which joints are part of the right side of the rig "*" used as a wildcard to replace part of the string
+    :type inputRight: string
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     def SetAttrs(side, type, name):
         for attr in ["side", "type", "otherType", "drawLabel"]:
             cmds.setAttr("%s.%s" % (bone, attr), l=0)
@@ -61,6 +72,15 @@ def autoLabelJoints(inputLeft="L_*", inputRight="R_*", progressBar=None):
 
 @shared.dec_undo
 def resetToBindPoseobject(inObject, progressBar=None):
+    """ 
+    set joints back into their bindpose using the prebind matrix of the skincluster, only works when joints are not connected (rigged)
+    :param inObject: mesh object that has a skincluster attached
+    :type inObject: string
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     skinCluster = shared.skinCluster(inObject, silent=True)
     if skinCluster is None:
         return
@@ -80,6 +100,17 @@ def resetToBindPoseobject(inObject, progressBar=None):
 
 @shared.dec_undo
 def resetSkinnedJoints(inJoints=None, inSkinCluster=None, progressBar=None):
+    """ 
+    force recalculate the prebindmatrices in the skinclsuter based on current joint positions
+    :param inJoints: list of joints to recalculate
+    :type inJoints: list
+    :param inSkinCluster: the skincluster that will receive new prebind matrices
+    :type inSkinCluster: string
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     jnts = inJoints
     if jnts == None:
         jnts = cmds.ls(sl=0, type="joint", l=1)
@@ -116,6 +147,15 @@ def resetSkinnedJoints(inJoints=None, inSkinCluster=None, progressBar=None):
 
 
 def freezeScale(inJnts, progressBar=None):
+    """ 
+    force clean joint scales per joint
+    :param inJnts: list of joints that need their scales to be set to uniform (1,1,1)
+    :type inJnts: list
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: list of joints that are cleaned
+    :rtype: list
+    """
     percentage = 99.0 / len(inJnts)
     wms = []
     for i, joint in enumerate(inJnts):
@@ -133,9 +173,19 @@ def freezeScale(inJnts, progressBar=None):
         fm = mathUtils.matrixToFloatList(wms[index])
         cmds.xform(jnt, ws=1, m=fm)
     utils.setProgress(100, progressBar, "scale frozen")
+    return inJnts
 
 
 def freezeRotate(inJnts, progressBar=None):
+    """ 
+    force clean joint rotations per joint
+    :param inJnts: list of joints that need their rotations to be nulified (0,0,0)
+    :type inJnts: list
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: list of joints that are cleaned
+    :rtype: list
+    """
     percentage = 99.0 / len(inJnts)
     for i, joint in enumerate(inJnts):
         if cmds.objectType(joint) != "joint":
@@ -162,7 +212,20 @@ def freezeRotate(inJnts, progressBar=None):
 
 @shared.dec_undo
 def freezeSkinnedJoints(jnts, rotate=1, scale=1, progressBar=None):
-    # @note: this will not work when joints are connected through ik-handle!
+    """ 
+    clean joint rotations and scales even if they are skinned
+    :note: this will not work when joints are connected through ik-handle!
+    :param jnts: list of joints that need their rotations and scales to be cleaned
+    :type jnts: list
+    :param rotate: if `True` will clean rotations, if `False` will skip them
+    :type rotate: bool
+    :param scale: if `True` will clean scales, if `False` will skip them
+    :type scale: bool
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     if len(jnts) == 1:
         jnts = shared.selectHierarchy(jnts)
     if rotate:
@@ -173,10 +236,17 @@ def freezeSkinnedJoints(jnts, rotate=1, scale=1, progressBar=None):
         utils.setProgress(66, progressBar, "freezeScale")
     resetSkinnedJoints(jnts)
     utils.setProgress(100, progressBar, "freeze skinned joints")
-
+    return True
 
 @shared.dec_undo
 def removeBindPoses(progressBar=None):
+    """ 
+    remove bindpose nodes from the scene so the prebindmatrices in the skinclusters can do their work, this also makes it easier to add new joints to the skinclusters
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     dagPoses = cmds.ls(type="dagPose")
     percentage = 99.0 / len(dagPoses)
     for index, dagPose in enumerate(dagPoses):
@@ -190,6 +260,17 @@ def removeBindPoses(progressBar=None):
 
 @shared.dec_undo
 def addCleanJoint(jnts, inMesh, progressBar=None):
+    """ 
+    add a new joint to the skincluster
+    :param jnts: list of joints that need to be added to the current skinCluster
+    :type jnts: list
+    :param rotate: name of the mesh the joint should be added to
+    :type rotate: string
+    :param progressBar: progress bar instance to be used for progress displey, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     sc = shared.skinCluster(inMesh, silent=True)
     percentage = 99.0 / len(jnts)
     if sc != None:
@@ -521,56 +602,3 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     for index, vert in enumerate(verts):
         cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])
     return jnt
-
-
-# def convertClustersToJoint(inMesh, inClusters, progressBar=True):
-#     meshDag = shared.getDagpath(inMesh)
-#     mfnMesh = MFnMesh(meshDag)
-#     origPos = mfnMesh.getPoints(MSpace.kObject)
-#     vertices = {}
-#     for index, vtx in enumerate(origPos):
-#         vertices[index] = {}
-
-#     jnts = []
-#     for deform in inClusters:
-#         deformDag = shared.getDagpath(deform)
-
-#         jnt = cmds.createNode("joint", n="temp%s" % (deform))
-#         cmds.matchTransform(jnt, deform, pos=1, rot=1)
-
-#         mfnTrs = MFnTransform(deformDag)
-#         vec = MVector(1, 0, 0)
-#         mfnTrs.setTranslation(vec, MSpace.kTransform)
-
-#         deformPos = mfnMesh.getPoints(MSpace.kObject)
-#         zero = MVector(0, 0, 0)
-#         mfnTrs.setTranslation(zero, MSpace.kTransform)
-
-#         weights = []
-#         for index, origVec in enumerate(origPos):
-#             deformVec = deformPos[index]
-#             vertices[index][jnt] = (origVec - deformVec).length()
-#         jnts.append(jnt)
-
-#     sc = shared.skinCluster(inMesh)
-#     if sc is not None:
-#         addCleanJoint(jnts, inMesh)
-#     else:
-#         sc = cmds.skinCluster(jnts, inMesh, tsb=1)[0]
-
-#     for key, value in vertices.items():
-#         vtx = "%s.vtx[%i]" % (inMesh, key)
-#         tv = []
-#         totalVal = 0
-#         for jnt in jnts:
-#             totalVal += value[jnt]
-#         if totalVal < 1e-6:
-#             continue
-
-#         for jnt in jnts:
-#             weight = value[jnt]
-#             if totalVal > 1.0:
-#                 weight = remap(0, totalVal, 0, 1, weight)
-#             tv.append([jnt, weight])
-
-#         cmds.skinPercent(sc, vtx, transformValue=tv)

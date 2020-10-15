@@ -4,8 +4,8 @@ from SkinningTools.UI.qt_util import *
 # @note: add warning messages or error messages in the progressbar? change color?
 
 class MessageProgressBar(QProgressBar):
-    def __init__(self):
-        super(MessageProgressBar, self).__init__()
+    def __init__(self, parent = None):
+        super(MessageProgressBar, self).__init__(parent = parent)
         self.setAlignment(Qt.AlignCenter)
         self.__currentMessage = ''
 

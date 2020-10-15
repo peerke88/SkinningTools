@@ -22,6 +22,8 @@ class MarkingMenuFilter(QObject):
         return MarkingMenuFilter._singleton
 
     def eventFilter(self, obj, event):
+        if MarkingMenuFilter is None:
+            return False
         super(MarkingMenuFilter, self).eventFilter(obj, event) 
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.AltModifier:

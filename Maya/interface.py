@@ -397,8 +397,7 @@ def cutMesh(internal, maya2020, progressBar= None ):
     for obj in selection:
         msh = mesh.cutCharacterFromSkin(obj, internal, maya2020, progressBar)
         meshes.append(msh)
-    print meshes
-    # cmds.group(meshes, n = "lowRez")
+    cmds.group(meshes, n = "lowRez")
 
 
 class vertexWeight(object):
