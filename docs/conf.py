@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = u'SkinningTools'
-copyright = u'2020, Trevor v Hoof, Jan Pijpers, Perry Leijten'
-author = u'Trevor v Hoof, Jan Pijpers, Perry Leijten'
+copyright = u'2020, Rodolphe Vaillant Trevor v Hoof, Jan Pijpers, Perry Leijten'
+author = u'Rodolphe Vaillant Trevor v Hoof, Jan Pijpers, Perry Leijten'
 
 # The short X.Y version
 version = u'5.0'
@@ -38,6 +38,8 @@ release = u'5.0.20200822'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'autoapi.extension',
 ]
@@ -67,14 +69,14 @@ language = None
 exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+pygments_style = 'sphinx'
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -96,7 +98,7 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
-
+html_theme = 'groundwork'
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
@@ -128,7 +130,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'SkinningTools.tex', u'SkinningTools Documentation',
-     u'Trevor v Hoof, Jan Pijpers, Perry Leijten', 'manual'),
+     u'Rodolphe Vaillant, Trevor v Hoof, Jan Pijpers, Perry Leijten', 'manual'),
 ]
 
 # -- Options for manual page output ------------------------------------------
@@ -172,3 +174,6 @@ epub_exclude_files = ['search.html']
 
 autoapi_type = 'python'
 autoapi_dirs = ['../Maya', "../UI"]
+autoapi_template_dir = '_autoapi_templates'
+autoapi_add_toctree_entry =True
+autoapi_options = ['members','undoc-members','private-members','show-inheritance','show-inheritance-diagram','show-module-summary','special-members','imported-members', ]

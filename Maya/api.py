@@ -166,7 +166,7 @@ def _cleanEventFilter():
             widget.removeEventFilter(MarkingMenuFilter.singleton())
         except Exception as e:
             if _DEBUG:
-                print e
+                print(e)
     return widgets
 
 

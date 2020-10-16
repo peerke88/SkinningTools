@@ -298,7 +298,6 @@ class SkinningTools(QMainWindow):
             comp.setCurrentIndex(index)
 
     def hideEvent(self, event):
-        print "closed"
         self.saveUIState()
         self.__skinSlider.clearCallback()
         self.__editor.setClose()
