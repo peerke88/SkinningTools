@@ -24,7 +24,6 @@ class AverageWghtCtx(object):
         self.obj = self.dag.node()
 
         self.skinCluster = shared.getMfnSkinCluster(self.dag)
-        print(self.skinCluster)
 
         maxInfPLG = self.skinCluster.findPlug("maxInfluences", True)
         normalizePLG = self.skinCluster.findPlug("normalizeWeights", True)

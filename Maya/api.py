@@ -58,8 +58,10 @@ def connectSelectionChangedCallback(callback):
 
 
 def disconnectCallback(handle):
-    if isinstance(handle, str):  # in the future we can also handle MCallbackId from API callbacks here
+    if isinstance(handle, int):  # in the future we can also handle MCallbackId from API callbacks here
         cmds.scriptJob(kill=handle, force=True)
+    else:
+        print("Unrecognized handle")
 
 
 skinClusterForObject = shared.skinCluster

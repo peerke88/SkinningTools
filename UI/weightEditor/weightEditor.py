@@ -386,6 +386,8 @@ class WeightEditorWindow(QWidget):
             return
 
         self.baseSelection = cmds.ls(sl=1, l=1)
+        if len(self.baseSelection) == 0:
+            return
         
         self.apiWeights.getData()
         self.nodesToHilite = list(set(self.apiWeights.meshNodes))
@@ -394,6 +396,10 @@ class WeightEditorWindow(QWidget):
         self.meshVerts  = self.apiWeights.meshVerts
         self.meshWeights  = self.apiWeights.meshWeights
         self.meshSkinClusters = self.apiWeights.meshSkinClusters
+
+        if len(self.meshSkinClusters) == 0:
+            print("No skin cluster found")
+            return
         
         if self._beforeCtx:
             cmds.setToolTo(self._beforeCtx)
@@ -794,7 +800,8 @@ class WeightEditorWindow(QWidget):
             self.weightTable.deleteLater()
             self.weightTable = None
             #del self.weightTable
-        self.weightSelectModel.deleteLater()
+        if self.weightSelectModel is not None:
+            self.weightSelectModel.deleteLater()
         #del self.weightSelectModel
     
     def setClose(self):

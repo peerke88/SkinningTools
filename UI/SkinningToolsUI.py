@@ -299,22 +299,35 @@ class SkinningTools(QMainWindow):
         self.__editor.setClose()
         api._cleanEventFilter()
         #del self.__editor
-        self.later = self.deleteLater()
+        #self.later = self.deleteLater()
 
+
+_g_skinToolsWindow = None
 
 def showUI(newPlacement=False):
     window_name = 'SkinningTools: %s' % __VERSION__
-    mainWindow = api.get_maya_window()
 
+    mainWindow = api.get_maya_window()
+    """
+    Rodolphe:
+    This seems slow (to be checked)
+    It's probably best to just keep a reference of the window as a global variable 
+    Globals are evil but I think in this case we can make an exception.
     if mainWindow:
         for child in mainWindow.children():
             if child.objectName() == window_name:
                 child.close()
                 child.deleteLater()
-    window = SkinningTools(newPlacement, mainWindow)
-    window.setObjectName(window_name)
-    window.setWindowTitle(window_name)
-    window.show()
+    """
+    global _g_skinToolsWindow
+    if _g_skinToolsWindow is not None:
+        _g_skinToolsWindow.close()
+        _g_skinToolsWindow.deleteLater()
 
-    return window
+    _g_skinToolsWindow = SkinningTools(newPlacement, mainWindow)
+    _g_skinToolsWindow.setObjectName(window_name)
+    _g_skinToolsWindow.setWindowTitle(window_name)
+    _g_skinToolsWindow.show()
+
+    return _g_skinToolsWindow
 
