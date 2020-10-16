@@ -25,6 +25,7 @@ class SkinningTools(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
         super(SkinningTools, self).__init__(parent)
         mainWidget = QWidget()
+        self.__editor = None
 
         __sel = interface.getSelection()
         interface.doSelect('')
@@ -163,7 +164,7 @@ class SkinningTools(QMainWindow):
         tab = self.tabs.addGraphicsTab("Component Editor")
         vLayout = nullVBoxLayout()
         self.__editor = weightEditor.WeightEditorWindow(self)
-        
+
         vLayout.addWidget(self.__editor)
         tab.view.frame.setLayout(vLayout)
         
@@ -297,9 +298,8 @@ class SkinningTools(QMainWindow):
         self.saveUIState()
         self.__editor.setClose()
         api._cleanEventFilter()
-        del self.__editor
-        self.deleteLater()
-
+        #del self.__editor
+        self.later = self.deleteLater()
 
 
 def showUI(newPlacement=False):
@@ -317,3 +317,4 @@ def showUI(newPlacement=False):
     window.show()
 
     return window
+

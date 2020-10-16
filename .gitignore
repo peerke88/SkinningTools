@@ -149,3 +149,6 @@ dmypy.json
 Maya/plugin/build/
 Maya/plugin/x64/
 
+# PyCharm files
+venv
+.idea

@@ -788,13 +788,14 @@ class WeightEditorWindow(QWidget):
             self._doSelectCB = None
 
     def cleanupTable(self):
-        del self.weightTable._data
-        self.weightTable._data = {}
-        self.weightTable.deleteLater()
-        del self.weightTable
-        self.weightTable = None
+        if self.weightTable is not None:
+            self.weightTable._data = {}
+            #del self.weightTable._data
+            self.weightTable.deleteLater()
+            self.weightTable = None
+            #del self.weightTable
         self.weightSelectModel.deleteLater()
-        del self.weightSelectModel
+        #del self.weightSelectModel
     
     def setClose(self):
         self.isClosed=True

@@ -103,7 +103,6 @@ def getSingleVertexWeights(skinClusterHandle, vertexHandle):
     # vertex can be obtained with selectedObjectVertexList(True)
     return cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, v=True)
 
-
 def selectVertices(meshVertexPairs):
     cmds.select([v for m, v in meshVertexPairs[:20]])
 

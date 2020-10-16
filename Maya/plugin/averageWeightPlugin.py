@@ -7,7 +7,6 @@ CONTEXT_UPDATE = "paintAverageWghtCtxUpdate"
 kCreator = "Trevor van Hoof & Perry Leijten"
 kVersion = "1.0.20200831"
 
-
 def maya_useNewAPI():
     pass
 
@@ -27,16 +26,15 @@ class AverageWghtCtx(object):
         self.skinCluster = shared.getMfnSkinCluster(self.dag)
         print(self.skinCluster)
 
-        maxInfPLG = self.skinCluster.findPlug("maxInfluences")
-        normalizePLG = self.skinCluster.findPlug("normalizeWeights")
-        mainTainPLG = self.skinCluster.findPlug("maintainMaxInfluences")
+        maxInfPLG = self.skinCluster.findPlug("maxInfluences", True)
+        normalizePLG = self.skinCluster.findPlug("normalizeWeights", True)
+        mainTainPLG = self.skinCluster.findPlug("maintainMaxInfluences", True)
 
         self.maxInfluences = maxInfPLG.asInt()
         self.normalize = normalizePLG.asInt()
         self.maintainMaxInfl = mainTainPLG.asBool()
 
-        self.infl = OpenMaya.MDagPathArray()
-        self.skinCluster.influenceObjects(self.infl)
+        self.infl = self.skinCluster.influenceObjects()
 
     def reset(self):
         self.obj = None
@@ -109,9 +107,14 @@ class AverageWghtCtx(object):
         vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
         singleIdComp.addElement(index)
 
-        self.skinCluster.setWeights(self.dag, vertexComp, newInfl, newWeights)
+        skinWeights = OpenMaya.MDoubleArray(len(newWeights), 0)
+        for i in range(len(newWeights)):
+            skinWeights[i] = newWeights[i]
 
-        return [self.skinCluster, self.dag, component, influencesN, origWeigths]
+        self.skinCluster.setWeights(self.dag, vertexComp, newInfl, skinWeights)# newWeights
+
+        return [self.skinCluster, self.dag, vertexComp, newInfl, origWeigths]
+
 
 
 smoothWeights = AverageWghtCtx()
