@@ -68,7 +68,7 @@ class SkinningTools(QMainWindow):
         interface.showToolTip(True)
         self._timer = QTimer()
         self._timer.timeout.connect(self._displayToolTip)
-        self.curentWidgetAtMouse = None
+        self.currentWidgetAtMouse = None
         self.toolTipWindow = None
         self.__timing = 700
 
@@ -106,7 +106,6 @@ class SkinningTools(QMainWindow):
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.tearOff.connect(self.tearOff)
         self.tabs.tabBar().setWest()
-        
 
     def __mayaToolsSetup(self):
         tab = self.tabs.addGraphicsTab("Maya Tools")
@@ -167,7 +166,6 @@ class SkinningTools(QMainWindow):
 
         vLayout.addWidget(self.__editor)
         tab.view.frame.setLayout(vLayout)
-        
 
     def __weightManagerSetup(self):
         self.tabs.addGraphicsTab("Weight Manager")
@@ -177,10 +175,10 @@ class SkinningTools(QMainWindow):
     def _tabChanged(self, index):
         # self.__editor.isInView = False
 
-        #@ todo:
+        # @ todo:
         # this probablt does not work once tabs are torn off, needs a better way to manage!
         if index == 1:
-            self.__skinSlider.inflEdit.update() 
+            self.__skinSlider.inflEdit.update()
         if index == 2:
             # self.__editor.isInView = True
             self.__editor.getSkinWeights()
@@ -233,16 +231,16 @@ class SkinningTools(QMainWindow):
 
         if curWidget == None and self.toolTipWindow != None:
             _removeTT()
-        if self.curentWidgetAtMouse != curWidget:
+        if self.currentWidgetAtMouse != curWidget:
             if self.toolTipWindow != None:
                 _removeTT()
 
             if not isinstance(curWidget, QPushButton):  # <- add multiple checks if more implemented then just buttons
                 _removeTT()
-                self.curentWidgetAtMouse = None
+                self.currentWidgetAtMouse = None
                 return
 
-            self.curentWidgetAtMouse = curWidget
+            self.currentWidgetAtMouse = curWidget
             self._timer.start(self.__timing)
 
     def childMouseMoveEvent(self, child, event):
@@ -255,9 +253,9 @@ class SkinningTools(QMainWindow):
 
     def _displayToolTip(self):
         self._timer.stop()
-        if self.curentWidgetAtMouse == None or self.tooltipAction.isChecked() == False:
+        if (self.currentWidgetAtMouse is None) or (self.tooltipAction.isChecked() == False):
             return
-        tip = self.curentWidgetAtMouse.whatsThis()
+        tip = self.currentWidgetAtMouse.whatsThis()
 
         size = 250
         if QDesktopWidget().screenGeometry().height() > 1080:
@@ -283,7 +281,7 @@ class SkinningTools(QMainWindow):
 
     def loadUIState(self):
         getGeo = self.settings.value("geometry")
-        if getGeo == None:
+        if getGeo is None:
             return
         self.restoreGeometry(getGeo)
         tools = {"tools": self.mayaToolsTab,
@@ -298,36 +296,30 @@ class SkinningTools(QMainWindow):
         self.saveUIState()
         self.__editor.setClose()
         api._cleanEventFilter()
-        #del self.__editor
-        #self.later = self.deleteLater()
+        # del self.__editor
+        # self.later = self.deleteLater()
 
 
-_g_skinToolsWindow = None
+def getSkinningToolsWindowName():
+    return 'SkinningTools: %s' % __VERSION__
 
-def showUI(newPlacement=False):
-    window_name = 'SkinningTools: %s' % __VERSION__
 
-    mainWindow = api.get_maya_window()
-    """
-    Rodolphe:
-    This seems slow (to be checked)
-    It's probably best to just keep a reference of the window as a global variable 
-    Globals are evil but I think in this case we can make an exception.
+def closeSkinningToolsMainWindow(windowName=getSkinningToolsWindowName(), mainWindow = api.get_maya_window()):
     if mainWindow:
         for child in mainWindow.children():
-            if child.objectName() == window_name:
+            if child.objectName() == windowName:
                 child.close()
                 child.deleteLater()
-    """
-    global _g_skinToolsWindow
-    if _g_skinToolsWindow is not None:
-        _g_skinToolsWindow.close()
-        _g_skinToolsWindow.deleteLater()
 
-    _g_skinToolsWindow = SkinningTools(newPlacement, mainWindow)
-    _g_skinToolsWindow.setObjectName(window_name)
-    _g_skinToolsWindow.setWindowTitle(window_name)
-    _g_skinToolsWindow.show()
 
-    return _g_skinToolsWindow
+def showUI(newPlacement=False):
+    windowName = 'SkinningTools: %s' % __VERSION__
+    mainWindow = api.get_maya_window()
+    closeSkinningToolsMainWindow(windowName, mainWindow)
 
+    window = SkinningTools(newPlacement, mainWindow)
+    window.setObjectName(windowName)
+    window.setWindowTitle(windowName)
+    window.show()
+
+    return window
