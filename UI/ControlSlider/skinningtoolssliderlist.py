@@ -8,18 +8,18 @@ class SkinningToolsSliderList(QWidget):
     def __init__(self, parent=None):
         super(SkinningToolsSliderList, self).__init__(parent=None)
         self.setLayout(QVBoxLayout())
-        self.__doMultiAtOnce = True
+        # self.__doMultiAtOnce = True
         
         self.update()
 
-    def setMultiAtOnce(self, inValue):
-        self.__doMultiAtOnce = inValue
-        self.update()
+    # def setMultiAtOnce(self, inValue):
+    #     self.__doMultiAtOnce = inValue
+    #     self.update()
 
-    def getMultiAtOnce(self):
-        return self.__doMultiAtOnce
+    # def getMultiAtOnce(self):
+    #     return self.__doMultiAtOnce
 
-    multi = property(getMultiAtOnce, setMultiAtOnce)
+    # multi = property(getMultiAtOnce, setMultiAtOnce)
 
     def clear(self):
         while True:
@@ -37,6 +37,9 @@ class SkinningToolsSliderList(QWidget):
         if not vertices:
             return
 
+        if len(vertices[0]) > 1:
+            self.__doMultiAtOnce = True
+
         #@todo: always live?? check with component editor!
         # use 1 view for many vertices if requested, 
         # show multiple vertices if this setting is off
@@ -45,9 +48,9 @@ class SkinningToolsSliderList(QWidget):
         self.skinClusterCache = {}
         mesh = vertices[0][0]
         vertexList = vertices[0][1]
-        if self.__doMultiAtOnce:
+        if len(vertexList) > 1:
             vertexList = [vertex for mesh, vertex in vertices]
-            #@todo: doulbe check that all vertices are from the same mesh!
+            #@todo: double check that all vertices are from the same mesh!
         
         self.__addSliders(mesh, vertexList)
 

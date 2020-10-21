@@ -106,7 +106,7 @@ def getSingleVertexWeights(skinClusterHandle, vertexHandle):
     return cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, v=True)
 
 def selectVertices(meshVertexPairs):
-    cmds.select([v for m, v in meshVertexPairs[:20]])
+    cmds.select([v for m, v in meshVertexPairs])
 
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
     mel.eval('doMenuComponentSelection("%s", "%s");' % (meshVertexPairs[0][0].split('.')[0], "vertex"))

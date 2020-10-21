@@ -30,7 +30,7 @@ def unload(silent=True, packages=None):
     cmds.file(force=True, new=True)
     p1_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py"))
     p2_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py"))
-    
+
     if cmds.pluginInfo(p1_name, q=True, loaded=True):
         p1_name = cmds.pluginInfo(p1_name, query=True, name=True)
         cmds.unloadPlugin(cmds.pluginInfo(p1_name, query=True, name=True))

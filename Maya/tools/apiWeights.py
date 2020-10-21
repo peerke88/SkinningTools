@@ -36,9 +36,13 @@ class ApiWeights():
         skinFn = shared.getMfnSkinCluster(dagPath.fullPathName())
         return skinFn, skinCluster
 
-    def getData(self):
+    def getData(self, inNodes = None):
         self.doInit()
-        selection = interface.getSelection()
+        selection = inNodes
+        
+        if inNodes == None:
+            selection = interface.getSelection()
+
         currentNodes = []
         for node in selection:
             if "." in node:
