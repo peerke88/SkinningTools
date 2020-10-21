@@ -6,16 +6,7 @@
 Welcome to SkinningTools's documentation!
 =========================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-
-
-Indices and tables
-==================
-
-.. * :ref:`genindex`
+* :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
@@ -32,12 +23,15 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 Authors
 ==================
 
+* `Rodolphe Vaillant`_
+
 * `Trevor van Hoof`_
 
 * `Jan Pijpers`_
 
 * `Perry Leijten`_
 
+.. _Rodolphe Vaillant: http://rodolphe-vaillant.fr/
 .. _Trevor van Hoof: http://trevorius.com/scrapbook/
 .. _Jan Pijpers: https://www.janpijpers.com/
 .. _Perry Leijten: https://www.perryleijten.com/

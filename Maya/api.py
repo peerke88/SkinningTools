@@ -13,6 +13,7 @@ from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
 from maya.api import OpenMaya
 
+_DEBUG = True
 
 def get_maya_window():
     for widget in QApplication.allWidgets():
@@ -164,8 +165,9 @@ def _cleanEventFilter():
         try:
             widget.removeEventFilter(_EventFilter.singleton())
             widget.removeEventFilter(MarkingMenuFilter.singleton())
-        except:
-            pass
+        except Exception as e:
+            if _DEBUG:
+                print(e)
     return widgets
 
 

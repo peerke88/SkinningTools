@@ -19,7 +19,7 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 ```
  - Maya 2017+
  - Python 2.7 (3.7)
- - sphinx
+ - sphinx (extensions: sphinx-autoapi,  groundwork-sphinx-theme)
 ```
 
 

@@ -18,7 +18,7 @@ from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
-__VERSION__ = "5.0.20201013"
+__VERSION__ = "5.0.20201015"
 
 
 class SkinningTools(QMainWindow):
@@ -62,7 +62,7 @@ class SkinningTools(QMainWindow):
 
     def __uiElements(self):
         self.settings = QSettings("uiSkinSave", "SkinningTools")
-        self.progressBar = MessageProgressBar()
+        self.progressBar = MessageProgressBar(self)
         self.BezierGraph = BezierGraph()
 
     def __defaults(self):
@@ -299,12 +299,18 @@ class SkinningTools(QMainWindow):
                 index = 0
             comp.setCurrentIndex(index)
 
+
     def hideEvent(self, event):
         self.saveUIState()
+        self.__skinSlider.clearCallback()
         self.__editor.setClose()
         api._cleanEventFilter()
-        # del self.__editor
-        # self.later = self.deleteLater()
+        self.__skinSlider.deleteLater()
+        self.__editor.deleteLater()
+        del self.__skinSlider
+        del self.__editor
+        self.deleteLater()
+
 
 
 def getSkinningToolsWindowName():
@@ -323,7 +329,6 @@ def showUI(newPlacement=False):
     windowName = getSkinningToolsWindowName()
     mainWindow = api.get_maya_window()
     closeSkinningToolsMainWindow(windowName, mainWindow)
-
     window = SkinningTools(newPlacement, mainWindow)
     window.setObjectName(windowName)
     window.setWindowTitle(windowName)

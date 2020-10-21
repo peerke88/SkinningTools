@@ -9,8 +9,17 @@ _DEBUG = True
 
 
 def dec_undo(func):
-    '''undo decorator'''
+    """ undo decorator
+    will allow the objects created and changed in maya to be part of a single chunk where possible 
+    the decorators is wrapped within a try except finally function to make sure everything is always undoable
+    :note: object created with the use of OpenMaya will not be part of this
 
+
+    :param func: function this decorator is attached to 
+    :type func: function()
+    :return: the result of the given function
+    :rtype: function()
+    """
     @wraps(func)
     def _undo_func(*args, **kwargs):
         try:
@@ -24,14 +33,21 @@ def dec_undo(func):
                 cmds.warning(traceback.format_exc())
         finally:
             cmds.undoInfo(cck=True)
-            return False
-
+            
     return _undo_func
 
 
-# @note check if this works later!
 def dec_repeat(func):
-    '''repeat last decorator'''
+    """ repeat last decorator
+    converts the given function to a command that the repeatlast command can take
+    the arguments given are parsed and converted into a string that is added to a mel command.
+    :todo: double check the functionality
+
+    :param func: function this decorator is attached to 
+    :type func: function()
+    :return: the result of the given function
+    :rtype: function()
+    """
 
     @wraps(func)
     def _repeat_func(*args, **kwargs):
@@ -74,6 +90,14 @@ def dec_repeat(func):
     return _repeat_func
 
 def dec_loadPlugin(plugin):
+    """ load plugin decorator
+    loads the given plugin in the current maya scene, should be attached to functions that rely on plugins
+
+    :param func: plugin this decorator is attached to 
+    :type func: string
+    :return: the result of the given function
+    :rtype: function()
+    """
     def _loadPlugin_func(func):
         @wraps(func)
         def inner(*args, **kwargs):
@@ -91,6 +115,15 @@ def dec_loadPlugin(plugin):
 
 # @note: add this for debugging?
 def dec_timer(func):
+    """ debug timer decorator
+    times the function for how long it takes to run everything in the function
+
+    :param func: plugin this decorator is attached to 
+    :type func: string
+    :return: the result of the given function
+    :rtype: function()
+    """
+    
     @wraps(func)
     def _timer_func(*args, **kwargs):
         start = time.time()
@@ -102,26 +135,51 @@ def dec_timer(func):
     return _timer_func
 
 class Graph(object):
-    ''' dijkstra closest path technique (for nurbs and lattice)
+    """ dijkstra closest path technique (for nurbs and lattice)
     implemented from: https://gist.github.com/econchick/4666413  
-    basic idea: http://www.redblobgames.com/pathfinding/a-star/introduction.html'''
+    basic idea: http://www.redblobgames.com/pathfinding/a-star/introduction.html
+    """
 
     def __init__(self):
+        """ constructorMethod
+        """
         self.nodes = set()
         self.edges = defaultdict(list)
         self.distances = {}
 
     def add_node(self, value):
+        """ add the node which we will later search for the shortest path
+        
+        :param value:  key value to identify the node position
+        :type value: string
+        """
         self.nodes.add(value)
 
     def add_edge(self, from_node, to_node, distance):
+        """ add the edge information from which we will later search for the shortest path
+        
+        :param from_node: node that will be used as a start position on the segment
+        :type from_node: string
+        :param to_node: node that will be used as the end position on the segment 
+        :type to_node: string
+        :param distance: length between the given nodes
+        :type distance: float
+        """
         self.edges[from_node].append(to_node)
         self.edges[to_node].append(from_node)
         self.distances[(from_node, to_node)] = distance
 
 
 def dijkstra(graph, initial):
-    ''' dijkstra closest path technique (for nurbs and lattice)'''
+    """ dijkstra closest path technique (for nurbs and lattice)
+
+    :param graph: dictionary information on positions and length for the path to search
+    :type graph: Graph()
+    :param initial: start index to work from
+    :type initial: int
+    :return: objects passed and the full list of the nodes that create the path
+    :rtype: list
+    """
     visited = {initial: 0}
     path = {}
 
@@ -154,7 +212,17 @@ def dijkstra(graph, initial):
 
 
 def shortest_path(graph, origin, destination):
-    ''' dijkstra closest path technique (for nurbs and lattice)'''
+    """ shortest path technique (for nurbs and lattice)
+
+    :param graph: dictionary information on positions and length for the path to search
+    :type graph: Graph()
+    :param origin: start index to work from
+    :type origin: int
+    :param destination: end index to work from
+    :type destination: int
+    :return: visited objects on the way, ordered list that represents the shortest path
+    :rtype: list
+    """
     visited, paths = dijkstra(graph, origin)
     full_path = deque()
     _destination = paths[destination]
@@ -170,8 +238,17 @@ def shortest_path(graph, origin, destination):
 
 
 # ------------------------------------------------------------------------------
-# @note: make sure that all objects return full path
+
 def skinCluster(inObject=None, silent=False):
+    """ get the skincluster from the given mesh
+
+    :param inObject: the object to search for a skincluster attachment
+    :type inObject: string
+    :param silent: if `True` will return None, if `False` will open a warning dialog to tell the user no skincluster was found
+    :type silent: bool
+    :return: name of the skincluster node
+    :rtype: string
+    """
     if inObject is None:
         inObject = cmds.ls(sl=1, l=1)
     if not inObject:
@@ -187,6 +264,13 @@ def skinCluster(inObject=None, silent=False):
 
 
 def getParentShape(inObject):
+    """ get the parent object of given object if the current given object is a shape
+
+    :param inObject: the object to search for a parent
+    :type inObject: string
+    :return: name of the parent transform
+    :rtype: string
+    """
     if isinstance(object, list):
         inObject = inObject[0]
     objType = cmds.objectType(inObject)
@@ -198,12 +282,17 @@ def getParentShape(inObject):
 
 
 def doCorrectSelectionVisualization(skinMesh):
+    """ convert the given objects selection to represent the right visualisation in maya
+    :todo: check if this can be converted to OpenMaya so we can get rid of mel.eval
+
+    :param skinMesh: the object to search for a parent
+    :type skinMesh: string
+    """
     objType = cmds.objectType(skinMesh)
     if objType == "transform":
         shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
         objType = cmds.objectType(shape)
 
-    # @todo: convert this to openmaya?
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
     if objType in ["nurbsSurface", "nurbsCurve"]:
         mel.eval('doMenuNURBComponentSelection("%s", "controlVertex");' % skinMesh)
@@ -214,6 +303,16 @@ def doCorrectSelectionVisualization(skinMesh):
 
 
 def convertToVertexList(inObject):
+    """ convert the given input to a represented point selection for the type of object that is selected:
+    polygons : vertices
+    Nurbs : control vertices
+    lattice : points
+
+    :param skinMesh: the object to search for a parent
+    :type skinMesh: string
+    :return: for polygons a list of vertices, for Nurbs a list of control vertices, for lattice a list of points
+    :rtype: list
+    """
     checkObject = inObject
     if isinstance(inObject, list):
         checkObject = inObject[0]

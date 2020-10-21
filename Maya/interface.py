@@ -202,7 +202,10 @@ def convertToJoint(inName=None, progressBar=None):
         return result
 
     # @Todo: split selection in mesh and cluster selection
-    result = joints.convertClusterToJoint(selection, progressBar)
+    # if len(selection) > 1:
+    #     result = joints.convertClustersToJoint(selection, progressBar)
+    # else:    
+    result = joints.convertClusterToJoint(selection, inName, progressBar)
     return result
 
 
@@ -384,6 +387,17 @@ def getNeightbors(inComps):
         return shared.growLatticePoints(inComps)
 
     cmds.error("current type --%s-- not valid for this commmand, only surface or polygon can be used!" % objType)
+
+def cutMesh(internal, maya2020, progressBar= None ):
+    selection = getSelection()
+    if "." in selection[0]:
+        selection = [selection[0].split(".")[0]]
+    
+    meshes = []
+    for obj in selection:
+        msh = mesh.cutCharacterFromSkin(obj, internal, maya2020, progressBar)
+        meshes.append(msh)
+    cmds.group(meshes, n = "lowRez")
 
 
 class vertexWeight(object):

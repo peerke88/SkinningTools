@@ -91,7 +91,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, trsfrPS_Btn, ["smooth", "uvSpace"])
         addChecks(self, nghbors_Btn, ["growing", "full"])
         addChecks(self, toJoint_Btn, ["specify name"])
-        addChecks(self, cutMesh_Btn, ["internal", "fast"])
+        addChecks(self, cutMesh_Btn, ["internal", "use opm"])
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"])
         addChecks(self, unifyBn_Btn, ["query"])
         addChecks(self, onlySel_Btn, ["invert"])
@@ -128,7 +128,7 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect(self._growsel_func)
 
         if _DEBUG:
-            for chk in [smthBrs_Btn, toJoint_Btn, cutMesh_Btn]:
+            for chk in [smthBrs_Btn]:
                 chk.setStyleSheet("background-color: red")
 
     # -- checkbox modifiers    
@@ -160,7 +160,7 @@ class VertAndBoneFunction(QWidget):
         interface.setMaxInfl(self._maxSpin.value(), self.progressBar)
 
     def _cutMesh_func(self, sender):
-        raise NotImplementedError
+        interface.cutMesh(sender.checks["internal"].isChecked(), sender.checks["use opm"].isChecked(), self.progressBar)
 
     def _pruneSel_func(self, sender):
         interface.keepOnlyJoints(sender.checks["invert"].isChecked())
