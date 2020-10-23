@@ -171,7 +171,6 @@ class SkinningTools(QMainWindow):
         vLayout.addWidget(self.__editor)
         tab.view.frame.setLayout(vLayout)
 
-
     def __weightManagerSetup(self):
         self.tabs.addGraphicsTab("Weight Manager")
 
@@ -310,7 +309,6 @@ class SkinningTools(QMainWindow):
         del self.__skinSlider
         del self.__editor
         self.deleteLater()
-
 
 
 def getSkinningToolsWindowName():

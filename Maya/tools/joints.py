@@ -747,3 +747,14 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     for index, vert in enumerate(verts):
         cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])
     return jnt
+
+def toggleMoveSkinnedJoints(mesh, progressBar = None):
+    return NotImplementedError
+    # @todo:  get all joints in order (check if the index to the skincluster can be found)
+    # then connect the worldinverse to the skincluster based on that index
+    # if the prebindMatrix is already connected then disconnect and bake the information
+    # note: need to make sure it can be cleaned up easily
+    sc = shared.skinCluster(inMesh, True)
+    allJoints = getInfluencingJoints(sc)
+
+    return True

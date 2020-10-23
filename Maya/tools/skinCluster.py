@@ -704,3 +704,15 @@ def doSkinPercent(bone, value, operation=False):
     #@todo: make sure that this is displaying the correct hilite in maya
     cmds.select(_sel, r=1)
     return True
+
+
+def forceCleanSkinCluster(inMesh, progressBar = None):
+    return NotImplementedError
+    # @todo:  get all joints in order (check if the index to the skincluster can be found)
+    # get the weights based on those index orders
+    # create new skincluster that had new ordered index
+    # that way we dont have wasted indices
+    sc = shared.skinCluster(inMesh, True)
+    allJoints = getInfluencingJoints(sc)
+
+    return True
