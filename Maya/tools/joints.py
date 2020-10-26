@@ -748,13 +748,36 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
         cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])
     return jnt
 
-def toggleMoveSkinnedJoints(mesh, progressBar = None):
-    return NotImplementedError
-    # @todo:  get all joints in order (check if the index to the skincluster can be found)
-    # then connect the worldinverse to the skincluster based on that index
-    # if the prebindMatrix is already connected then disconnect and bake the information
-    # note: need to make sure it can be cleaned up easily
+
+def toggleMoveSkinnedJoints(inMesh, progressBar=None):
+    """
+    toggle joint bind position manipulation on or off
+    :todo: visualise the mesh that is manipulated
+    :todo: make different objects positioned on the prebind position that manipulate the prebind matrices for the joints
+    :param inMesh: mesh object manipulated through a skincluster
+    :type inMesh: string
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return:  `True` if the function is completed
+    :rtype: bool
+    """
     sc = shared.skinCluster(inMesh, True)
-    allJoints = getInfluencingJoints(sc)
+
+    preConns = cmds.listConnections("%s.bindPreMatrix" % sc, s=1, d=0, c=1, p=1) or []
+    if preConns:
+        jnts = []
+        for driver, driven in zip(preConns[1::2], preConns[::2]):
+            cmds.disconnectAttr(driver, driven)
+            jnts.append(driver.split(".")[0])
+
+        resetSkinnedJoints(jnts, sc)
+        return True
+
+    conns = cmds.listConnections("%s.matrix" % sc, s=1, d=0, c=1, p=1)
+
+    for driver, driven in zip(conns[1::2], conns[::2]):
+        driver = driver.replace("worldMatrix", "worldInverseMatrix")
+        driven = driven.replace("matrix", "bindPreMatrix")
+        cmds.connectAttr(driver, driven)
 
     return True

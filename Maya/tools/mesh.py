@@ -1,5 +1,5 @@
 from maya import cmds
-from maya.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFnMesh, MFloatVector, MSpace, MFloatVectorArray
+from maya.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFnMesh, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList
 from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
@@ -422,4 +422,36 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
 
     utils.setProgress(100, progressBar, "%s proxys generated"%inObject)
     return cmds.group(objList, n="LowRez_%s"%inObject)
-    
+
+ def setOrigShapeColor(inShape, inColor = (.8, 0.2, 0.2)):
+    cmds.sets(inShape, edit=True, forceElement='initialShadingGroup')
+    sList = MSelectionList()
+    sList.add(inShape)
+    meshPath, component = sList.getComponent(0)
+
+    vtxArry = shared.getComponents(meshPath, component)
+    colors = MColorArray()
+    for __ in vtxArry:
+        colors.append(MColor(inColor))
+    mfnMesh = MFnMesh(meshPath)
+    mfnMesh.setVertexColors(colors, vtxArry)
+    cmds.setAttr("%s.displayColors" % inShape, 1)
+
+def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), progressBar=None):
+    """
+    toggle the display of the mesh beteen the output and the input shape of the skincluster. the input shape will receive default lamber + vertex colors to make sure there is a big distinction between the 2
+    :todo: maybe instead of lambert shader we can use the original shader + red vertex color overlay to make sure the textures can still be viewed
+
+    :param inMesh: the object that has a skincluster attached which we want to toggle
+    :type inMesh: string
+    :param inColor: the color in RGB values from 0to1 used as color value
+    :type inColor: tuple/list
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return:  `True` if the function is completed
+    :rtype: bool
+    """
+    for shape in cmds.listRelatives(inMesh, s=1, ni=0):
+        cmds.setAttr("%s.intermediateObject" % shape, not cmds.getAttr("%s.intermediateObject" % i))
+        if not cmds.listConnections(shape, s=0, d=1, type="shadingEngine"):
+            setOrigShapeColor(shape, inColor)
