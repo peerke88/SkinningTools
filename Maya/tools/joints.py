@@ -4,7 +4,7 @@ from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI import utils
 from SkinningTools.Maya.tools import shared, mathUtils, mesh
 from maya import cmds, mel
-from maya.api.OpenMaya import MSpace, MFnTransform, MVector, MFnMesh
+from maya.api.OpenMaya import MSpace, MFnTransform, MVector, MFnMesh, MObject
 
 
 # @note all functions must have connection with progressbar and sensible progress messages,
@@ -749,18 +749,23 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     return jnt
 
 
-def toggleMoveSkinnedJoints(inMesh, progressBar=None):
+
+@shared.dec_undo
+def toggleMoveSkinnedJoints(inMesh, inPose = False,  progressBar=None):
     """
     toggle joint bind position manipulation on or off
-    :todo: visualise the mesh that is manipulated
+    :todo: visualise the mesh that is manipulated <- needs to come from mesh.toggleDisplayOrigShape
     :todo: make different objects positioned on the prebind position that manipulate the prebind matrices for the joints
     :param inMesh: mesh object manipulated through a skincluster
     :type inMesh: string
+    :param inPose: if `True` will generate a skeleton to manipulate the bindpose, if `False` will use the skinned skeleton
+    :type inPose: bool
     :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
     :type progressBar: QProgressBar
     :return:  `True` if the function is completed
     :rtype: bool
     """
+    _buildInfo = "created with skinnintools"
     sc = shared.skinCluster(inMesh, True)
 
     preConns = cmds.listConnections("%s.bindPreMatrix" % sc, s=1, d=0, c=1, p=1) or []
@@ -768,12 +773,44 @@ def toggleMoveSkinnedJoints(inMesh, progressBar=None):
         jnts = []
         for driver, driven in zip(preConns[1::2], preConns[::2]):
             cmds.disconnectAttr(driver, driven)
-            jnts.append(driver.split(".")[0])
-
-        resetSkinnedJoints(jnts, sc)
+            jnt = driver.split(".")[0]
+            curInvMat = cmds.getAttr("%s.worldInverseMatrix" % jnt)
+            cmds.setAttr(driven, type="matrix", *curInvMat)
+            if cmds.attributeQuery("notes", n=jnt,  ex=1) and cmds.getAttr("%s.notes"%jnt) == _buildInfo:
+                jnts.append(jnt)
+        
+        cmds.delete(jnts)
         return True
 
     conns = cmds.listConnections("%s.matrix" % sc, s=1, d=0, c=1, p=1)
+    if inPose:
+        parentSettings = []
+        for driver, driven in zip(conns[1::2], conns[::2]):
+            jnt = driver.split('.')[0]
+            getPreBind = mathUtils.matrixToFloatList(mathUtils.floatToMatrix(cmds.getAttr(driven.replace("matrix", "bindPreMatrix"))).inverse())
+            nJnt = cmds.createNode("joint", n="%sPreBind"%jnt, ss=1 )
+            if not cmds.attributeQuery("notes", n=nJnt,  ex=1):
+                cmds.addAttr(nJnt, sn= "nts", ln= "notes", dt = "string")
+            cmds.setAttr( "%s.notes"%nJnt, _buildInfo, type="string" )
+            cmds.setAttr("%s.notes"%nJnt, l=1)
+
+            cmds.xform(nJnt, ws=1, m= getPreBind)
+
+            parent = cmds.listRelatives(jnt, p=1) or None
+            if parent:
+                parentSettings.append([nJnt, "%sPreBind"%parent[0]])
+
+            driven = driven.replace("matrix", "bindPreMatrix")
+            cmds.connectAttr("%s.worldInverseMatrix"%nJnt, driven)
+        
+        for child, parent in parentSettings:
+            if not cmds.objExists(parent):
+                continue
+            cmds.parent(child, parent)
+            ro = cmds.getAttr("%s.rotate"%child)
+            cmds.setAttr("%s.jointOrient"%child, *ro[0])
+            cmds.setAttr("%s.rotate"%child, 0,0,0)
+        return True
 
     for driver, driven in zip(conns[1::2], conns[::2]):
         driver = driver.replace("worldMatrix", "worldInverseMatrix")

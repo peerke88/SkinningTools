@@ -400,6 +400,23 @@ def cutMesh(internal, maya2020, progressBar= None ):
     cmds.group(meshes, n = "lowRez")
 
 
+def pinToSurface():
+    return NotImplementedError
+
+def prebindFixer( doModel, inPose ,progressBar = None)
+    # @note:
+    # this displays the originshape when moving joints, need to make sure both shapes are visibile maybe when using the inpose == False
+    selection = getSelection()
+    if len(selection) > 1:
+        selection = selection[0]
+    if "." in selection:
+        selection = selection.split('.')[0]
+
+    if doModel or inPose:
+        mesh.toggleDisplayOrigShape(selection)
+
+    joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
+
 class vertexWeight(object):
     def __init__(self, inProgressBar=None):
         self.vertexWeightInfo = None

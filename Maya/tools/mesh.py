@@ -423,7 +423,7 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
     utils.setProgress(100, progressBar, "%s proxys generated"%inObject)
     return cmds.group(objList, n="LowRez_%s"%inObject)
 
- def setOrigShapeColor(inShape, inColor = (.8, 0.2, 0.2)):
+def setOrigShapeColor(inShape, inColor = (.8, 0.2, 0.2)):
     cmds.sets(inShape, edit=True, forceElement='initialShadingGroup')
     sList = MSelectionList()
     sList.add(inShape)
@@ -441,6 +441,7 @@ def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), progressBar=None):
     """
     toggle the display of the mesh beteen the output and the input shape of the skincluster. the input shape will receive default lamber + vertex colors to make sure there is a big distinction between the 2
     :todo: maybe instead of lambert shader we can use the original shader + red vertex color overlay to make sure the textures can still be viewed
+    :todo: add an option that shows both shapes? so we can display 1 in movement and one in default pose
 
     :param inMesh: the object that has a skincluster attached which we want to toggle
     :type inMesh: string

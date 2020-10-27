@@ -38,6 +38,7 @@ class VertAndBoneFunction(QWidget):
         toJoint_Btn = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS)
         rstPose_Btn = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS)
         cutMesh_Btn = svgButton("create proxy", _svgPath("proxy"), size=self.__IS)
+        SurfPin_Btn = svgButton("add Surface pin", _svgPath("meshPin"), size=self.__IS)
 
         copy2bn_Btn = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS)
         b2bSwch_Btn = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS)
@@ -49,6 +50,7 @@ class VertAndBoneFunction(QWidget):
         sepMesh_Btn = svgButton("extract skinned mesh", _svgPath("seperate"), size=self.__IS)
         onlySel_Btn = svgButton("prune excluded infl.", _svgPath("onlySel"), size=self.__IS)
         infMesh_Btn = svgButton("influenced meshes", _svgPath("infMesh"), size=self.__IS)
+        BindFix_Btn = svgButton("fix bind mesh", _svgPath("fixBind"), size=self.__IS)
 
         maxL = nullHBoxLayout()
         self._maxSpin = QSpinBox()
@@ -73,9 +75,10 @@ class VertAndBoneFunction(QWidget):
             growL.addWidget(w)
 
         self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn,
-                          trsfrPS_Btn, nghbors_Btn, smthBrs_Btn, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, 
+                          trsfrPS_Btn, nghbors_Btn, smthBrs_Btn, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, SurfPin_Btn,
                           copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn,
-                          seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn,  growL]
+                          seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, BindFix_Btn,  growL ]
+
         _rc = int(len(self.__buttons)*.5)
         for index, btn in enumerate(self.__buttons):
             row = index / _rc
@@ -95,6 +98,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, delBone_Btn, ["use parent", "delete", "fast"])
         addChecks(self, unifyBn_Btn, ["query"])
         addChecks(self, onlySel_Btn, ["invert"])
+        addChecks(self, BindFix_Btn, ["model only", "in Pose"])
         onlySel_Btn.checks["invert"].stateChanged.connect(partial(self._pruneOption, onlySel_Btn))
 
         AvgWght_Btn.clicked.connect(partial(self._AvgWght_func, AvgWght_Btn))
@@ -109,6 +113,7 @@ class VertAndBoneFunction(QWidget):
         toJoint_Btn.clicked.connect(partial(self._convertToJoint_func, toJoint_Btn))
         rstPose_Btn.clicked.connect(partial(interface.resetPose, self.progressBar))
         cutMesh_Btn.clicked.connect(partial(self._cutMesh_func, cutMesh_Btn))
+        SurfPin_Btn.clicked.connect(interface.pinToSurface)
 
         copy2bn_Btn.clicked.connect(partial(interface.moveBones, False, self.progressBar))
         b2bSwch_Btn.clicked.connect(partial(interface.moveBones, True, self.progressBar))
@@ -126,6 +131,7 @@ class VertAndBoneFunction(QWidget):
         storsel_Btn.clicked.connect(self._storesel_func)
         self.shrinks_Btn.clicked.connect(self._shrinks_func)
         self.growsel_Btn.clicked.connect(self._growsel_func)
+        BindFix_Btn.clicked.connect(partial(self._bindFix_func))
 
         if _DEBUG:
             for chk in [smthBrs_Btn]:
@@ -177,3 +183,6 @@ class VertAndBoneFunction(QWidget):
     def _growsel_func(self, *args):
         self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
         self.borderSelection.grow()
+
+    def _bindFix_func(self, *args):
+        interface.prebindFixer(sender.checks["model only"].isChecked(), sender.checks["in Pose"].isChecked(), self.progressBar)
