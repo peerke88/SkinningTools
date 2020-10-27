@@ -401,9 +401,13 @@ def cutMesh(internal, maya2020, progressBar= None ):
 
 
 def pinToSurface():
+    #@todo: 
+    # create function that calculates the position of a locator based on closest position on mesh
+    # triangulate position and use the 3 vertices to map the driving joints and weights
+    # from here create a new parentconstraint matching joints and weights
     return NotImplementedError
 
-def prebindFixer( doModel, inPose ,progressBar = None)
+def prebindFixer( doModel, inPose ,progressBar = None):
     # @note:
     # this displays the originshape when moving joints, need to make sure both shapes are visibile maybe when using the inpose == False
     selection = getSelection()

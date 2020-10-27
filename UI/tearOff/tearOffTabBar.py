@@ -105,7 +105,7 @@ class EditableTabBar(TearoffTabBar):
         self.__editIndex = -1
 
     def eventFilter(self, widget, event):
-        if event is None:
+        if event is None or QEvent is None:
             return False
         if event.type() == QEvent.MouseButtonPress and not self.__editor.geometry().contains(event.globalPos()) or event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
             self.__editor.hide()
