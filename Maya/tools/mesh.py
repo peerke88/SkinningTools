@@ -1,5 +1,5 @@
 from maya import cmds
-from maya.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFnMesh, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList
+from maya.api.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList
 from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
@@ -8,19 +8,26 @@ from SkinningTools.UI.fallofCurveUI import BezierFunctions
 from collections import OrderedDict, defaultdict
 
 
-def getShellFaces(poly):
+def getShellFaces(inMesh):
+    """ convert the selection of vertices to face group selections
+
+    :param inMesh: object to evaluate
+    :type inMesh: string
+    :return: list of grouped faces
+    :rtype: list
+    """
     shells = []
     faces = set()
     total = cmds.polyEvaluate(s=True)
 
-    for f in range(cmds.polyEvaluate(poly, f=True)):
+    for f in range(cmds.polyEvaluate(inMesh, f=True)):
 
         if len(shells) >= total:
             break
         if f in faces:
             continue
 
-        shell = cmds.polySelect(poly, q=1, extendToShell=f)
+        shell = cmds.polySelect(inMesh, q=1, extendToShell=f)
         faces.update(shell)
 
         val = ".f[%d:%d]" % (min(shell), max(shell))
@@ -30,6 +37,16 @@ def getShellFaces(poly):
 
 
 def shortestPathVertex(start, end):
+    """ get the shortest path walking over the edges between 2 selected vertices
+
+    :param start: vertex to start from
+    :type start: string
+    :param end: vertex to end with
+    :type end: string
+    :return: list of vertices to walk in order
+    :rtype: list
+
+    """
     def measureLength(object1, object2):
         pos1 = MVector(*cmds.xform(object1, q=True, ws=True, t=True))
         pos2 = MVector(*cmds.xform(object2, q=True, ws=True, t=True))
@@ -437,7 +454,7 @@ def setOrigShapeColor(inShape, inColor = (.8, 0.2, 0.2)):
     mfnMesh.setVertexColors(colors, vtxArry)
     cmds.setAttr("%s.displayColors" % inShape, 1)
 
-def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), progressBar=None):
+def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), both = False, progressBar=None):
     """
     toggle the display of the mesh beteen the output and the input shape of the skincluster. the input shape will receive default lamber + vertex colors to make sure there is a big distinction between the 2
     :todo: maybe instead of lambert shader we can use the original shader + red vertex color overlay to make sure the textures can still be viewed
@@ -453,6 +470,11 @@ def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), progressBar=None):
     :rtype: bool
     """
     for shape in cmds.listRelatives(inMesh, s=1, ni=0):
-        cmds.setAttr("%s.intermediateObject" % shape, not cmds.getAttr("%s.intermediateObject" % i))
+        if both and cmds.listConnections(shape, s=1, d=1, type= "skinCluster"):
+            continue    
+        cmds.setAttr("%s.intermediateObject" % shape, not cmds.getAttr("%s.intermediateObject" % shape))
+        
         if not cmds.listConnections(shape, s=0, d=1, type="shadingEngine"):
             setOrigShapeColor(shape, inColor)
+        
+

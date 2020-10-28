@@ -288,3 +288,99 @@ class ClosestVertexWeightWidget(QWidget):
             progressBar=self.__loadBar)
 
         self.clearUI()
+
+class TransferUvsWidget(QWidget):
+    def __init__(self, parent=None):
+        super(TransferUvsWidget, self).__init__(parent)
+        self.setLayout(nullVBoxLayout())
+        self.__defaults()
+        self.__setButtons()
+        self.clearUI()
+
+    def __setButtons(self):
+        label = QLabel("transfer Uv from static to skinned:")
+        h0 = nullHBoxLayout()
+
+        self.line1 = QLineEdit()
+        self.line2 = QLineEdit()
+        for l in [self.line1, self.line2]:
+            l.setEnabled(0)
+        
+        self.combo1 = QComboBox()
+        self.combo2 = QComboBox()
+        self.sourceBtn = buttonsToAttach( "Source", partial(self.__setValue, self.line1, self.combo1))
+        self.targetBtn = buttonsToAttach( "Target", partial(self.__setValue, self.line2, self.combo2))
+
+        h1 = nullHBoxLayout()
+        h2 = nullHBoxLayout()
+        h3 = nullHBoxLayout()
+
+        self.layout().addWidget(label)
+        for h in [h0, h1]:
+            self.layout().addLayout(h)
+        
+        for w in [self.sourceBtn, self.targetBtn]:
+            h0.addWidget(w)
+
+        for h in [h2, h3]:
+            h1.addLayout(h)
+
+        for w in [self.line1, self.combo1]:
+            h2.addWidget(w)
+
+        for w in [self.line2, self.combo2]:
+            h3.addWidget(w)
+
+        self.trnsComp = buttonsToAttach("Transfer uvs", self._transferUV)
+
+        self.rst = buttonsToAttach("reset", self.clearUI)
+        for btn in [self.trnsComp, self.rst]:
+            self.layout().addWidget(btn)
+
+    def __defaults(self):
+        self.compSetting = [0, 0]
+        self.__loadBar = None
+
+    
+    def clearUI(self):
+        for l in [self.line1, self.line2]:
+            l.setText('')
+            l.setStyleSheet('background-color: #C23A3A;')
+        self.compSetting = [0, 0]
+        self.__checkEnabled()
+
+    def __setValue(self, inLineEdit, inCombo):
+        sel = interface.getSelection()
+        if len(sel) > 1:
+            sel = sel[0]
+        if "." in sel:
+            sel = sel.split('.')[0]
+        
+        inLineEdit.setText(sel)
+        inLineEdit.setStyleSheet('background-color: #17D206;')
+
+        uvSets = interface.getUVInfo(sel)
+        inCombo.clear()
+        inCombo.addItems(uvSets)
+
+        self.compSetting[[self.line1, self.line2].index(inLineEdit)] = 1
+
+        self.__checkEnabled()
+
+    def __checkEnabled(self):
+        self.trnsComp.setEnabled(self.compSetting == [1, 1])
+        self.rst.setEnabled(self.compSetting != [0, 0])
+
+    def addLoadingBar(self, loadingBar):
+        self.__loadBar = loadingBar
+
+    def _transferUV(self):
+        if '' in [self.line1.text(), self.line2.text()]:
+            cmds.warning('source or target selection is not defined!')
+            return
+
+        interface.transferUV(self.line1.text(), self.line2.text(), 
+                             sMap = self.combo1.currentText(), tMap = self.combo2.currentText(), 
+                             progressBar = self.__loadBar)
+
+        self.clearUI()

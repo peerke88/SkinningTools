@@ -15,7 +15,7 @@ from functools import partial
 
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
-from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget
+from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget, TransferUvsWidget
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
 __VERSION__ = "5.0.20201015"
@@ -146,10 +146,22 @@ class SkinningTools(QMainWindow):
         vLayout = nullVBoxLayout()
         tab.view.frame.setLayout(vLayout)
 
-        closest = ClosestVertexWeightWidget(self)
-        transfer = TransferWeightsWidget(self)
-        for w in [closest, transfer]:
-            vLayout.addWidget(w)
+        self.copyToolsTab = EditableTabWidget()
+        self.copyToolsTab.tearOff.connect(self.tearOff)
+
+        vLayout.addWidget(self.copyToolsTab)
+
+        _dict ={ "Copy closest weigth" : ClosestVertexWeightWidget(self),
+                 "Transfer weigths"    : TransferWeightsWidget(self),
+                 "Transfer Uv's"       : TransferUvsWidget(self),}
+        
+        for key, value in _dict.iteritems():
+            _tab = self.copyToolsTab.addGraphicsTab(key)
+            _vLay = nullVBoxLayout()
+            _tab.view.frame.setLayout(_vLay)
+            _vLay.addWidget(value)
+            _vLay.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
         vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __skinSliderSetup(self):
@@ -281,6 +293,9 @@ class SkinningTools(QMainWindow):
     # -------------------- window states -------------------------------
 
     def saveUIState(self):
+        # TODO: instead of only geometry also store torn of tabs for each posssible object
+        # save the geometries of torn of tabs as well
+        # store the settings used in the vertex and bone functions tabs
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("tools", self.mayaToolsTab.currentIndex())
         self.settings.setValue("tabs", self.tabs.currentIndex())

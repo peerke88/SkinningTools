@@ -417,9 +417,22 @@ def prebindFixer( doModel, inPose ,progressBar = None):
         selection = selection.split('.')[0]
 
     if doModel or inPose:
-        mesh.toggleDisplayOrigShape(selection)
+        mesh.toggleDisplayOrigShape(selection, both = inPose)
 
     joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
+
+def getUVInfo(inMesh):
+    allUvSets = cmds.polyUVSet(inMesh, q=1, auv =1 )
+    currentUvSet = cmds.polyUVSet(inMesh, q=1, cuv =1 )
+    uvSets =[currentUvSet]
+    for s in allUvSets:
+        if s in uvSets:
+            continue
+        uvSets.append(s)
+    return uvSets
+
+def transferUV(source, target, sMap = "map1", tMap = "map1", progressBar = None):
+    skinCluster.transferUvToSkinnedObject(source, target, sMap, tMap, progressBar)
 
 class vertexWeight(object):
     def __init__(self, inProgressBar=None):
@@ -463,7 +476,6 @@ class vertexWeight(object):
             transformValueList.append([jnt, self.vertexWeightInfo[i]])
 
         cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)
-
 
 class skinWeight(object):
     # @TODO: check to make sure when remapped if skinweights neew remap as well!
