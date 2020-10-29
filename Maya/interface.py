@@ -9,6 +9,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.dialogs.jointLabel import JointLabel
 from SkinningTools.UI.dialogs.jointName import JointName
 from random import randint
+from functools import partial
 import os
 
 cmds.selectPref(tso=True)
@@ -97,10 +98,13 @@ def uniteSkinned():
     selection = getSelection()
     cmds.polyUniteSkinned(selection, ch=0, mergeUVSets=1)
 
+def removeUnused(progressBar = None):
+    selection = getSelection()
+    joints.removeUnusedInfluences(selection, progressBar)
 
 # --- dcc ---
 
-def dccToolButtons():
+def dccToolButtons(progressBar = None):
     from SkinningTools.UI.utils import buttonsToAttach
 
     mb01 = buttonsToAttach('Smooth Bind', cmds.SmoothBindSkinOptions)
@@ -111,8 +115,9 @@ def dccToolButtons():
     mb06 = buttonsToAttach('Copy Skin Weights', copySkinWeightsOptions)
     mb07 = buttonsToAttach('Prune Weights', cmds.PruneSmallWeightsOptions)
     mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
+    mb09 = buttonsToAttach('Remove unused influences', partial(removeUnused, progressBar))
 
-    return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08]
+    return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08, mb09]
 
 
 # --- tools ---
