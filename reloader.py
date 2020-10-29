@@ -24,20 +24,29 @@ def unload(silent=True, packages=None):
     if packages is None:
         packages = DEFAULT_RELOAD_PACKAGES
 
-    reload(SkinningToolsUI)
-    SkinningToolsUI.closeSkinningToolsMainWindow()
+    try:
+        SkinningToolsUI.closeSkinningToolsMainWindow()
+    except Exception,err:
+        print("failed to close window")
+    cmds.file(f=True, new=True)
 
     cmds.file(force=True, new=True)
     p1_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py"))
     p2_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py"))
 
-    if cmds.pluginInfo(p1_name, q=True, loaded=True):
-        p1_name = cmds.pluginInfo(p1_name, query=True, name=True)
-        cmds.unloadPlugin(cmds.pluginInfo(p1_name, query=True, name=True))
+    try:
+        if cmds.pluginInfo(p1_name, q=True, loaded=True):
+            p1_name = cmds.pluginInfo(p1_name, query=True, name=True)
+            cmds.unloadPlugin(cmds.pluginInfo(p1_name, query=True, name=True))
+    except Exception,err:
+        print("failed to unload averageWeightPlugin.py")
 
-    if cmds.pluginInfo(p2_name, q=True, loaded=True):
-        p2_name = cmds.pluginInfo(p2_name, query=True, name=True)
-        cmds.unloadPlugin(cmds.pluginInfo(p2_name, query=True, name=True))
+    try:
+        if cmds.pluginInfo(p2_name, q=True, loaded=True):
+            p2_name = cmds.pluginInfo(p2_name, query=True, name=True)
+            cmds.unloadPlugin(cmds.pluginInfo(p2_name, query=True, name=True))
+    except Exception,err:
+        print("failed to unload SkinEditPlugin.py")
 
     # construct reload list
     reloadList =[]

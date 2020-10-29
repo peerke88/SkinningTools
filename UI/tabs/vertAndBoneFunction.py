@@ -26,7 +26,7 @@ class VertAndBoneFunction(QWidget):
         def _svgPath(svg):
             return os.path.join(_DIR, "Icons/%s.svg"%svg)
 
-        AvgWght_Btn = svgButton("avarage vtx", _svgPath("AvarageVerts"), size=self.__IS)
+        AvgWght_Btn = svgButton("average vtx", _svgPath("AvarageVerts"), size=self.__IS)
         cpyWght_Btn = svgButton("copy vtx", _svgPath("copy2Mult"), size=self.__IS)
         swchVtx_Btn = svgButton("switch vtx", _svgPath("vert2vert"), size=self.__IS)
         BoneLbl_Btn = svgButton("label joints", _svgPath("jointLabel"), size=self.__IS)
