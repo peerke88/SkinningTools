@@ -8,9 +8,15 @@ from UI import SkinningToolsUI
 DEFAULT_RELOAD_PACKAGES = ['SkinningTools']
 
 '''
-from SkinningTools import reloader
-reload(reloader)
-reloader.unload()
+Instead of closing/opening maya to reflect changes in Python code one would 
+usually do: reload("modifiedPythonModule") in Maya's python console.
+
+But sometimes you need to reload several modules, unload/reload sub-plugins.
+The code below will close the main window, reload every single python module 
+create a new scene to ensure no plugin data is used and re-load sub-plugins:    
+    from SkinningTools import reloader
+    reload(reloader)
+    reloader.unload()    
 '''
 def unload(silent=True, packages=None):
     '''
