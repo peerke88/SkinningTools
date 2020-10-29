@@ -18,7 +18,7 @@ from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget, TransferUvsWidget
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
-__VERSION__ = "5.0.20201015"
+__VERSION__ = "5.0.20201028"
 
 
 class SkinningTools(QMainWindow):
@@ -129,7 +129,7 @@ class SkinningTools(QMainWindow):
         tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools")
         vLayout = nullVBoxLayout()
         tab.view.frame.setLayout(vLayout)
-        buttons = interface.dccToolButtons()
+        buttons = interface.dccToolButtons(self.progressBar)
         for btn in buttons:
             vLayout.addWidget(btn)
         vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
