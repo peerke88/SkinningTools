@@ -384,3 +384,22 @@ class TransferUvsWidget(QWidget):
                              progressBar = self.__loadBar)
 
         self.clearUI()
+
+
+'''
+#todo:
+
+
+add new class:
+filter line on top
+
+add all joints in a list + a select button next to it
+all buttons are gray from the start
+
+once the button next to the joint is selected it will store vertex selection into the button and make it green (selection can be soft selection)
+maybe add a second button to analize the current vertices already inluenced by that given joint (turn buttons red?)
+
+make sure all weights are normalized in the end
+if the joints are not pre-analized we do an add influence command
+otherwise we do a full override(maybe with apiweights functions)
+'''
