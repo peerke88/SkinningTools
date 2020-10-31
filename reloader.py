@@ -18,7 +18,7 @@ create a new scene to ensure no plugin data is used and re-load sub-plugins:
     reload(reloader)
     reloader.unload()    
 '''
-def unload(silent=True, packages=None):
+def unload(silent=True, packages=None, newScene = True):
     '''
     performs unloading.
         * silent flag specifies if utility should print the unloaded modules
@@ -36,7 +36,8 @@ def unload(silent=True, packages=None):
         print("failed to close window")
     cmds.file(f=True, new=True)
 
-    cmds.file(force=True, new=True)
+    if newScene:
+        cmds.file(force=True, new=True)
     p1_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py"))
     p2_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py"))
 

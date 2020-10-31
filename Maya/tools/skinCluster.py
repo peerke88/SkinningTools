@@ -672,36 +672,40 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
 
 # operation = { 0:removes the values, 1:sets the values, 2: adds the values}
 @shared.dec_undo
-def doSkinPercent(bone, value, operation=False):
+def doSkinPercent(bone, value, operation=0):
     _sel = cmds.ls(sl=1, fl=1)
-    if cmds.softSelect(q=True, softSelectEnabled=1):
+    _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
+    if _softSelect:
         vertices, weights = mesh.softSelection()
     else:
         selection = cmds.ls(sl=1, l=1)
         vertices = shared.convertToVertexList(selection)
         weights = [1.0] * len(vertices)
 
-    bone = cmds.ls(bone, l=1)[0]
     if vertices == []:
         return False
+
     inMesh = vertices[0].split('.')[0]
     sc = shared.skinCluster(inMesh, True)
     if sc is None:
         return False
 
+    bone = cmds.ls(bone, l=1)[0]
     allBones = joints.getInfluencingJoints(sc)
     if not bone in allBones:
         cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=bone)
 
-    _mult = [-1, 0, 1]
-    for index, vert in enumerate(vertices):
-        val = cmds.skinPercent(sc, vert, transform=bone, q=True, value=True)
-        newVal = weights[index] * value
-        if operation != 1:
-            newVal = (val + (weights[index] * _mult[operation] * value))
-        clampVal = max(min(newVal, 1.0), 0.0)
-        cmds.skinPercent(sc, vert, tv=[bone, clampVal], normalize=True)
+    _rel = (operation != 1)
+    _mult = [-1, 1, 1]
+    if _softSelect:
+        for index, vert in enumerate(vertices):
+            newVal = weights[index] * _mult[operation]# * value
+            cmds.skinPercent(sc, vert, r = _rel, tv=[bone, weights[index]], normalize=True)
+    else:
+        newVal = value * _mult[operation]
+        cmds.skinPercent(sc, vertices, r = _rel, tv=[bone, value * _mult[operation]], normalize=True)
+
     #@todo: make sure that this is displaying the correct hilite in maya
-    cmds.select(_sel, r=1)
+    # cmds.select(_sel, r=1)
     return True
 

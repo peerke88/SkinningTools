@@ -222,8 +222,7 @@ class radialMenu(QMainWindow):
 
         return True
 
-    def __funcPressed(self, _, value, operation=False):
-        print(self.inputObjects[1], value, operation)
+    def __funcPressed(self, _, value, operation=0):
         skinCluster.doSkinPercent(self.inputObjects[1], value, operation=operation)
 
     def _setCheckState(self, item, *_):
