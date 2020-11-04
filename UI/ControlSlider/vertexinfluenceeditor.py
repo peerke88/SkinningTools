@@ -6,33 +6,24 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 
-
 class VertexInfluenceEditor(QGroupBox):
     lockIcon = QIcon(':/nodeGrapherUnlocked.png')
     unlockIcon = QIcon(':/lockGeneric.png')
 
-    def __unusedJointsBox(self):
-        unusedJoints = QGroupBox()
-        unusedJoints.setTitle('Unused influences')
-        unusedJoints.setFlat(True)
-        l = nullVBoxLayout()
-        unusedJoints.setLayout(l)
-        unusedJoints.setCheckable(True)
-        unusedJoints.toggled.connect(self._toggleGroupBox)
-        self.__unusedJoints = unusedJoints
-
     def _toggleGroupBox(self, state):
-        layout = self.sender().layout()
-        counter = 0
-        while True:
+        layout = self.layout()
+        # counter = 0
+        for counter in xrange(layout.count()):
+        # while True:
             item = layout.itemAt(counter)
             if not item:
-                return
-            counter += 1
+                continue
+            # counter += 1
             widget = item.widget()
             if not widget:
                 continue
-            widget.setVisible(state)
+            if not widget.isUsed:
+                widget.setVisible(state)
 
     def __lineEdit_FieldEditted(self, *_):
         self.sender().setStyleSheet('')
@@ -43,8 +34,7 @@ class VertexInfluenceEditor(QGroupBox):
         super(VertexInfluenceEditor, self).__init__(parent=None)
         self.setMinimumHeight(0)
 
-        self.setCheckable(True)
-        self.setChecked(True)
+        self.__info = {}
         self.toggled.connect(self._toggleGroupBox)
         
         if len(vtxLName) > 1:
@@ -61,19 +51,8 @@ class VertexInfluenceEditor(QGroupBox):
 
         self.__sliders = []
 
-        hasUnused = False
-        self.__unusedJointsBox()
-
         self.__busyWithCallback = False
 
-        divider = QFrame()
-        divider.setFrameStyle(QFrame.HLine)
-        divider.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        divider.setLineWidth(1)
-        divider.setFrameShadow(QFrame.Sunken)
-        self.layout().addWidget(divider)
-
-        unusedSliders = 0
         for i, skBone in enumerate(skinBones):
             sliderLayout = nullHBoxLayout()
             sliderFrame = QFrame()
@@ -86,33 +65,44 @@ class VertexInfluenceEditor(QGroupBox):
             sliderLayout.addWidget(gripSlider)
             lbl = VertexInfluenceEditor.lockIcon
             parent = self.layout()
+            sliderFrame.isUsed = True
+
             if weights[i] <= 0.00001:
-                unusedSliders += 1
                 lbl = VertexInfluenceEditor.unlockIcon
-                parent = self.__unusedJoints.layout()
-                hasUnused = True
+                sliderFrame.isUsed = False
                 gripSlider.setEnabled(False)
+
             lockButton = QPushButton(lbl, '')
             lockButton.clicked.connect(functools.partial(self.__toggleLock, i))
+            
+            lockButton.setStyleSheet("")#background-color: lightgreen")
+            if lbl == VertexInfluenceEditor.unlockIcon:
+                lockButton.setStyleSheet("background-color: lightred")
+
             sliderLayout.addWidget(lockButton)
             parent.addWidget(sliderFrame)
 
+            self.__info[skBone] = sliderFrame
+
             self.__sliders.append((gripSlider, lockButton))
 
-        if hasUnused:
-            self.layout().addWidget(self.__unusedJoints)
+    def showBones(self, inBones):
+        for bone, frame in self.__info.iteritems():
+            frame.setVisible(bone in inBones)
 
-    def finalize(self):
-        self.__unusedJoints.setChecked(False)
+    def getCurrentBones(self):
+        return self.__info.keys()
 
     def __toggleLock(self, index):
         slider, button = self.__sliders[index]
         if slider.isEnabled():
             button.setIcon(VertexInfluenceEditor.unlockIcon)
             slider.setEnabled(False)
+            button.setStyleSheet("background-color: lightred")
         else:
             button.setIcon(VertexInfluenceEditor.lockIcon)
             slider.setEnabled(True)
+            button.setStyleSheet("")#background-color: lightgreen")
 
     def __updateWeights(self, setId, newValue):
         """

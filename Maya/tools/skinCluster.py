@@ -12,7 +12,6 @@ from SkinningTools.UI import utils
 from maya.api import OpenMaya
 from maya import cmds
 
-
 def checkBasePose(skinCluster):
     bp = cmds.listConnections("%s.bindPose" % skinCluster, source=True) or None
     if bp:
@@ -708,4 +707,71 @@ def doSkinPercent(bone, value, operation=0):
     #@todo: make sure that this is displaying the correct hilite in maya
     # cmds.select(_sel, r=1)
     return True
+
+
+class SoftSkinBuilder(object):
+    def __init__(self, progressBar = None):
+        self._progressBar = progressBar
+
+        from SkinningTools.Maya.tools.apiWeights import ApiWeights
+        self.__weightInfo = ApiWeights()
+        self.__currentMesh = ''
+        self._boneWeights= {}
+        self._newWeights = {}
+        self._preAnalyzed = False
+
+    def analyzeSkin(self, inMesh, pre = True):
+        if pre: 
+            self._preAnalyzed = pre
+        self.__weightInfo.getData(inMesh, self._progressBar)
+
+        _jntLen = len(self.__weightInfo.meshInfluences[inMesh])
+        for index, bone in enumarete(self.__weightInfo.meshInfluences[inMesh]):
+            self._boneWeights[bone] =  self.__weightInfo.meshWeights[inMesh][index*_jntLen: (1+index) * _jntLen]
+
+        return self.__weightInfo.meshInfluences[inMesh]
+
+
+    def addSoftSkinInfo(self, bone ):
+        _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
+        if _softSelect:
+            vertices, weights = mesh.softSelection()
+        else:
+            selection = cmds.ls(sl=1, l=1)
+            vertices = shared.convertToVertexList(selection)
+            weights = [1.0] * len(vertices)
+
+        _mesh = vertices[0].split('.')
+        if self.__currentMesh == '':
+            self.__currentMesh = _mesh
+
+        if self.__currentMesh == _mesh:
+            self._newWeights[bone] = [vertices, weights]
+
+
+    def setSoftSkinInfo(self, inMesh, add = True):
+        sc = shared.skinCluster(inMesh)
+        if not sc:
+            sc = cmds.skinCluster(inMesh, self._boneWeights.keys(), tsb=1)
+
+        self.analyzeSkin(inMesh, False)
+
+        _origWeights = []
+        _weigths = []
+        for bone in self.__weightInfo.meshInfluences[inMesh]:
+            verts, weights = self._newWeights[bone]
+            indices = shared.convertToIndexList(verts)
+            _origWeights.extend(self._boneWeights[bone])
+            for i, wght  in enumerate(weights):
+                if add:
+                    self._boneWeights[bone][indices[i]] += weight
+                else:
+                    self._boneWeights[bone][indices[i]] = weight
+            _weights.extend(self._boneWeights[bone])
+
+
+        jnts = [self.__weightInfo.meshInfluences[inMesh].index(inf) for inf in self.__weightInfo.meshInfluences[inMesh]]       
+            
+        vertIds = self.__weightInfo.meshVerts[inMesh]
+        cmds.SkinEditor(inMesh, sc, vid=vertIds, nw = _weights, jid = jnts, ow = _origWeights )
 

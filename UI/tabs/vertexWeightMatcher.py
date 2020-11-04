@@ -385,7 +385,24 @@ class TransferUvsWidget(QWidget):
 
         self.clearUI()
 
+class AssignWeightsWidget(QWidget):
+    def __init__(self, parent=None):
+        super(TransferUvsWidget, self).__init__(parent)
+        self.setLayout(nullVBoxLayout())
+        self.__defaults()
+        self.__setButtons()
+        self.clearUI()
 
+    def __defaults(self):
+        pass
+
+    def __setButtons(self):
+        # add filter?
+        # add buttons based on analyze, or add buttons based on buttonpress
+        pass
+
+    def clearUI(self):
+        pass
 '''
 #todo:
 
