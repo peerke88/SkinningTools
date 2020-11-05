@@ -34,8 +34,7 @@ def unload(silent=True, packages=None, newScene = True):
         SkinningToolsUI.closeSkinningToolsMainWindow()
     except Exception,err:
         print("failed to close window")
-    cmds.file(f=True, new=True)
-
+    
     if newScene:
         cmds.file(force=True, new=True)
     p1_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py"))

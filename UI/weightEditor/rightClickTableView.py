@@ -8,9 +8,11 @@ class RightClickTableView(QTableView):
         super(RightClickTableView, self).__init__(parent)
         self.ignoreInput = False
     
+    def mousePressEvent(self, event):
+        self.mousePos = QCursor.pos()
+        super(RightClickTableView, self).mousePressEvent(event)
+
     def mouseReleaseEvent(self, event):
-        self.mouse_pos = QCursor.pos()
-        
         if event.button() == Qt.RightButton:
             self.rightClicked.emit()
         else:

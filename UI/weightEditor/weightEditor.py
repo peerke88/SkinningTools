@@ -165,14 +165,14 @@ class WeightEditorWindow(QWidget):
             curInf  = self.vtxDataDict[row][2]
             
             currentID = (index % amountRows) -1
-            copyInf = self.copyJointInfl[currentID]
-            wghtToPaste = self.copyWeightList[currentID]
+            copyInf = self.copyJointInfl[ currentID ]
+            wghtToPaste = self.copyWeightList[ currentID ]
             
             for i, pinf in enumerate(curInf):
                 newWeigths[i] = 0.0
                 if pinf in copyInf:
                     influenceID = copyInf.index(pinf)
-                    newWeigths[i] = wghtToPaste[influenceID]
+                    newWeigths[i] = wghtToPaste[ influenceID ]
             
             self.rowsToUpdate.add(row)
             
@@ -195,15 +195,13 @@ class WeightEditorWindow(QWidget):
         for cell in self.cellToCopy:
             row = cell.row()
             col = cell.column() 
-            sub_row = row - startRow
-            sub_column = col - startCol
-            self.copyCellPos.append([sub_row, sub_column])
+            self.copyCellPos.append([row - startRow, col - startCol])
             value = self.weightTable.getCellData(row=row, col=col)
             self.copyValues.append(value)
-        smallestRow = min(self.copyCellPos, key=lambda x: x[0])[0]
-        biggestRot = max(self.copyCellPos, key=lambda x: x[0])[0]
-        smallestCol = min(self.copyCellPos, key=lambda x: x[1])[1]
-        biggestCol = max(self.copyCellPos, key=lambda x: x[1])[1]
+        smallestRow = min( self.copyCellPos, key = lambda x: x[ 0 ] )[ 0 ]
+        biggestRot = max( self.copyCellPos, key = lambda x: x[ 0 ] )[ 0 ]
+        smallestCol = min( self.copyCellPos, key = lambda x: x[ 1 ] )[ 1 ]
+        biggestCol = max( self.copyCellPos, key = lambda x: x[ 1 ] )[ 1 ]
         self.rowLen = biggestRot - smallestRow + 1
         self.colLen = biggestCol - smallestCol + 1
         
@@ -245,13 +243,11 @@ class WeightEditorWindow(QWidget):
         self.tryNormalizeWeights()
             
     def directInput(self, string):
-        if not self.weightSelectModel.selectedIndexes():
-            return
-        if string == '':
+        if not self.weightSelectModel.selectedIndexes() or string == '':
             return
         if string in '0123456789-.':
             self.view.ignoreInput = True
-            self.popupBox = PopupSpinBox(value=string, direct=True)
+            self.popupBox = PopupSpinBox(parent = self, value=string, textValue=True)
             self.popupBox.closed.connect(partial( self.setPopupValue, True))
         
     def searchJointName(self):
@@ -297,10 +293,10 @@ class WeightEditorWindow(QWidget):
         
             index = (row, col)
 
-            row_data = self.vtxDataDict[row]
-            influences =  row_data[2]
-            vtxName = row_data[5]
-            mesh = row_data[6]
+            _data = self.vtxDataDict[row]
+            influences =  _data[2]
+            vtxName = _data[5]
+            mesh = _data[6]
             meshInfl = self.jointIndexList[mesh]
             lockedID = meshInfl[col]
 
@@ -308,14 +304,14 @@ class WeightEditorWindow(QWidget):
             if lock:
                 self.weightLockData.add(index)
                 self.weightTable.lockedWeigths.add(index)
-                self.vtxlockedDAta[vtxName].add(lockedID)
+                self.vtxlockedData[vtxName].add(lockedID)
             else:
                 if index in self.weightLockData:
                     self.weightLockData.remove(index)
                 if index in self.weightTable.lockedWeigths:
                     self.weightTable.lockedWeigths.remove(index)
-                if lockedID in self.vtxlockedDAta[vtxName]:
-                    self.vtxlockedDAta[vtxName].remove(lockedID)
+                if lockedID in self.vtxlockedData[vtxName]:
+                    self.vtxlockedData[vtxName].remove(lockedID)
                 lock_influence = influences[lockedID]
             
         self.setLockedData(jointID, lock)
@@ -326,11 +322,11 @@ class WeightEditorWindow(QWidget):
 
     def copyMenu(self):
         popMenu = QMenu()
-        cpVtx = popMenu.addAction('Copy Vtx Weights')
-        ptVtx = popMenu.addAction('Paste Vtx Weights')
-        cpCll = popMenu.addAction('Copy Cell Values')
-        ptCll = popMenu.addAction('Paste Cell Values')
-        clear = popMenu.addAction('clear values')
+        cpVtx = popMenu.addAction( 'Copy Vtx Weights' )
+        ptVtx = popMenu.addAction( 'Paste Vtx Weights' )
+        cpCll = popMenu.addAction( 'Copy Cell Values' )
+        ptCll = popMenu.addAction( 'Paste Cell Values' )
+        clear = popMenu.addAction( 'clear values' )
         
         cpVtx.triggered.connect(self.vxtCopy)
         ptVtx.triggered.connect(self.vtxPaste)
@@ -347,7 +343,7 @@ class WeightEditorWindow(QWidget):
         width = self.view.verticalHeader().sizeHint().width()
         height = self.view.horizontalHeader().sizeHint().height()
         
-        pos = self.view.mapFromGlobal(QCursor.pos())
+        pos = self.view.mapFromGlobal(self.view.mousePos)
         row = self.view.rowAt(pos.y() - height - 2)
         col = self.view.columnAt(pos.x() - width - 2)
         if col == -1:
@@ -358,7 +354,7 @@ class WeightEditorWindow(QWidget):
             self.copyMenu()
             return
 
-        self.popupBox = PopupSpinBox(value=float(text))
+        self.popupBox = PopupSpinBox(parent = self,value=float(text))
         self.popupBox.closed.connect(self.setPopupValue)
     
     def setPopupValue(self, direct=True):
@@ -373,7 +369,6 @@ class WeightEditorWindow(QWidget):
         
         self.activateWindow()
         self.raise_()
-        self.view.setFocus()
         self.view.setFocus()
         self.view.ignoreInput = False
         
@@ -393,20 +388,20 @@ class WeightEditorWindow(QWidget):
         self.apiWeights.getData()
         self.nodesToHilite = list(set(self.apiWeights.meshNodes))
         self.allInfJoints = copy.copy(self.apiWeights.allInfJoints)
-        self.meshInfluences  = self.apiWeights.meshInfluences
-        self.meshVerts  = self.apiWeights.meshVerts
-        self.meshWeights  = self.apiWeights.meshWeights
+        self.meshInfluences = self.apiWeights.meshInfluences
+        self.meshVerts = self.apiWeights.meshVerts
+        self.meshWeights = self.apiWeights.meshWeights
         self.meshSkinClusters = self.apiWeights.meshSkinClusters
 
         if len(self.meshSkinClusters) == 0:
-            print("No skin cluster found")
+            print( "No skin cluster found" )
             return
         
         if self._beforeCtx:
             self._beforeCtx = None
         
-        self._headerSelection = []
         _allRows = 0
+        self._headerSelection = []
         self.vertexSideBar = []
         self._data = []
         self.meshIndexRows = []
@@ -415,21 +410,21 @@ class WeightEditorWindow(QWidget):
         
         self.overMaxInfDict = {}
         self.weightLockData = set()
-        self.vtxlockedDAta = defaultdict(lambda : set())
+        self.vtxlockedData = defaultdict(lambda : set())
         self.meshIDdict = {}
-        self.meshItems = {} #< double check
+        self.meshItems = {} 
         self.nodeVtxIndexList = {}
-        self.lockedDAta = {}
+        self.lockedData = {}
         self.nodeInfIds = {}
         
-        for node_id, node in enumerate(self.nodesToHilite):
+        for nodeId, node in enumerate(self.nodesToHilite):
             if cmds.objectType(node) != "transform":
                 continue
             shape = cmds.listRelatives(node, s=1, type="mesh") or None
             if shape is None:
                 continue
 
-            self.meshIDdict[node] = node_id
+            self.meshIDdict[node] = nodeId
             skinCluster = self.meshSkinClusters[node]
             influences = self.meshInfluences[node]
             
@@ -439,7 +434,7 @@ class WeightEditorWindow(QWidget):
             amountInfluences = len(influences)
             jointIdx = range(len( influences))
             
-            lockedDAta = dict.fromkeys(self.meshVerts[node], interface.getLockData(skinCluster))
+            lockedData = dict.fromkeys(self.meshVerts[node], interface.getLockData(skinCluster))
 
             self.vertexSideBar.append(node.split('|')[-1].split(':')[-1])
             self.meshIndexRows.append(_allRows)
@@ -450,27 +445,27 @@ class WeightEditorWindow(QWidget):
             items[0] = node.split('|')[-1]
             self._data.append(items)
             
-            current_vtx = self.apiWeights.selectedVertIds(node, show_bad=False)
-            if not current_vtx:
+            _current = self.apiWeights.selectedVertIds(node, show_bad=False)
+            if not _current:
                 continue
                 
             filter_vtx = self.meshVerts[node]
-            target_vertices = sorted(list(set(current_vtx) & set(filter_vtx)))
+            targets = sorted(list(set(_current) & set(filter_vtx)))
             
-            if target_vertices:
+            if targets:
                 meshWeightList = self.meshWeights[node]
                 
                 items = []
-                for v in target_vertices:
-                    vtx_name = "{0:}.vtx[{1:}]".format(node, v)
-                    lock_data = lockedDAta.get(v, None)
-                    if lock_data:
-                        self.lockedDAta[_allRows] = [vtx_name, lock_data]
+                for v in targets:
+                    vertex = "{0:}.vtx[{1:}]".format(node, v)
+                    locks = lockedData.get(v, None)
+                    if locks:
+                        self.lockedData[_allRows] = [vertex, locks]
                         
                     self.vertexSideBar.append(v)
                     
                     weightList = meshWeightList[v][:]
-                    self.nodeVtxIndexList[vtx_name] = weightList
+                    self.nodeVtxIndexList[vertex] = weightList
                     self._data.append(weightList)
                     
                     sumWeights = round(sum(weightList), 12)
@@ -480,7 +475,7 @@ class WeightEditorWindow(QWidget):
                     if not round(sumWeights-1.0, 10) < 1e-6:
                         self.totalNotNormalized.add(_allRows)
                         
-                    self.vtxDataDict[_allRows] = [v, skinCluster, influences, [], jointIdx, vtx_name, node, node_id]
+                    self.vtxDataDict[_allRows] = [v, skinCluster, influences, [], jointIdx, vertex, node, nodeId]
                     _allRows += 1
              
         self.meshIndexRows.append(_allRows)
@@ -491,27 +486,27 @@ class WeightEditorWindow(QWidget):
         self.jointIndexList = {}
         for node in self.nodesToHilite:          
             influences = self.meshInfluences[node]
-            node_influence_id_list = [influences.index(inf)  if inf in influences else None for inf in self.allInfJoints]       
-            self.jointIndexList[node] = node_influence_id_list
+            infIdList = [influences.index(inf) if inf in influences else None for inf in self.allInfJoints]       
+            self.jointIndexList[node] = infIdList
             
             items = self.meshItems[node]
             for inf in self.allInfJoints:
                 items[inf] = None
                 
-        self.jointColors = [cmds.getAttr(j+'.objectColor') for j in self.allInfJoints]
-        self.jointIndexDict = {inf:i for i,inf in enumerate(self.allInfJoints)}
+        self.jointColors = [cmds.getAttr('%s.objectColor'%j) for j in self.allInfJoints]
+        self.jointIndexDict = {inf:i for i, inf in enumerate(self.allInfJoints)}
         
-        for row, lock_data in self.lockedDAta.items():
+        for row, locks in self.lockedData.items():
             node = self.vtxDataDict[row][6]
             nodeInfIDs = self.nodeInfIds[node]
             
-            vtx_name = lock_data[0]
-            lock_influences = lock_data[1]
+            vertex = locks[0]
+            lock_influences = locks[1]
             for influence in lock_influences:
                 if influence in self.jointIndexDict.keys():
                     col = self.jointIndexDict[influence]
                     self.weightLockData.add((row, col))
-                self.vtxlockedDAta[vtx_name].add(nodeInfIDs[influence])
+                self.vtxlockedData[vertex].add(nodeInfIDs[influence])
         
         try:      
             self.cleanupTable()
@@ -525,23 +520,20 @@ class WeightEditorWindow(QWidget):
         self.weightTable.lockedWeigths = self.weightLockData
             
         self.weightSelectModel = QItemSelectionModel(self.weightTable)
-        self.weightSelectModel.selectionChanged.connect(self.cell_changed)
+        self.weightSelectModel.selectionChanged.connect(self.cellChanged)
         self.view.setModel(self.weightTable)
         self.view.setSelectionModel(self.weightSelectModel)
         self.selectedCells = []
 
         self.evalHeaderWidth()
         
-    def cell_changed(self, selected, deselected):
+    def cellChanged(self, selected, deselected):
 
         if self._beforeCtx:
             self._beforeCtx = None
             self._headerSelection = None
         
         self.selectedCells =  self.weightSelectModel.selectedIndexes()
-        
-        self.pre_add_value = 0.0
-        self.sel_rows = self.getRows()
         
     @api.dec_undo
     def selectFromHeader(self):
@@ -563,15 +555,12 @@ class WeightEditorWindow(QWidget):
         if not self.isActiveWindow():
             QApplication.setActiveWindow(self)
         
-        self.text_value_list = []
         self.lockedCells = self.weightTable.lockedWeigths
 
-        newVal = self.inputValue
-            
         self.rowsToUpdate = set()
         self.cellDict = defaultdict(lambda : [])
 
-        newVal = max(0.0, min(newVal, 1.0))
+        newVal = clamp(self.inputValue) 
 
         for cell in self.selectedCells:
             row = cell.row()
@@ -593,12 +582,10 @@ class WeightEditorWindow(QWidget):
     def tryNormalizeWeights(self):
         _workData = self.weightTable._data
         
-        self.meshIDdict = defaultdict(lambda : OpenMaya.MIntArray())
-        self.meshInfDict = defaultdict(lambda : OpenMaya.MIntArray())
-        self.meshWeigthDict = defaultdict(lambda : OpenMaya.MDoubleArray())
-        self.origmeshWeights = defaultdict(lambda : OpenMaya.MDoubleArray())
-        self.undo_meshWeights = defaultdict(lambda : [])
-        self.redo_meshWeights = defaultdict(lambda : [])
+        self.meshIDdict = defaultdict( lambda : OpenMaya.MIntArray() )
+        self.meshInfDict = defaultdict( lambda : OpenMaya.MIntArray() )
+        self.meshWeigthDict = defaultdict( lambda : OpenMaya.MDoubleArray() )
+        self.origMeshWeights = defaultdict( lambda : OpenMaya.MDoubleArray() )
         
         meshWeightList = []
         origMeshWeightList = []
@@ -608,30 +595,29 @@ class WeightEditorWindow(QWidget):
         if not self.rowsToUpdate:
             return
 
-        last_row = list(self.rowsToUpdate)[-1]
+        _lastRow = list(self.rowsToUpdate)[-1]
         for row in self.rowsToUpdate:
             _recalc = True
-            row_data = self.vtxDataDict[row]
-            
-            vtx = row_data[0]
-            influences =  row_data[2]
+
+            vtx = self.vtxDataDict[row][0]
+            influences =  self.vtxDataDict[row][2]
             amountJoints = len(influences)
-            currentJointIDs = row_data[4]
-            vtx_name = row_data[5]
-            mesh = row_data[6]
+            currentJointIDs = self.vtxDataDict[row][4]
+            vertex = self.vtxDataDict[row][5]
+            mesh = self.vtxDataDict[row][6]
             
             jointIndexlist = self.jointIndexList[mesh]
-            lockedJointIDs = self.vtxlockedDAta[vtx_name]
+            lockedJoints = self.vtxlockedData[vertex]
             
             origWeights = self.meshWeights[mesh][vtx]
             nWeight = _workData[row]
             
             calcNWeigth = []
-            sumOfLockedVals = sum([nWeight[i] for i in lockedJointIDs])
+            lockedSum = sum([nWeight[i] for i in lockedJoints])
             
-            if sumOfLockedVals >= 1.0:
-                for index, wght in  enumerate(nWeight):
-                    if index in lockedJointIDs:
+            if lockedSum >= 1.0:
+                for index, wght in enumerate(nWeight):
+                    if index in lockedJoints:
                         calcNWeigth.append(wght)
                         continue
                     calcNWeigth.append(0.0)
@@ -643,36 +629,36 @@ class WeightEditorWindow(QWidget):
                     
                 sumSelection = sum([nWeight[i] for i in selJointID if i is not None])
                 restJntID = list(set(currentJointIDs) - set(selJointID))
-                restSum = sum([nWeight[i] for i in restJntID]) - sumOfLockedVals
+                restSum = sum([nWeight[i] for i in restJntID]) - lockedSum
                 
                 if restSum + sumSelection == 0.0:
                     nWeight = origWeights
                     sumSelection = sum([nWeight[i] for i in selJointID if i is not None])
-                if sumSelection + sumOfLockedVals >= 1.0:
-                    for index, wght in  enumerate(nWeight):
-                        if index in lockedJointIDs:
+                if sumSelection + lockedSum >= 1.0:
+                    for index, wght in enumerate(nWeight):
+                        if index in lockedJoints:
                             calcNWeigth.append(wght)
                         elif index in selJointID:
-                            calcNWeigth.append(wght/sumSelection*(1.0-sumOfLockedVals))
+                            calcNWeigth.append(wght/sumSelection*(1.0-lockedSum))
                         else:
                             calcNWeigth.append(0.0)
                             
                 elif sumSelection < 1.0:
-                    sumTotal = sumSelection + sumOfLockedVals
+                    sumTotal = sumSelection + lockedSum
                     if sumTotal >= 1.0 or restSum == 0.0:
                         if restSum == sumSelection == 0.0:
                             _recalc = False
                         other = 0.0
                         ratio = 0.0
                         if sumSelection != 0.0:
-                            ratio = (1 - sumOfLockedVals) / sumSelection
+                            ratio = (1 - lockedSum) / sumSelection
                     else:
                         newRestSum = 1.0 - sumTotal
                         other = newRestSum / restSum
                         ratio = 1.0
 
                     for index, wght in enumerate(nWeight):
-                        if index in lockedJointIDs:
+                        if index in lockedJoints:
                             calcNWeigth.append(wght)
                         elif index in selJointID:
                             calcNWeigth.append(nWeight[index]  * ratio)
@@ -684,28 +670,26 @@ class WeightEditorWindow(QWidget):
             if _recalc:
                 if mesh != prevMesh and prevMesh is not None:
                     self.meshWeigthDict[prevMesh] += meshWeightList
-                    self.origmeshWeights[prevMesh] += origMeshWeightList
+                    self.origMeshWeights[prevMesh] += origMeshWeightList
                     meshWeightList = []
                     origMeshWeightList = []
                     self.meshInfDict[prevMesh] = OpenMaya.MIntArray() + prevJointIDs
 
-                if row == last_row:
+                if row == _lastRow:
                     meshWeightList += nWeight
                     origMeshWeightList += origWeights
                     self.meshWeigthDict[mesh] += meshWeightList
-                    self.origmeshWeights[mesh] += origMeshWeightList
+                    self.origMeshWeights[mesh] += origMeshWeightList
                     self.meshInfDict[mesh] = OpenMaya.MIntArray() + currentJointIDs
 
                 meshWeightList += nWeight
                 origMeshWeightList += origWeights
                 self.meshIDdict[mesh] += [vtx] 
-                self.redo_meshWeights[mesh].append(nWeight)
-                self.undo_meshWeights[mesh].append(origWeights)
 
             prevMesh = mesh
             prevJointIDs = currentJointIDs
             
-            wghtList = self.nodeVtxIndexList[vtx_name] 
+            wghtList = self.nodeVtxIndexList[vertex] 
             for i, w in enumerate(nWeight):
                 wghtList[i] = w
                     
@@ -721,7 +705,7 @@ class WeightEditorWindow(QWidget):
             sc = self.meshSkinClusters[mesh]
             newWeight = self.meshWeigthDict[mesh]
             jnts = self.meshInfDict[mesh]
-            orig = self.origmeshWeights[mesh]
+            orig = self.origMeshWeights[mesh]
             cmds.SkinEditor(mesh, sc, vid=vertIds, nw = newWeight, jid = jnts, ow = orig )
         
         self.refreshTable()
@@ -744,13 +728,10 @@ class WeightEditorWindow(QWidget):
     def cleanupTable(self):
         if self.weightTable is not None:
             self.weightTable._data = {}
-            #del self.weightTable._data
             self.weightTable.deleteLater()
             self.weightTable = None
-            #del self.weightTable
         if self.weightSelectModel is not None:
             self.weightSelectModel.deleteLater()
-        #del self.weightSelectModel
     
     def setClose(self):
         self.isClosed=True

@@ -145,7 +145,9 @@ def round_compare(vA, vB, debug=False):
 def compare_vec3(a, b, epsilon=1e-5):
     return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2]) < epsilon
 
-
+def clamp(val, minVal =0.0, maxVal = 1.0):
+    return max(minVal, min(val, maxVal))
+    
 def lerp(a, b, t):
     return a * (1 - t) + b * t
 
