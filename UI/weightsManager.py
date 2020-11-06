@@ -14,7 +14,7 @@ class WeightsManager(object):
 
         
 
-    def gatherData(self, inObjects, weightdirectory):
+    def gatherData(self, inObjects, weightdirectory, fileName, binary=False):
         utils.setProgress(0, progressBar, "start gathering skinData" )
 
         self.skinInfo.getData(inObjects, self.progressBar)
@@ -30,9 +30,29 @@ class WeightsManager(object):
         _jsonDict["vertPositions"] = self.skinInfo.meshPositions
         _jsonDict["jntPositions"] = self.skinInfo.inflPositions
 
+        print type(_jsonDict["meshes"]), _jsonDict["meshes"]
+        print type(_jsonDict["weights"]), _jsonDict["weights"]
+        print type(_jsonDict["vertIds"]), _jsonDict["vertIds"]
+        print type(_jsonDict["influences"]), _jsonDict["influences"]
+        print type(_jsonDict["allJoints"]), _jsonDict["allJoints"]
+        print type(_jsonDict["skinclusters"]), _jsonDict["skinclusters"]
+        print type(_jsonDict["vertPositions"]), _jsonDict["vertPositions"]
+        print type(_jsonDict["jntPositions"]), _jsonDict["jntPositions"]
 
+        with open(os.path.join(weightdirectory, '%s.skinWeights'%fileName), 'w') as f:
+            json.dump(data, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
 
         utils.setProgress(100.0, progressBar, "data saved")
+
+    def readData(self, jsonFile):
+
+        with open(jsonFile) as f:
+            data = json.load(f)
+
+        _meshes = data["meshes"]
+        print _meshes
+
+
 '''
 # todo
 

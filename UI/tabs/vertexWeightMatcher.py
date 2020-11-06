@@ -2,7 +2,8 @@
 from functools import partial
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.shared import *
-from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget
+from SkinningTools.Maya import interface
+from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget, SoftSkinBuilder
 from maya import cmds
 
 
@@ -386,9 +387,15 @@ class TransferUvsWidget(QWidget):
         self.clearUI()
 
 class AssignWeightsWidget(QWidget):
-    def __init__(self, parent=None):
-        super(TransferUvsWidget, self).__init__(parent)
+    def __init__(self, parent=None, progressBar = None):
+        super(AssignWeightsWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
+
+        self.__softSkinData = SoftSkinBuilder(progressBar)
+
+        self.__mesh = ''
+        self.__widgets = {}
+
         self.__defaults()
         self.__setButtons()
         self.clearUI()
@@ -396,13 +403,83 @@ class AssignWeightsWidget(QWidget):
     def __defaults(self):
         pass
 
+    def _JointSoftGroup(self, joint):
+        # todo: do we need more info in this setup?
+        if joint in self.__widgets.keys():
+            return
+        h = nullVBoxLayout()
+        _btn = QPushButton(joint)
+        h.addWidget(_btn)
+
+        self.frameLayout.addLayout(h)
+        self.__widgets[joint] = h
+        _btn.clicked.connect(partial(self._addData, joint))
+
+    def _addData(self, joint):
+        self.__softSkinData.addSoftSkinInfo(joint)
+
     def __setButtons(self):
+        h = nullHBoxLayout()
+        self.searchLine = QLineEdit()
+        self.analyzeBtn = QPushButton("analyze")
+        self.addBtn = QPushButton("add")
+        for w in [QLabel("Search:"), self.searchLine, self.analyzeBtn, self.addBtn]:
+            h.addWidget(w)
+
+        #todo: need to figure out the scroll area so it fills the ui
+        _frame = QScrollArea()
+        self.frameLayout = nullVBoxLayout()
+        _frame.setLayout(self.frameLayout)
+        self.layout().addLayout(h)
+        self.layout().addWidget(_frame)
+        _build = QPushButton("build info")
+        self.layout().addWidget(_build)
         # add filter?
         # add buttons based on analyze, or add buttons based on buttonpress
-        pass
+
+        self.analyzeBtn.clicked.connect(self.addBones)
+        self.addBtn.clicked.connect(self.addBone)
+        _build.clicked.connect(self.build)
+
+    def addBone(self):
+        # get the joint to add to the current setup
+        selected = interface.getSelection()
+        allJoints = interface.getAllJoints()
+        for jnt in selected:
+            if not jnt in allJoints:
+                continue
+            if "|" in jnt:
+                jnt = jnt.rsplit("|")[-1]
+            self._JointSoftGroup(jnt)
+
+    def addBones(self):
+        self.clearUI()
+
+        selection = interface.getSelection()
+        print selection
+        if len(selection) > 0:
+            selection = selection[0]
+        if "." in selection:
+            selection = selection.split('.')[0]    
+        _data = self.__softSkinData.analyzeSkin(selection)
+        for jnt in _data:
+            if "|" in jnt:
+                jnt = jnt.rsplit("|")[-1]
+            self._JointSoftGroup(jnt)
+
+    def build(self):
+        # note: add only when not all joints are configured
+        add = True
+        if self.__mesh == '':
+            self.__mesh = interface.getSelection()[0]
+            add = False
+        self.__softSkinData.setSoftSkinInfo(self.__mesh, add)
 
     def clearUI(self):
-        pass
+        for jnt, h in self.__widgets.iteritems():
+            h.hide()
+            h.deleteLater()
+
 '''
 #todo:
 

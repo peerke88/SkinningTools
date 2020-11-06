@@ -38,6 +38,13 @@ def doSelect(input, replace=True):
         return
     cmds.select(input, r=replace)
 
+def getCurrentMeshJoints():
+    selection = getSelection()
+    if len(selection) > 1:
+        selection = selection[0]
+    if "." in selection:
+        selection = selection.split('.')[0]
+    return joints.getInfluencingJoints(selection)
 
 def setSmoothAware(input):
     cmds.softSelect(e=True, softSelectFalloff=input)

@@ -716,23 +716,24 @@ class SoftSkinBuilder(object):
         from SkinningTools.Maya.tools.apiWeights import ApiWeights
         self.__weightInfo = ApiWeights()
         self.__currentMesh = ''
-        self._boneWeights= {}
+        self.boneWeights= {}
         self._newWeights = {}
         self._preAnalyzed = False
 
     def analyzeSkin(self, inMesh, pre = True):
+        print inMesh
         if pre: 
             self._preAnalyzed = pre
-        self.__weightInfo.getData(inMesh, self._progressBar)
-
+        self.__weightInfo.getData([inMesh], self._progressBar)
+        print self.__weightInfo.meshInfluences[inMesh]
         _jntLen = len(self.__weightInfo.meshInfluences[inMesh])
-        for index, bone in enumarete(self.__weightInfo.meshInfluences[inMesh]):
-            self._boneWeights[bone] =  self.__weightInfo.meshWeights[inMesh][index*_jntLen: (1+index) * _jntLen]
+        for index, bone in enumerate(self.__weightInfo.meshInfluences[inMesh]):
+            self.boneWeights[bone] =  self.__weightInfo.meshWeights[inMesh][index*_jntLen: (1+index) * _jntLen]
 
         return self.__weightInfo.meshInfluences[inMesh]
 
 
-    def addSoftSkinInfo(self, bone ):
+    def addSoftSkinInfo(self, bone):
         _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
         if _softSelect:
             vertices, weights = mesh.softSelection()
@@ -752,7 +753,7 @@ class SoftSkinBuilder(object):
     def setSoftSkinInfo(self, inMesh, add = True):
         sc = shared.skinCluster(inMesh)
         if not sc:
-            sc = cmds.skinCluster(inMesh, self._boneWeights.keys(), tsb=1)
+            sc = cmds.skinCluster(inMesh, self.boneWeights.keys(), tsb=1)
 
         self.analyzeSkin(inMesh, False)
 
@@ -761,13 +762,13 @@ class SoftSkinBuilder(object):
         for bone in self.__weightInfo.meshInfluences[inMesh]:
             verts, weights = self._newWeights[bone]
             indices = shared.convertToIndexList(verts)
-            _origWeights.extend(self._boneWeights[bone])
+            _origWeights.extend(self.boneWeights[bone])
             for i, wght  in enumerate(weights):
                 if add:
-                    self._boneWeights[bone][indices[i]] += weight
+                    self.boneWeights[bone][indices[i]] += weight
                 else:
-                    self._boneWeights[bone][indices[i]] = weight
-            _weights.extend(self._boneWeights[bone])
+                    self.boneWeights[bone][indices[i]] = weight
+            _weights.extend(self.boneWeights[bone])
 
 
         jnts = [self.__weightInfo.meshInfluences[inMesh].index(inf) for inf in self.__weightInfo.meshInfluences[inMesh]]       

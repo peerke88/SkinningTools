@@ -357,8 +357,8 @@ class WeightEditorWindow(QWidget):
         self.popupBox = PopupSpinBox(parent = self,value=float(text))
         self.popupBox.closed.connect(self.setPopupValue)
     
-    def setPopupValue(self, direct=True):
-        if direct:
+    def setPopupValue(self, textValue=True):
+        if textValue:
             try:
                 self.inputValue = float(self.popupBox.input.text())
             except:

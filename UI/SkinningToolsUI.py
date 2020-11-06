@@ -12,10 +12,11 @@ from SkinningTools.UI.advancedToolTip import AdvancedToolTip
 from SkinningTools.UI.weightEditor import weightEditor
 import tempfile, os
 from functools import partial
+from collections import OrderedDict
 
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
-from SkinningTools.UI.tabs.vertexWeightMatcher import TransferWeightsWidget, ClosestVertexWeightWidget, TransferUvsWidget
+from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
 __VERSION__ = "5.0.20201028"
@@ -150,10 +151,11 @@ class SkinningTools(QMainWindow):
         self.copyToolsTab.tearOff.connect(self.tearOff)
 
         vLayout.addWidget(self.copyToolsTab)
-
-        _dict ={ "Copy closest weigth" : ClosestVertexWeightWidget(self),
-                 "Transfer weigths"    : TransferWeightsWidget(self),
-                 "Transfer Uv's"       : TransferUvsWidget(self),}
+        _dict = OrderedDict()
+        _dict["Copy closest weigth"] = ClosestVertexWeightWidget(self)
+        _dict["Transfer weigths"] = TransferWeightsWidget(self)
+        _dict["Transfer Uv's"] = TransferUvsWidget(self)
+        _dict["Assign soft selection"] = AssignWeightsWidget(self)
         
         for key, value in _dict.iteritems():
             _tab = self.copyToolsTab.addGraphicsTab(key)
