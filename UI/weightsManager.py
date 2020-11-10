@@ -4,6 +4,10 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
+from SkinningTools.UI.remapDialog import remapDialog
+
+#Note: temporary
+from maya import cmds
 
 class WeightsManager(object):
     def __init__(self):
@@ -15,42 +19,71 @@ class WeightsManager(object):
         
 
     def gatherData(self, inObjects, weightdirectory, fileName, binary=False):
-        utils.setProgress(0, progressBar, "start gathering skinData" )
+        setProgress(0, self.progressBar, "start gathering skinData" )
 
         self.skinInfo.getData(inObjects, self.progressBar)
 
         _jsonDict = {}
-        #todo: fix these values so they are using json safe lists
         _jsonDict["meshes"] = self.skinInfo.meshNodes
         _jsonDict["weights"] = self.skinInfo.meshWeights
-        _jsonDict["vertIds"] = [x for x in self.skinInfo.meshVerts]
-        _jsonDict["influences"] = self.skinInfo.meshInfluences
-        _jsonDict["allJoints"] = self.skinInfo.allInfJoints
-        _jsonDict["skinclusters"] = self.skinInfo.meshSkinClusters
-        _jsonDict["vertPositions"] = self.skinInfo.meshPositions
-        _jsonDict["jntPositions"] = self.skinInfo.inflPositions
-
-        print type(_jsonDict["meshes"]), _jsonDict["meshes"]
-        print type(_jsonDict["weights"]), _jsonDict["weights"]
-        print type(_jsonDict["vertIds"]), _jsonDict["vertIds"]
-        print type(_jsonDict["influences"]), _jsonDict["influences"]
-        print type(_jsonDict["allJoints"]), _jsonDict["allJoints"]
-        print type(_jsonDict["skinclusters"]), _jsonDict["skinclusters"]
-        print type(_jsonDict["vertPositions"]), _jsonDict["vertPositions"]
-        print type(_jsonDict["jntPositions"]), _jsonDict["jntPositions"]
+        # fix these values so they are using json safe lists
+        _vertIDS = {}
+        for key, value in self.skinInfo.meshVerts.iteritems():
+            _vertIDS[key] = [x for x in value]
+        _jsonDict["vertIds"] = _vertIDS
+        _jsonDict["infl"] = self.skinInfo.meshInfluences
+        _jsonDict["allJnts"] = self.skinInfo.allInfJoints
+        _jsonDict["clusters"] = self.skinInfo.meshSkinClusters
+        _jsonDict["vertPos"] = self.skinInfo.meshPositions
+        _jsonDict["jntPos"] = self.skinInfo.inflPositions
+        _jsonDict["bbox"] = self.skinInfo.boundingBoxes
 
         with open(os.path.join(weightdirectory, '%s.skinWeights'%fileName), 'w') as f:
-            json.dump(data, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
+            json.dump(_jsonDict, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
 
-        utils.setProgress(100.0, progressBar, "data saved")
+        setProgress(100.0, self.progressBar, "data saved")
 
     def readData(self, jsonFile):
 
         with open(jsonFile) as f:
             data = json.load(f)
+        return data
 
-        _meshes = data["meshes"]
-        print _meshes
+    def importData(self, jsonFile, closestNPoints = 3, uvBased = False):
+        _data = readData(jsonFile)
+        
+        _currentMeshes = list(set(cmds.listRelatives(cmds.ls(sl=0, type = "mesh"), parent= 1)))
+        bbInfo = {}
+        for mesh in _currentMeshes:
+            __BB = cmds.exactWorldBoundingBox(node)
+            bbInfo[mesh] = [__BB[:3], __BB[3:6]]
+
+        remapMesh = {}
+        for mesh in _data["meshes"]:
+            if cmds.objExists(mesh):
+                remapMesh[mesh] = mesh 
+                continue
+            remapMesh.append(mesh)
+        
+        _needsRemapJoint = False
+        for joint in _jsonDict["allJoints"]:
+            if cmds.objExists(joint):
+                continue
+            _needsRemapJoint = True
+
+
+        # @Todo: check i
+
+        # _meshes = data["meshes"]
+
+        # for mesh in _meshes:
+        #     print "------- %s -------"%mesh
+        #     print data["weights"][mesh]
+        #     print data["vertIds"][mesh]
+        #     print data["influences"][mesh]
+        #     print data["skinclusters"][mesh]
+        #     print data["vertPositions"][mesh]
+        #     print data["jntPositions"][mesh]
 
 
 '''

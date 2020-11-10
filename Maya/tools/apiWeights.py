@@ -2,6 +2,7 @@
 from maya.api import OpenMaya, OpenMayaAnim
 from maya import cmds
 
+from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface, api
 from SkinningTools.Maya.tools import shared, mathUtils
 
@@ -18,6 +19,7 @@ class ApiWeights():
         self.meshNodes = list()
         self.meshPositions = {}
         self.inflPositions = {}
+        self.boundingBoxes = {}
 
     def selectedVertIds(self, node, show_bad=False):
         selection = interface.getSelection()
@@ -70,6 +72,9 @@ class ApiWeights():
             
             self.meshNodes.append(node)
             
+            _bbox = cmds.exactWorldBoundingBox(node)
+            self.boundingBoxes[node] = [_bbox[:3], _bbox[3:6]]
+
             skinFn, skinName = self.getSkinFn(meshPath)
             if skinFn is None:
                 continue
@@ -83,7 +88,7 @@ class ApiWeights():
             self.meshPositions[node] = []
             for index, id in enumerate(vtxArry):
                 pos = cmds.xform("%s.vtx[%i]"%(originalShape,index), q=1, ws=1, t=1)
-                self.meshPositions[node].append(pos)
+                self.meshPositions[node].append(smart_roundVec(pos, 3))
             
             singleIdComp = OpenMaya.MFnSingleIndexedComponent()
             vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent )
@@ -101,7 +106,7 @@ class ApiWeights():
                 floatMat = cmds.getAttr("%s.bindPreMatrix[%i]"%(skinName, infIndices[x])) 
                 jntTrs = OpenMaya.MTransformationMatrix(mathUtils.floatToMatrix(floatMat).inverse())
                 vec = jntTrs.translation(OpenMaya.MSpace.kWorld)
-                jPos.append([vec.x, vec.y, vec.z])
+                jPos.append(smart_roundVec([vec.x, vec.y, vec.z], 3))
 
             self.inflPositions[node] = jPos
             amountInfluences = len(infIndices)

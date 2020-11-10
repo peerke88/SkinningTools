@@ -3,6 +3,7 @@ from SkinningTools.py23 import *
 import re, difflib, functools
 from SkinningTools.UI.qt_util import *
 
+from SkinningTools.ThirdParty.kdtree import KDTree
 
 def nullVBoxLayout(parent=None, size=0):
     v = QVBoxLayout()
@@ -127,7 +128,10 @@ def setProgress(inValue, progressBar=None, inText=''):
 
 
 def smart_round(value, ndigits):
-    return int(value * (10 * ndigits)) / (10. * ndigits)
+    return int(value * (10 ** ndigits)) / (10. ** ndigits)
+
+def smart_roundVec(inVector, nDigits):
+    return [smart_round(inVector[0], nDigits), smart_round(inVector[1], nDigits), smart_round(inVector[2], nDigits)]
 
 
 def round_compare(vA, vB, debug=False):
@@ -223,3 +227,8 @@ class LineEdit(QLineEdit):
             return
         else:
             super(self.__class__, self).keyPressEvent(event)
+
+def getClosestVector(inList, currentPos, amountTosearch=1):
+    sourceKDTree = KDTree.construct_from_data(inList)
+    foundPoints = sourceKDTree.query(query_point=currentPos, t=amountTosearch)
+    return foundPoints
