@@ -1,20 +1,5 @@
 #!/usr/bin/env bash
 # batch file to build all maya plugins at once
-BASEDIR=$(dirname "$0")
-echo "$BASEDIR"
-
-cd "$BASEDIR/rigSystem"
-
-python resourcecompiler.py
-echo "build resources.h"
-
-
-function pause(){
-   read -p "$*"
-}
- 
-pause 'Press [Enter] key to continue...'
-
 array=( 2017 2018 2019 2020 )
 
 cd "$BASEDIR/build"

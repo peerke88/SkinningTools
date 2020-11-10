@@ -23,4 +23,4 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 
 
 # find_package(Maya REQUIRED)
-add_subdirectory(rigSystem)
+add_subdirectory(projects)

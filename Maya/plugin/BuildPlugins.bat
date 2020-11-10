@@ -1,13 +1,5 @@
 @echo off
 rem batch file to build all maya plugins at once
-
-cd %~dp0\rigSystem
-
-python resourcecompiler.py
-echo "build resources.h"
-
-pause
-
 set list= 2017 2018 2019 2020 2021
 
 cd %~dp0\build
