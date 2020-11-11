@@ -1,4 +1,4 @@
-#include "AverageVtxWeight.h"
+#include "averagevtxweight.h"
 #include "utils.hpp"
 #include <vector>
 #include <algorithm> 

@@ -4,7 +4,7 @@ Maya stub of imports used in the UI library.
 The idea is to make this file as short as possible
 while leaving room for other packages to implement features.
 """
-import functools,os
+import functools,os, sys
 
 from SkinningTools.Maya.tools import shared, joints
 from SkinningTools.Maya.tools import weightPaintUtils
@@ -12,6 +12,7 @@ from SkinningTools.UI.markingMenu import MarkingMenuFilter
 from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
 from maya.api import OpenMaya
+import platform
 
 _DEBUG = True
 
@@ -52,6 +53,32 @@ def selectedSkinnedShapes():
                 result.append(skinnedShape)
 
     return result
+
+
+def getMayaVersion():
+    mayaVersion = str(cmds.about(apiVersion=True))[:-2]
+    if "maya" in sys.executable and platform.system() == "Windows":
+        mayaVersion = sys.executable.split("Maya")[-1].split(os.sep)[0]
+    elif platform.system() != "Windows":
+        mayaVersion = cmds.about(version=1)
+    return mayaVersion
+
+def getPluginSuffix():
+    pluginSuffix = ".mll"
+    if platform.system() == "Darwin":
+        pluginSuffix = ".bundle"
+    if platform.system() == "Linux":
+        pluginSuffix = ".bundle"
+    return pluginSuffix
+
+def getPlugin():
+    mayaVersion = getMayaVersion()
+    suffix = getPluginSuffix()
+    file = os.path.dirname(__file__)
+    _plugin = os.path.join( file, "plugin/x64/%sx64/plug-ins/SkinCommands%s"%(mayaVersion, suffix))
+    print _plugin
+    return _plugin
+    
 
 
 def connectSelectionChangedCallback(callback):

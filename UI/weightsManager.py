@@ -4,7 +4,7 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
-from SkinningTools.UI.remapDialog import remapDialog
+from SkinningTools.UI.remapDialog import RemapDialog
 
 #Note: temporary
 from maya import cmds

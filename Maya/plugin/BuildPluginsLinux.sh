@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # batch file to build all maya plugins at once
+function pause(){
+    read -p "$*s"
+}
 array=( 2017 2018 2019 2020 )
 
 cd "../build"
