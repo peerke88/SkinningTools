@@ -3,7 +3,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from functools import partial
 import tempfile, os
-from SkinningTools.UI.remapDialog import RemapDialog
+from SkinningTools.UI.dialogs.remapDialog import RemapDialog
 
 
 class MayaToolsHeader(QWidget):

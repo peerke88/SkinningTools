@@ -4,7 +4,7 @@ from SkinningTools.UI.utils import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 
 class MeshSelector(QDialog):
-    def __init__(self, inMesh={}, meshes = {}, parent=None):
+    def __init__(self, inMesh='', inBB=[], meshes = {}, parent=None):
         super(JointName, self).__init__(parent)
         _current = inMesh.keys()[0]
         self.setWindowTitle("select mesh to represent %s"%_current)

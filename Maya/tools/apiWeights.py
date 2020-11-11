@@ -73,7 +73,7 @@ class ApiWeights():
             self.meshNodes.append(node)
             
             _bbox = cmds.exactWorldBoundingBox(node)
-            self.boundingBoxes[node] = [_bbox[:3], _bbox[3:6]]
+            self.boundingBoxes[node] = [smart_round(_bbox[:3], 3), smart_round(_bbox[3:6], 3)]
 
             skinFn, skinName = self.getSkinFn(meshPath)
             if skinFn is None:
@@ -127,3 +127,13 @@ class ApiWeights():
         if progressBar:
             utils.setProgress(95.0, progressBar, "gathered data")
         
+"""
+# @todo: add uvspace??
+alluvs      = cmds.polyListComponentConversion("%s.vtx[%s]"%(inObject, aPoint.get("index")), tuv=True)
+if alluvs == None or len(alluvs) == 0:
+    # don't try to add uv's when we don't have them
+    continue
+singleUV    = cmds.filterExpand(alluvs, sm=35)[0]
+uvcoord     = cmds.polyEditUV(singleUV, q=True, u=True,v=True)   
+
+"""

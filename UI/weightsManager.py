@@ -4,15 +4,17 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
-from SkinningTools.UI.remapDialog import RemapDialog
+from SkinningTools.UI.dialogs.remapDialog import RemapDialog
+from SkinningTools.UI.dialogs.meshSelector import MeshSelector
+from random import randint
 
-#Note: temporary
+#Note: temporary, or move entire class over to maya.tools
 from maya import cmds
 
 class WeightsManager(object):
-    def __init__(self):
+    def __init__(self, inProgressBar = None):
         super(WeightsManager, self).__init__()
-        self.progressBar = None
+        self.progressBar = inProgressBar
 
         self.skinInfo = ApiWeights()
 
@@ -56,14 +58,17 @@ class WeightsManager(object):
         bbInfo = {}
         for mesh in _currentMeshes:
             __BB = cmds.exactWorldBoundingBox(node)
-            bbInfo[mesh] = [__BB[:3], __BB[3:6]]
+            bbInfo[mesh] = [smart_round(__BB[:3], 3), smart_round(__BB[3:6], 3)]
 
         remapMesh = {}
         for mesh in _data["meshes"]:
             if cmds.objExists(mesh):
                 remapMesh[mesh] = mesh 
                 continue
-            remapMesh.append(mesh)
+            selector = MeshSelector(inMesh = mesh, inBB = _data["bbox"][mesh], bbInfo)
+            selector.exec_()
+
+            remapMesh[mesh] = selector.combo.currentText()
         
         _needsRemapJoint = False
         for joint in _jsonDict["allJoints"]:
@@ -71,6 +76,27 @@ class WeightsManager(object):
                 continue
             _needsRemapJoint = True
 
+        currentJoints = cmds.ls(sl=0, type = "joint")
+        connectionDict = { i : i for i in _jsonDict["allJoints"] }
+        if _needsRemapJoint:
+            _remap = RemapDialog(leftSide = _jsonDict["allJoints"], rightSide = currentJoints, parent = self)
+            _remap.exec_()
+            connectionDict = _remap.getConnectionInfo()
+        
+        for mesh, toMesh in remapMesh.iteritems():
+            _closest = checkNeedsClosestVtxSearch(_data, mesh, toMesh)
+
+
+    def checkNeedsClosestVtxSearch(self, data, fromMesh, toMesh):
+        _needsClosest = False
+        for i in xrange(5):
+            _id =  randint(0, (_data["vertIds"][fromMesh][-1] + 1))
+            pos = smart_roundVec(_data["vertPos"][fromMesh][_id], 3)
+            nPos = smart_roundVec(cmds.xform("%s.vtx[%i]"%(toMesh, _id), q=1, ws=1,t=1), 3)
+            if pos == nPos:
+                continue
+            _needsClosest = True
+        return _needsClosest
 
         # @Todo: check i
 
