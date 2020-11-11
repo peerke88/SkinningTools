@@ -2,6 +2,7 @@
 rem batch file to build all maya plugins at once
 set list= 2017 2018 2019 2020 2021
 
+if not exist "%~dp0\build" mkdir %~dp0\build
 cd %~dp0\build
 
 

@@ -6,7 +6,8 @@ cmake_minimum_required(VERSION 3.6)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-project(rigSystem)
+
+project(skinCommands)
 
 if(POLICY CMP0072)
     # force the application to take new gl functions instead of legacy
