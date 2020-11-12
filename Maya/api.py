@@ -44,7 +44,7 @@ def selectedSkinnedShapes():
     selectedShapes = set(cmds.ls(sl=True, l=True, o=True, type='shape') or [])
     t = cmds.ls(sl=True, l=True, o=True, type='transform')
     if t:
-        selectedShapes += set(cmds.listRelatives(t, c=True, f=True, type='shape') or [])
+        selectedShapes = selectedShapes | set(cmds.listRelatives(t, c=True, f=True, type='shape') or [])
 
     result = []
     for skinCluster in cmds.ls(type='skinCluster'):

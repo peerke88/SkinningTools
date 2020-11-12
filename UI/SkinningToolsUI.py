@@ -15,6 +15,7 @@ from functools import partial
 from collections import OrderedDict
 
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
+from SkinningTools.UI.tabs.skinBrushes import SkinBrushes
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
@@ -123,6 +124,7 @@ class SkinningTools(QMainWindow):
         tab.view.frame.setLayout(vLayout)
 
         self.__addVertNBoneFunc()
+        self.__addBrushTools()
         self.__addCopyRangeFunc()
         self.__addSimpleTools()
 
@@ -136,9 +138,16 @@ class SkinningTools(QMainWindow):
         vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __addVertNBoneFunc(self):
-        tab = self.mayaToolsTab.addGraphicsTab("Vertex & bone functions")
+        tab = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions")
         vLayout = nullVBoxLayout()
         widget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
+        vLayout.addWidget(widget)
+        tab.view.frame.setLayout(vLayout)
+
+    def __addBrushTools(self):
+        tab = self.mayaToolsTab.addGraphicsTab("Brushes")
+        vLayout = nullVBoxLayout()
+        widget = SkinBrushes(parent=self)
         vLayout.addWidget(widget)
         tab.view.frame.setLayout(vLayout)
 

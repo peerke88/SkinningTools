@@ -7,6 +7,12 @@ from UI import SkinningToolsUI
 
 DEFAULT_RELOAD_PACKAGES = ['SkinningTools']
 
+PLUGINS = [os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py")),
+           os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPerryCpp/x64/2020x64/SkinCommands.mll")),
+           os.path.join(getInterfaceDir(), "/plugin/smoothBrushRodCpp/lib/maya2020/release/smooth_brush_maya.mll"),
+           os.path.join(getInterfaceDir(), "/plugin/smoothBrushRodCpp/lib/maya2020/debug/smooth_brush_maya_debug.mll"),
+           os.path.join(getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py")) ]
+
 '''
 Instead of closing/opening maya to reflect changes in Python code one would 
 usually do: reload("modifiedPythonModule") in Maya's python console.
@@ -34,25 +40,17 @@ def unload(silent=True, packages=None, newScene = True):
         SkinningToolsUI.closeSkinningToolsMainWindow()
     except Exception,err:
         print("failed to close window")
-    
+
     if newScene:
         cmds.file(force=True, new=True)
-    p1_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py"))
-    p2_name = os.path.join(getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py"))
 
-    try:
-        if cmds.pluginInfo(p1_name, q=True, loaded=True):
-            p1_name = cmds.pluginInfo(p1_name, query=True, name=True)
-            cmds.unloadPlugin(cmds.pluginInfo(p1_name, query=True, name=True))
-    except Exception,err:
-        print("failed to unload averageWeightPlugin.py")
-
-    try:
-        if cmds.pluginInfo(p2_name, q=True, loaded=True):
-            p2_name = cmds.pluginInfo(p2_name, query=True, name=True)
-            cmds.unloadPlugin(cmds.pluginInfo(p2_name, query=True, name=True))
-    except Exception,err:
-        print("failed to unload SkinEditPlugin.py")
+    for path in PLUGINS:
+        try:
+            if cmds.pluginInfo(path, q=True, loaded=True):
+                name = cmds.pluginInfo(path, query=True, name=True)
+                cmds.unloadPlugin(cmds.pluginInfo(name, query=True, name=True))
+        except Exception, err:
+            print("failed to unload "+path)
 
     # construct reload list
     reloadList =[]

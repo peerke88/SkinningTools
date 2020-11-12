@@ -134,7 +134,7 @@ def creatorInit():
 
 def initialize():
     syntax = OpenMaya.MSyntax()
-    syntax.addArg(OpenMaya.MSyntax.kLong)
+    syntax.addArg(OpenMaya.MSyntax.kString) # OpenMaya.MSyntax.kLong
     return syntax
 
 
