@@ -16,7 +16,7 @@ class WeightsManager(object):
         super(WeightsManager, self).__init__()
         self.progressBar = inProgressBar
 
-        self.skinInfo = ApiWeights()
+        self.skinInfo = ApiWeights(True)
 
         
 

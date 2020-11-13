@@ -4,10 +4,11 @@ from maya import cmds
 
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface, api
-from SkinningTools.Maya.tools import shared, mathUtils
+from SkinningTools.Maya.tools import shared, mathUtils, mesh
 
 class ApiWeights():
-    def __init__(self):
+    def __init__(self, extraInfo = False):
+        self.__extraInfo = extraInfo
         self.doInit()
 
     def doInit(self):
@@ -17,9 +18,11 @@ class ApiWeights():
         self.allInfJoints = list()
         self.meshSkinClusters = {}
         self.meshNodes = list()
-        self.meshPositions = {}
-        self.inflPositions = {}
-        self.boundingBoxes = {}
+        if self.__extraInfo:
+            self.meshPositions = {}
+            self.inflPositions = {}
+            self.boundingBoxes = {}
+            self.uvCoords = {}
 
     def selectedVertIds(self, node, show_bad=False):
         selection = interface.getSelection()
@@ -38,6 +41,7 @@ class ApiWeights():
         skinFn = shared.getMfnSkinCluster(dagPath.fullPathName())
         return skinFn, skinCluster
 
+    @shared.dec_profile
     def getData(self, inNodes = None, progressBar = None):
         if progressBar:
             utils.setProgress(0, progressBar, "start gathering skinData" )
@@ -71,9 +75,21 @@ class ApiWeights():
             meshPath, component = sList.getComponent(0) 
             
             self.meshNodes.append(node)
-            
-            _bbox = cmds.exactWorldBoundingBox(node)
-            self.boundingBoxes[node] = [smart_round(_bbox[:3], 3), smart_round(_bbox[3:6], 3)]
+
+            if self.__extraInfo:
+                self.meshPositions[node] = []
+                uvCoords = []
+                vertIter = OpenMaya.MItMeshVertex(meshPath)
+                while not vertIter.isDone():
+                    pos = vertIter.position(OpenMaya.MSpace.kWorld)
+                    self.meshPositions[node].append(smart_roundVec([pos.x, pos.y, pos.z], 3))
+                    try:
+                        u, v, __ = vertIter.getUVs()
+                        uvCoords.append([u[0], v[0]])
+                    except:
+                        uvCoords.append(None)
+                    vertIter.next()
+                self.uvCoords[node] = uvCoords
 
             skinFn, skinName = self.getSkinFn(meshPath)
             if skinFn is None:
@@ -85,11 +101,7 @@ class ApiWeights():
             vtxArry = shared.getComponents(meshPath, component)
             self.meshVerts[node] = vtxArry
 
-            self.meshPositions[node] = []
-            for index, id in enumerate(vtxArry):
-                pos = cmds.xform("%s.vtx[%i]"%(originalShape,index), q=1, ws=1, t=1)
-                self.meshPositions[node].append(smart_roundVec(pos, 3))
-            
+                
             singleIdComp = OpenMaya.MFnSingleIndexedComponent()
             vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent )
             singleIdComp.addElements(vtxArry)
@@ -100,17 +112,25 @@ class ApiWeights():
             for x, jntDag in enumerate(infDags):
                 infIndices[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
 
-                # note: instead of getting the data of the joint based on joint position we get the bindpose position!
-                # jntTRS = OpenMaya.MFnTransform(jntDag)
-                # jPos.append(jntTRS.translation(OpenMaya.MSpace.kWorld))
-                floatMat = cmds.getAttr("%s.bindPreMatrix[%i]"%(skinName, infIndices[x])) 
-                jntTrs = OpenMaya.MTransformationMatrix(mathUtils.floatToMatrix(floatMat).inverse())
-                vec = jntTrs.translation(OpenMaya.MSpace.kWorld)
-                jPos.append(smart_roundVec([vec.x, vec.y, vec.z], 3))
+                if self.__extraInfo:
+                    # note: instead of getting the data of the joint based on joint position we get the bindpose position!
+                    jntTRS = OpenMaya.MFnTransform(jntDag)
+                    jPos.append(jntTRS.translation(OpenMaya.MSpace.kWorld))
+                    floatMat = cmds.getAttr("%s.bindPreMatrix[%i]"%(skinName, infIndices[x])) 
+                    jntTrs = OpenMaya.MTransformationMatrix(mathUtils.floatToMatrix(floatMat).inverse())
+                    vec = jntTrs.translation(OpenMaya.MSpace.kWorld)
+                    jPos.append(smart_roundVec([vec.x, vec.y, vec.z], 3))
 
-            self.inflPositions[node] = jPos
+            if self.__extraInfo:
+                self.inflPositions[node] = jPos
+
+                boundingBox = OpenMaya.MBoundingBox()
+                for i in self.meshPositions[node]:
+                    point = OpenMaya.MPoint(*i)
+                    boundingBox.expand( point )
+                self.boundingBoxes[node] = [smart_roundVec(boundingBox.min, 3), smart_roundVec(boundingBox.max, 3)]
+
             amountInfluences = len(infIndices)
-
             weights = skinFn.getWeights( meshPath , vertexComp)
             _wght = weights[0]
             weights = [[_wght[i+j*amountInfluences] for i in xrange(amountInfluences)] for j in xrange(len(_wght)/amountInfluences)]
@@ -127,13 +147,3 @@ class ApiWeights():
         if progressBar:
             utils.setProgress(95.0, progressBar, "gathered data")
         
-"""
-# @todo: add uvspace??
-alluvs      = cmds.polyListComponentConversion("%s.vtx[%s]"%(inObject, aPoint.get("index")), tuv=True)
-if alluvs == None or len(alluvs) == 0:
-    # don't try to add uv's when we don't have them
-    continue
-singleUV    = cmds.filterExpand(alluvs, sm=35)[0]
-uvcoord     = cmds.polyEditUV(singleUV, q=True, u=True,v=True)   
-
-"""
