@@ -52,7 +52,7 @@ def shortestPathVertex(start, end):
         pos2 = MVector(*cmds.xform(object2, q=True, ws=True, t=True))
         return (pos1 - pos2).length()
 
-    mesh = start.split('.')[0]
+    curMesh = start.split('.')[0]
 
     firstExtendedEdges = cmds.polyListComponentConversion(start, te=True)
     firstExtended = cmds.filterExpand(firstExtendedEdges, sm=32, fp=1)
@@ -64,7 +64,7 @@ def shortestPathVertex(start, end):
     for e1, e2 in combinations:
         e1n = int(e1[e1.index("[") + 1: -1])
         e2n = int(e2[e2.index("[") + 1: -1])
-        edgeSel = cmds.polySelect(mesh, elp=[e1n, e2n], ns=True)
+        edgeSel = cmds.polySelect(curMesh, elp=[e1n, e2n], ns=True)
         if edgeSel == None:
             continue
         found.append(edgeSel)
@@ -72,7 +72,7 @@ def shortestPathVertex(start, end):
     if found == []:
         vertexNumber1 = int(start[start.index("[") + 1: -1])
         vertexNumber2 = int(end[end.index("[") + 1: -1])
-        edgeSelection = cmds.polySelect(mesh, shortestEdgePath=[vertexNumber1, vertexNumber2])
+        edgeSelection = cmds.polySelect(curMesh, shortestEdgePath=[vertexNumber1, vertexNumber2])
     else:
         edgeSelection = min(found, key=len)
 
@@ -81,7 +81,7 @@ def shortestPathVertex(start, end):
 
     newVertexSelection = []
     for edge in edgeSelection:
-        midexpand = shared.convertToVertexList("%s.e[%s]" % (mesh, edge))
+        midexpand = shared.convertToVertexList("%s.e[%s]" % (curMesh, edge))
         newVertexSelection.append(midexpand)
 
     startIndex = int(start[start.index("[") + 1: -1])
@@ -106,7 +106,7 @@ def shortestPathVertex(start, end):
         inOrder.reverse()
 
     # totalDistance = measureLength(inOrder[-1], end)
-    inOrder = shared.convertToCompList(inOrder, mesh)
+    inOrder = shared.convertToCompList(inOrder, curMesh)
     return [start] + inOrder + [end]
 
 
@@ -233,18 +233,18 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
 
 
 def edgesToSmooth(inEdges):
-    mesh = inEdges[0].split('.')[0]
+    curMesh = inEdges[0].split('.')[0]
     convertToVerts = shared.convertToIndexList(shared.convertToVertexList(inEdges))
 
-    selectionLists = shared.getConnectedVerts(mesh, convertToVerts)
-    list1 = shared.convertToCompList(selectionLists[0], mesh)
-    list2 = shared.convertToCompList(selectionLists[1], mesh)
+    selectionLists = shared.getConnectedVerts(curMesh, convertToVerts)
+    list1 = shared.convertToCompList(selectionLists[0], curMesh)
+    list2 = shared.convertToCompList(selectionLists[1], curMesh)
 
     baseList = []
     edgeLengths = []
     combinations = list(itertools.product(list1, list2))
     for vert, vtx in combinations:
-        loopSize = shared.checkEdgeLoop(mesh, vert, vtx)
+        loopSize = shared.checkEdgeLoop(curMesh, vert, vtx)
         if not loopSize:
             continue
         baseList.append([vert, vtx])
@@ -338,8 +338,8 @@ def extractFacesByVertices(vertices, internal=False):
     if not vertices:
         return None
 
-    mesh = vertices[0].rsplit('.',1)[0]
-    dup = cmds.duplicate(mesh)[0]
+    curMesh = vertices[0].rsplit('.',1)[0]
+    dup = cmds.duplicate(curMesh)[0]
     if cmds.listRelatives(dup, p=1):
         cmds.parent(dup, w=True)
     
@@ -476,5 +476,3 @@ def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), both = False, progre
         
         if not cmds.listConnections(shape, s=0, d=1, type="shadingEngine"):
             setOrigShapeColor(shape, inColor)
-        
-

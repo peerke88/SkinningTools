@@ -41,3 +41,19 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 ``` 
   Author: [Ryan Porter](https://yantor3d.wordpress.com/)
 ```
+
+* pyprof2calltree
+```
+  Author: David Allouche
+  Licences: Copyright https://github.com/pwaller/pyprof2calltree/blob/master/LICENSE
+```
+
+* qcahcegrind
+```
+  Author: Josef Weidendorfer
+  Licences:
+    - kcachegrind: GPLv2 (http://kcachegrind.sourceforge.net/html/License.html)
+    - Qt: LGPL 2.1 (http://qt-project.org/doc/qt-5.0/qtdoc/lgpl.html)
+    - dot: EPL (http://www.graphviz.org/License.php)
+```
+

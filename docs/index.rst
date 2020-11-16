@@ -63,6 +63,14 @@ Acknowledgments
 ``paint skin weight pickwalking``
   * Author: `Ryan Porter`_
 
+``pyprof2calltree``
+  * Author: `David Allouche`_
+
+``qcahcegrind``
+  * Author: `Josef Weidendorfer`_
+
 
 .. _Daniele Niero: https://github.com/daniele-niero
 .. _Ryan Porter: https://yantor3d.wordpress.com/
+.. _David Allouche: https://github.com/pwaller/pyprof2calltree/blob/master/LICENSE
+.. _Josef Weidendorfer: http://kcachegrind.sourceforge.net/html/Home.html

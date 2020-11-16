@@ -1,9 +1,11 @@
-import sys, traceback, collections, itertools
+import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess
 from collections import defaultdict, deque
 from functools import wraps
 from maya import cmds, mel
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
+
+from SkinningTools.ThirdParty import pyprof2calltree
 
 _DEBUG = True
 
@@ -36,6 +38,48 @@ def dec_undo(func):
             
     return _undo_func
 
+def dec_profile(func):
+    """ profiler decorator
+    run cprofile on wrapped function 
+    
+    :param func: function this decorator is attached to 
+    :type func: function()
+    :return: the result of the given function
+    :rtype: function()
+    """
+    @wraps(func)
+    def _profile_func(*args, **kwargs):
+        if not _DEBUG:
+            print "release: profile decorator lingering in code please remove: %s, %s"%(os.path.basename(inspect.getfile(func)), func.__name__)
+            return func(*args, **kwargs)
+        
+        currentBaseFolder = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+        baseLocation = os.path.normpath(os.path.join(currentBaseFolder, "ThirdParty", "qcachegrind"))
+        inLocation = os.path.normpath(os.path.join(currentBaseFolder, "Logs"))
+        
+        executable = os.path.normpath(os.path.join(baseLocation, "qcachegrind.exe"))
+        callGrindProf = os.path.normpath(os.path.join(inLocation, 'callgrind.profile'))
+        binaryData = os.path.normpath(os.path.join(inLocation, 'profiledRigSystem.profile'))
+
+        for path in [callGrindProf, binaryData]:
+            dirpath = os.path.dirname(path)
+            if not os.path.exists(dirpath):
+                os.makedirs(dirpath)
+
+        pr = cProfile.Profile()
+        pr.enable()
+        result = func(*args, **kwargs)
+        pr.disable()
+        pr.print_stats()
+        pr.dump_stats(binaryData)
+
+        pyprof2calltree.convert(pstats.Stats(binaryData), callGrindProf)
+        pyprof2calltree.visualize(pstats.Stats(binaryData))
+        subprocess.Popen([executable, callGrindProf])
+        return result
+            
+    return _profile_func
 
 def dec_repeat(func):
     """ repeat last decorator
@@ -401,10 +445,10 @@ def convertToIndexList(vertList):
     return indices
 
 
-def convertToCompList(indices, mesh, comp="vtx"):
+def convertToCompList(indices, inMesh, comp="vtx"):
     vertices = []
     for i in list(indices):
-        vrt = "%s.%s[%s]" % (mesh, comp, i)
+        vrt = "%s.%s[%s]" % (inMesh, comp, i)
 
         vertices.append(vrt)
     return vertices
@@ -419,13 +463,13 @@ def toToEdgeNumber(vtx):
     return en
 
 
-def checkEdgeLoop(mesh, vtx1, vtx2, first=True, maxLength=40):
+def checkEdgeLoop(inMesh, vtx1, vtx2, first=True, maxLength=40):
     e1n = toToEdgeNumber(vtx1)
     e2n = toToEdgeNumber(vtx2)
     found = []
     combinations = list(itertools.product(e1n, e2n))
     for e1, e2 in combinations:
-        edgeSel = cmds.polySelect(mesh, elp=[e1, e2], ns=True)
+        edgeSel = cmds.polySelect(inMesh, elp=[e1, e2], ns=True)
         if edgeSel == None:
             continue
         loopSize = len(edgeSel)
@@ -472,8 +516,8 @@ def traverseHierarchy(inObject):
 
 # --- vertex island functions ---
 
-def getConnectedVerts(mesh, vtxSelectionSet):
-    mObject = OpenMaya.MGlobal.getSelectionListByName(mesh).getDependNode(0)
+def getConnectedVerts(inMesh, vtxSelectionSet):
+    mObject = OpenMaya.MGlobal.getSelectionListByName(inMesh).getDependNode(0)
     iterVertLoop = OpenMaya.MItMeshVertex(mObject)
 
     talkedToNeighbours = set()
@@ -532,9 +576,9 @@ def growLatticePoints(points):
     return extras
 
 
-def getWeights(mesh):
-    sc = skinCluster(mesh)
-    shape = cmds.listRelatives(mesh, s=1)[0]
+def getWeights(inMesh):
+    sc = skinCluster(inMesh)
+    shape = cmds.listRelatives(inMesh, s=1)[0]
 
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
@@ -557,9 +601,9 @@ def getWeights(mesh):
     return weightData
 
 
-def setWeigths(mesh, weightData):
-    sc = skinCluster(mesh)
-    shape = cmds.listRelatives(mesh, s=1)[0]
+def setWeigths(inMesh, weightData):
+    sc = skinCluster(inMesh)
+    shape = cmds.listRelatives(inMesh, s=1)[0]
 
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
@@ -583,8 +627,8 @@ def setWeigths(mesh, weightData):
 
 # -------------
 
-def getPolyOnMesh(point, mesh):
-    meshDag = getDagpath(mesh, extendToShape=True)
+def getPolyOnMesh(point, inMesh):
+    meshDag = getDagpath(inMesh, extendToShape=True)
 
     meshIntersector = OpenMaya.MMeshIntersector()
     meshIntersector.create(meshDag.node(), meshDag.inclusiveMatrix())
@@ -599,8 +643,8 @@ def getPolyOnMesh(point, mesh):
     return faceIndex, triangleIndex, u, v
 
 
-def getTriIndex(mesh, polygon_index, triangleIndex):
-    meshDag = getDagpath(mesh, extendToShape=True)
+def getTriIndex(inMesh, polygon_index, triangleIndex):
+    meshDag = getDagpath(inMesh, extendToShape=True)
     polyIt = OpenMaya.MItMeshPolygon(meshDag)
 
     prevIndexPTR = polyIt.setIndex(polygon_index)
@@ -610,27 +654,27 @@ def getTriIndex(mesh, polygon_index, triangleIndex):
     return (vertex_list[0], vertex_list[1], vertex_list[2])
 
 
-def getTriWeight(mesh, polygon_index, triangleIndex, u, v):
-    skin_cluster = skinCluster(mesh)
+def getTriWeight(inMesh, polygon_index, triangleIndex, u, v):
+    skin_cluster = skinCluster(inMesh)
     influences = cmds.listConnections("%s.matrix" % skinClusterName, source=True)
 
-    vtxIndex = getTriIndex(mesh, polygon_index, triangleIndex)
+    vtxIndex = getTriIndex(inMesh, polygon_index, triangleIndex)
     barycentric_coordinates = [u, v, 1.0 - u - v]
 
     weights = [0.0 for _ in range(len(influences))]
     for i, vertId in enumerate(vtxIndex):
-        vtxWeights = cmds.skinPercent(skin_cluster, '%s.vtx[%s]' % (mesh, vertId), query=True, value=True)
+        vtxWeights = cmds.skinPercent(skin_cluster, '%s.vtx[%s]' % (inMesh, vertId), query=True, value=True)
         weights = [weights[j] + weight * barycentric_coordinates[i] for j, weight in enumerate(vtxWeights)]
 
     return influences, weights
 
 
-def skinConstraint(mesh, transform, precision=2):
+def skinConstraint(inMesh, transform, precision=2):
     precision = max(precision, 1)
     point = cmds.xform(transform, q=True, t=True, ws=True)
-    faceId, triangle_index, u, v = getPolyOnMesh(point, mesh)
+    faceId, triangle_index, u, v = getPolyOnMesh(point, inMesh)
 
-    transforms, weights = getTriWeight(mesh, faceId, triangle_index, u, v)
+    transforms, weights = getTriWeight(inMesh, faceId, triangle_index, u, v)
     matrix_node = createWeightedMM(transforms, weights, precision=precision)
 
     vector_product_node1 = cmds.createNode('vectorProduct')
