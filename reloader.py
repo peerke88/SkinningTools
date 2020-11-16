@@ -2,16 +2,21 @@ import sys
 import os
 from maya import cmds
 
-from SkinningTools.Maya.interface import getInterfaceDir
+import SkinningTools.Maya.api as api
+reload(api)
+import SkinningTools.UI.tabs.skinBrushes as skinBrushes
+reload( skinBrushes )
+import  SkinningTools.Maya.interface as interface
+reload( interface )
+
 from UI import SkinningToolsUI
 
 DEFAULT_RELOAD_PACKAGES = ['SkinningTools']
 
-PLUGINS = [os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py")),
-           os.path.join(getInterfaceDir(), os.path.join("plugin", "averageWeightPerryCpp/x64/2020x64/SkinCommands.mll")),
-           os.path.join(getInterfaceDir(), "/plugin/smoothBrushRodCpp/lib/maya2020/release/smooth_brush_maya.mll"),
-           os.path.join(getInterfaceDir(), "/plugin/smoothBrushRodCpp/lib/maya2020/debug/smooth_brush_maya_debug.mll"),
-           os.path.join(getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py")) ]
+PLUGINS = [os.path.join(interface.getInterfaceDir(), os.path.join("plugin", "averageWeightPlugin.py")),
+           api.getPlugin(),
+           skinBrushes.pathToSmoothBrushPlugin(),
+           os.path.join(interface.getInterfaceDir(), os.path.join("plugin", "SkinEditPlugin.py")) ]
 
 '''
 Instead of closing/opening maya to reflect changes in Python code one would 

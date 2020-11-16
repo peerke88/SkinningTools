@@ -22,6 +22,7 @@
 #include "averagevtxweight.h"
 
 // Node ID Block is: 0x00131770 - 0x0013177f
+// See SkinningTools/Maya/plugin/maya_node_ids_assignements.txt
 int __id = 0x00131770;
 std::vector<int> ids;
 int id()

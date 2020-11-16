@@ -13,14 +13,20 @@ _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG = True
 _CTX = "artUserPaintContext" #"AverageWghtCtx"
 
-dec_loadSmoothBrush = shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/smoothBrushRodCpp/lib/maya2020/release/smooth_brush_maya.mll"))
-#dec_loadSmoothBrush = shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/smoothBrushRodCpp/lib/maya2020/release/smooth_brush_maya.mll"))
-#@shared.dec_loadPlugin(os.path.join(getInterfaceDir(), "plugin/x64/2020x64/SkinCommands.mll"))
+
+def pathToSmoothBrushPlugin():
+    version = api.getMayaVersion()
+    extension = api.getPluginSuffix()
+    return getInterfaceDir()+"/plugin/smoothBrushRodCpp/lib/maya%s/release/smooth_brush_maya%s"%(version,extension)
+    #return getInterfaceDir()+"/plugin/smoothBrushRodCpp/lib/maya%s/debug/smooth_brush_maya_debug%s"%(version,extension)
+
+dec_loadSmoothBrush = shared.dec_loadPlugin(pathToSmoothBrushPlugin())
 
 class BrushMode:
     SMOOTH = 0
     RELAX  = 1
     UNDEF  = 2
+
 
 def buildSmoothBrushCommand(context, skinClusterName, radiusExtraLinks, brushMode):
     cmd = "SBR_brush "
@@ -29,7 +35,7 @@ def buildSmoothBrushCommand(context, skinClusterName, radiusExtraLinks, brushMod
     else:
         cmd += "-relaxation " + skinClusterName + " "
 
-    
+
     cmd += "-brushContext " + context + " "
     if radiusExtraLinks > 0.0:
         cmd += "-enableExtraLinks " + str(radiusExtraLinks) + " "
@@ -88,7 +94,6 @@ def rodPaintSmoothBrush(radiusExtraLinks=0.0, brushMode=BrushMode.SMOOTH):
     updateBrushCommand(_CTX, skinCluster, radiusExtraLinks, brushMode)
 
     cmds.setToolTo(_CTX)
-
 
 
 class SkinBrushes(QWidget):

@@ -63,6 +63,7 @@ def getMayaVersion():
         mayaVersion = cmds.about(version=1)
     return mayaVersion
 
+
 def getPluginSuffix():
     pluginSuffix = ".mll"
     if platform.system() == "Darwin":
@@ -71,15 +72,15 @@ def getPluginSuffix():
         pluginSuffix = ".bundle"
     return pluginSuffix
 
+
 def getPlugin():
     mayaVersion = getMayaVersion()
     suffix = getPluginSuffix()
-    file = os.path.dirname(__file__)
-    _plugin = os.path.join( file, "plugin/x64/%sx64/plug-ins/SkinCommands%s"%(mayaVersion, suffix))
+    currentPath = os.path.dirname(__file__)
+    _plugin = os.path.join( currentPath, "plugin/averageWeightPerryCpp/comp/Maya%s/plug-ins/SkinCommands%s"%(mayaVersion, suffix))
     print _plugin
     return _plugin
     
-
 
 def connectSelectionChangedCallback(callback):
     return cmds.scriptJob(e=('SelectionChanged', callback))

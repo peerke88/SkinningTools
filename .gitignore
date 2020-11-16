@@ -149,7 +149,7 @@ dmypy.json
 Maya/plugin/averageWeightPerryCpp/build/
 Maya/plugin/averageWeightPerryCpp/comp/
 Maya/plugin/averageWeightPerryCpp/x64/
-Maya/plugin/smoothBrushRodCpp
+Maya/plugin/smoothBrushRodCpp/build
 
 # PyCharm files
 venv
