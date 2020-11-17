@@ -4,7 +4,7 @@
 #  this file will represent an interface between the ui and the actual commands
 # this is where all the selection gets logged and the right arguments get piped through 
 from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
-from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster
+from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster, mathUtils
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.dialogs.jointLabel import JointLabel
 from SkinningTools.UI.dialogs.jointName import JointName
@@ -413,11 +413,32 @@ def cutMesh(internal, maya2020, progressBar= None ):
 
 
 def pinToSurface():
-    #@todo: 
-    # create function that calculates the position of a locator based on closest position on mesh
-    # triangulate position and use the 3 vertices to map the driving joints and weights
-    # from here create a new parentconstraint matching joints and weights
-    return NotImplementedError
+    selection = getSelection()
+    if "." in selection[0]:
+        vertices = shared.convertToVertexList(selection)
+        driveMesh = vertices[0].split(".")[0]
+        pos = []
+        for vert in vertices:
+            pos.append(cmds.xform(vert, q=1, ws=1, t=1))
+        center = mathUtils.getCenterPosition(pos)
+        transform = cmds.spaceLocator()[0]
+        cmds.xform(transform, ws=1, t=center)
+    elif len(selection) == 2:
+        child = cmds.listRelatives(selection[0], s=1) or None
+        if child is None:
+            transform = selection[0]
+            driveMesh = selection[1]
+        elif cmds.objectType(child) == "mesh":
+            driveMesh = selection[0]
+            transform = selection[1]
+        else:
+            driveMesh = selection[1]
+            transform = selection[0]
+    else:
+        cmds.error("selection does not match, needs polygon mesh and transform object, or polygon selection")
+
+    print driveMesh, transform
+    shared.skinConstraint(driveMesh, transform )
 
 def prebindFixer( doModel, inPose ,progressBar = None):
     # @note:

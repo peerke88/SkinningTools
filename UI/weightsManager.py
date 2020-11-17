@@ -39,6 +39,7 @@ class WeightsManager(object):
         _jsonDict["vertPos"] = self.skinInfo.meshPositions
         _jsonDict["jntPos"] = self.skinInfo.inflPositions
         _jsonDict["bbox"] = self.skinInfo.boundingBoxes
+        _jsonDict["uvs"] = self.skinInfo.uvCoords
 
         with open(os.path.join(weightdirectory, '%s.skinWeights'%fileName), 'w') as f:
             json.dump(_jsonDict, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
@@ -54,28 +55,32 @@ class WeightsManager(object):
     def importData(self, jsonFile, closestNPoints = 3, uvBased = False):
         _data = readData(jsonFile)
         
+        # get all information on objects in the scene
         _currentMeshes = list(set(cmds.listRelatives(cmds.ls(sl=0, type = "mesh"), parent= 1)))
         bbInfo = {}
-        for mesh in _currentMeshes:
+        for curMesh in _currentMeshes:
             __BB = cmds.exactWorldBoundingBox(node)
-            bbInfo[mesh] = [smart_round(__BB[:3], 3), smart_round(__BB[3:6], 3)]
+            bbInfo[curMesh] = [smart_round(__BB[:3], 3), smart_round(__BB[3:6], 3)]
 
+        # remap mesh names if the names from the file are not present (bbox is first denominator to find similar meshes)
         remapMesh = {}
-        for mesh in _data["meshes"]:
-            if cmds.objExists(mesh):
-                remapMesh[mesh] = mesh 
+        for curMesh in _data["meshes"]:
+            if cmds.objExists(curMesh):
+                remapMesh[curMesh] = curMesh 
                 continue
-            selector = MeshSelector(inMesh = mesh, inBB = _data["bbox"][mesh], bbInfo)
+            selector = MeshSelector(inMesh = curMesh, inBB = _data["bbox"][curMesh], bbInfo)
             selector.exec_()
 
-            remapMesh[mesh] = selector.combo.currentText()
+            remapMesh[curMesh] = selector.combo.currentText()
         
+        # remap joints in the scene if the joint naming does not match with stuff on file
         _needsRemapJoint = False
         for joint in _jsonDict["allJoints"]:
             if cmds.objExists(joint):
                 continue
             _needsRemapJoint = True
 
+        # create a remapping dictionary for all joints
         currentJoints = cmds.ls(sl=0, type = "joint")
         connectionDict = { i : i for i in _jsonDict["allJoints"] }
         if _needsRemapJoint:
@@ -83,10 +88,35 @@ class WeightsManager(object):
             _remap.exec_()
             connectionDict = _remap.getConnectionInfo()
         
-        for mesh, toMesh in remapMesh.iteritems():
-            _closest = checkNeedsClosestVtxSearch(_data, mesh, toMesh)
+        # for each mesh we now do the skinning operation
+        for inMesh, toMesh in remapMesh.iteritems():
+            closest = checkNeedsClosestVtxSearch(_data, inMesh, toMesh)
+
+            # check if we are uv based and if uv's are available
+            canDoUV = uvBased
+            if canDoUV and closest:
+                uvCoords = _getUvCoords(toMesh)
+                if None in _data["uvs"] or None in uvCoords:
+                    canDoUV = False
+
+            
 
 
+
+
+    def _getUvCoords(self, inMesh):
+        uvCoords = []
+        meshPath = shared.getDagpath(inMesh)
+        vertIter = OpenMaya.MItMeshVertex(meshPath)
+        while not vertIter.isDone():
+            try:
+                u, v, __ = vertIter.getUVs()
+                uvCoords.append([u[0], v[0]])
+            except:
+                uvCoords.append(None)
+            vertIter.next()
+        return uvCoords
+        
     def checkNeedsClosestVtxSearch(self, data, fromMesh, toMesh):
         _needsClosest = False
         for i in xrange(5):

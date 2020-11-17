@@ -23,9 +23,12 @@ from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 __VERSION__ = "5.0.20201028"
 
 
-class SkinningTools(QMainWindow):
+class SkinningToolsUI(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
-        super(SkinningTools, self).__init__(parent)
+        super(SkinningToolsUI, self).__init__(parent)
+        # placeholder image
+        self.setWindowIcon(QtGui.QIcon(":/SP_MessageBoxWarning.png"))
+
         mainWidget = QWidget()
         self.__editor = None
 
@@ -33,8 +36,7 @@ class SkinningTools(QMainWindow):
         interface.doSelect('')
 
         self.setCentralWidget(mainWidget)
-        self.setWindowFlags(Qt.Tool)
-
+        
         self.__uiElements()
         self.__defaults()
 
@@ -232,7 +234,7 @@ class SkinningTools(QMainWindow):
 
     def enterEvent(self, event):
         self._callbackFilter()
-        return super(SkinningTools, self).enterEvent(event)
+        return super(SkinningToolsUI, self).enterEvent(event)
 
     def recurseMouseTracking(self, parent, flag):
         if hasattr(parent, "mouseMoveEvent"):
@@ -278,7 +280,7 @@ class SkinningTools(QMainWindow):
 
     def mouseMoveEvent(self, event):
         self._mouseTracking(event)
-        super(SkinningTools, self).mouseMoveEvent(event)
+        super(SkinningToolsUI, self).mouseMoveEvent(event)
 
     def _displayToolTip(self):
         self._timer.stop()
@@ -353,7 +355,7 @@ def showUI(newPlacement=False):
     windowName = getSkinningToolsWindowName()
     mainWindow = api.get_maya_window()
     closeSkinningToolsMainWindow(windowName, mainWindow)
-    window = SkinningTools(newPlacement, mainWindow)
+    window = SkinningToolsUI(newPlacement, mainWindow)
     window.setObjectName(windowName)
     window.setWindowTitle(windowName)
     window.show()

@@ -65,7 +65,7 @@ class WeightEditorWindow(QWidget):
 
         searchLay.addWidget(QLabel('Search: '))
         self.jointSearchLE = LineEdit()
-       
+        self.jointSearchLE.setPlaceholderText("Type part of joint name to search...")
         self.jointSearchLE.editingFinished.connect(self.searchJointName)
         self.jointSearchLE.textChanged.connect(self.searchJointName)
         searchLay.addWidget(self.jointSearchLE)

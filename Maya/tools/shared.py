@@ -636,11 +636,8 @@ def getPolyOnMesh(point, inMesh):
     _point = OpenMaya.MPoint(*point)
     meshPoint = meshIntersector.getClosestPoint(_point)
 
-    faceIndex = meshPoint.faceIndex()
-    triangleIndex = meshPoint.triangleIndex()
-
-    u, v = meshPoint.getBarycentricCoords()
-    return faceIndex, triangleIndex, u, v
+    u, v = meshPoint.barycentricCoords
+    return meshPoint.face, meshPoint.triangle, u, v
 
 
 def getTriIndex(inMesh, polygon_index, triangleIndex):
@@ -648,59 +645,60 @@ def getTriIndex(inMesh, polygon_index, triangleIndex):
     polyIt = OpenMaya.MItMeshPolygon(meshDag)
 
     prevIndexPTR = polyIt.setIndex(polygon_index)
+    points, verts = polyIt.getTriangle(triangleIndex, OpenMaya.MSpace.kWorld)
 
-    points, vertex_list = polyIt.getTriangle(triangleIndex, OpenMaya.MSpace.kWorld)
-
-    return (vertex_list[0], vertex_list[1], vertex_list[2])
+    return (verts[0], verts[1], verts[2])
 
 
 def getTriWeight(inMesh, polygon_index, triangleIndex, u, v):
-    skin_cluster = skinCluster(inMesh)
+    skinClusterName = skinCluster(inMesh)
     influences = cmds.listConnections("%s.matrix" % skinClusterName, source=True)
 
     vtxIndex = getTriIndex(inMesh, polygon_index, triangleIndex)
-    barycentric_coordinates = [u, v, 1.0 - u - v]
+    barycentricCoords = [u, v, 1.0 - u - v]
 
     weights = [0.0 for _ in range(len(influences))]
     for i, vertId in enumerate(vtxIndex):
-        vtxWeights = cmds.skinPercent(skin_cluster, '%s.vtx[%s]' % (inMesh, vertId), query=True, value=True)
-        weights = [weights[j] + weight * barycentric_coordinates[i] for j, weight in enumerate(vtxWeights)]
+        vtxWeights = cmds.skinPercent(skinClusterName, '%s.vtx[%s]' % (inMesh, vertId), query=True, value=True)
+        weights = [weights[j] + weight * barycentricCoords[i] for j, weight in enumerate(vtxWeights)]
 
     return influences, weights
 
 
-def skinConstraint(inMesh, transform, precision=2):
-    precision = max(precision, 1)
+def skinConstraint(inMesh, transform, floatPrecision=3):
+    floatPrecision = max(floatPrecision, 1)
     point = cmds.xform(transform, q=True, t=True, ws=True)
-    faceId, triangle_index, u, v = getPolyOnMesh(point, inMesh)
+    faceId, triangleID, u, v = getPolyOnMesh(point, inMesh)
 
-    transforms, weights = getTriWeight(inMesh, faceId, triangle_index, u, v)
-    matrix_node = createWeightedMM(transforms, weights, precision=precision)
+    transforms, weights = getTriWeight(inMesh, faceId, triangleID, u, v)
+    matrixNode = createWeightedMM(transforms, weights, floatPrecision=floatPrecision)
 
-    vector_product_node1 = cmds.createNode('vectorProduct')
-    cmds.setAttr('%s.operation' % vector_product_node1, 4)
-    cmds.setAttr('%s.input1' % vector_product_node1, *point)
-    cmds.connectAttr('%s.matrixSum' % matrix_node, '%s.matrix' % vector_product_node1)
+    vec1 = cmds.createNode('vectorProduct')
+    vec2 = cmds.createNode('vectorProduct')
+    decNode = cmds.createNode('decomposeMatrix')
 
-    vector_product_node2 = cmds.createNode('vectorProduct')
-    cmds.setAttr('%s.operation' % vector_product_node2, 4)
-    cmds.connectAttr('%s.output' % vector_product_node1, '%s.input1' % vector_product_node2)
-    cmds.connectAttr('%s.parentInverseMatrix' % transform, '%s.matrix' % vector_product_node2)
-    cmds.connectAttr('%s.output' % vector_product_node2, '%s.translate' % transform, force=True)
+    cmds.setAttr('%s.operation' % vec1, 4)
+    cmds.setAttr('%s.operation' % vec2, 4)
 
-    decompose_matrix_node = cmds.createNode('decomposeMatrix')
-    cmds.connectAttr('%s.matrixSum' % matrix_node, '%s.inputMatrix' % decompose_matrix_node)
-    cmds.connectAttr('%s.outputRotate' % decompose_matrix_node, '%s.rotate' % transform, force=True)
+    cmds.setAttr('%s.input1' % vec1, *point)
+    cmds.connectAttr('%s.output' % vec1, '%s.input1' % vec2)
+    cmds.connectAttr('%s.parentInverseMatrix' % transform, '%s.matrix' % vec2)
+
+    cmds.connectAttr('%s.matrixSum' % matrixNode, '%s.matrix' % vec1)
+    cmds.connectAttr('%s.matrixSum' % matrixNode, '%s.inputMatrix' % decNode)
+    
+    cmds.connectAttr('%s.output' % vec2, '%s.translate' % transform, force=True)
+    cmds.connectAttr('%s.outputRotate' % decNode, '%s.rotate' % transform, force=True)
 
 
-def createWeightedMM(transforms, weights, precision, epsilon=1e-6):
+def createWeightedMM(transforms, weights, floatPrecision):
     Trs = []
     Wgth = []
 
     wgthTotal = 0.0
     for trsNode, weight in zip(transforms, weights):
-        weight = float('%.{}f'.format(precision) % weight)
-        if weight > epsilon:
+        weight = float('%.{}f'.format(floatPrecision) % weight)
+        if weight > 1e-6:
             wgthTotal += weight
             Trs.append(trsNode)
             Wgth.append(weight)
