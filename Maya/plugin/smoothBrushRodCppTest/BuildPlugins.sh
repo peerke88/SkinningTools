@@ -8,7 +8,6 @@ function pause(){
 
 array=( 2017 2018 2019 2020 )
 
-[ ! -d "$BASEDIR/build" ] && mkdir -p "$BASEDIR/build"
 cd "$BASEDIR/build"
 rm -r *
 
