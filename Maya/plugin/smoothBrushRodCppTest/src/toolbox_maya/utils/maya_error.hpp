@@ -5,7 +5,7 @@
     #include <maya/MString.h>
     #include <maya/MStatus.h>
     // -------------------------
-    #include <exception>
+    #include <stdexcept>
     // -------------------------
     #include <toolbox_config/tbx_macros.hpp>
 
