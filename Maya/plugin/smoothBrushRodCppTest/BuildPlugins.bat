@@ -15,7 +15,7 @@ for %%a in (%list%) do (
     ) ELSE (
    		cmake -G "Visual Studio 14 2015 Win64" -DMAYA_VERSION=%%a ../
     )
-    cmake --build . --config Release --target Install
+    cmake --build . --config Release --target Install -Dbuild_type="release"
     del *.* /Q
 )
 pause

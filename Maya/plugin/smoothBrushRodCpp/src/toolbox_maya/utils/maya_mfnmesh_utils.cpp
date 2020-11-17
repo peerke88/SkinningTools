@@ -245,7 +245,8 @@ void set_points(MObject mesh_shape, MPointArray& new_points)
 }
 
 void set_points(MObject mesh_shape, const std::vector<tbx::Vec3>& new_points){
-    set_points(mesh_shape, to_MPointArray(new_points));
+    MPointArray point_array = to_MPointArray(new_points);
+    set_points(mesh_shape, (MPointArray&)point_array);
 }
 
 }// END tbx_maya Namespace =====================================================

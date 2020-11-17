@@ -9,6 +9,9 @@
 #include <maya/MBoundingBox.h>
 #include <maya/MPointArray.h>
 #include <maya/MColor.h>
+#include <maya/MArgList.h>
+#include <maya/MSelectionList.h>
+#include <maya/MDagPath.h>
 
 // -----------------------------------------------------------------------------
 

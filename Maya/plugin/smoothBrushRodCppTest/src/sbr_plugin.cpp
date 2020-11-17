@@ -21,9 +21,9 @@
  * <code>MStatus initializePlugin(MObject obj)</code> is the equivalent of
  * <code>void main(){ }</code> for Maya plugins
 */
-// =============================================================================
-using namespace skin_brush; //{
-// =============================================================================
+
+using namespace skin_brush;
+
 
 /// @brief first function executed by Maya when loading the plugin
 #if __APPLE
@@ -96,4 +96,4 @@ MStatus uninitializePlugin(MObject obj)
     return MS::kSuccess;
 }
 
-//} // END skin_brush Namespace ===============================================
+
