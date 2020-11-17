@@ -57,7 +57,7 @@ private:
     MString _skin_cluster_name;
     MObject _skin_cluster;
 
-    Sub_mesh _sub_mesh;
+    tbx_maya::Sub_mesh _sub_mesh;
     // Original weights for undo
     std::vector< std::map<tbx::bone::Id, float> > _original_weights;    
 

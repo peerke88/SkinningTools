@@ -15,6 +15,7 @@
 namespace tbx_maya {
 struct Maya_skeleton;
 struct Maya_mesh;
+class Sub_mesh;
 }
 namespace skin_brush {
 class Rig;
@@ -102,7 +103,7 @@ public:
 
     ///@return a "Sub_mesh" representing the entire mesh.
     ///(i.e. list of indices listing any single vertex of the mesh)
-    const Sub_mesh& whole_mesh() const;
+    const tbx_maya::Sub_mesh& whole_mesh() const;
     tbx_maya::Maya_skeleton* get_skeleton() const;
     tbx_maya::Maya_mesh* get_mesh() const;
     Rig* get_rig() const;
@@ -166,13 +167,13 @@ private:
     /// @name Cached data
     // -------------------------------------------------------------------------
     // Data (!!not necessarily in rest pose!!)
-    Uptr<tbx_maya::Maya_skeleton> _maya_skeleton;
-    Uptr<tbx_maya::Maya_mesh> _maya_mesh;
-    Uptr<Rig> _rig;
-    Uptr<User_data> _user_data;    
+    tbx::Uptr<tbx_maya::Maya_skeleton> _maya_skeleton;
+    tbx::Uptr<tbx_maya::Maya_mesh> _maya_mesh;
+    tbx::Uptr<Rig> _rig;
+    tbx::Uptr<User_data> _user_data;
 
     /// List of every indices for the whole mesh
-    Sub_mesh _mesh_it;
+    tbx_maya::Sub_mesh _mesh_it;
 
     /// True when initialize_node() was called
     bool _is_init;

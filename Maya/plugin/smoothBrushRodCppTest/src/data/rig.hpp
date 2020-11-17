@@ -26,7 +26,7 @@ public:
 
     void clear();
 
-    Rig(const Maya_mesh& mesh, const Maya_skeleton& skel);
+    Rig(const tbx_maya::Maya_mesh& mesh, const tbx_maya::Maya_skeleton& skel);
     Rig(const Rig& copy);
 
     /// @warning Heavy computation
@@ -149,7 +149,7 @@ private:
 
     ///  @return true when vert_i vert_j belongs to the same skin weight
     /// partition or partitions neighbors to each other.
-    bool is_within_same_cluster(const std::vector<bone::Id>& rigid_partitions,
+    bool is_within_same_cluster(const std::vector<tbx::bone::Id>& rigid_partitions,
                              tbx_mesh::Vert_idx vert_i,
                              tbx_mesh::Vert_idx vert_j) const;
 

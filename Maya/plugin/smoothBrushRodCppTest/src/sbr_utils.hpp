@@ -14,7 +14,6 @@ namespace tbx_maya {
     struct Maya_mesh;
     struct Maya_skeleton;
     class Sub_mesh;
-
 }
 namespace tbx_mesh {
     class First_ring_it;
@@ -65,7 +64,7 @@ void build_selection(
 /// @return null if no valid cache were found
 Node_swe_cache* find_cache(MObject& skin_cluster, bool update = true);
 
-MString get_joint_name(bone::Id id, const Node_swe_cache* cache);
+MString get_joint_name(tbx::bone::Id id, const Node_swe_cache* cache);
 
 ///@return has_influence[joint_id] = wether this joint influence the mesh or not
 //std::vector<bool> compute_has_influence(const tbx_maya::Maya_skeleton& skel);
