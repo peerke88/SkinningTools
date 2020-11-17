@@ -1,4 +1,4 @@
-file(GLOB SOURCE_FILES "*.cpp" "*.h" "*.hpp") 
+file(GLOB_RECURSE SOURCE_FILES "*.cpp" "*.h" "*.hpp") 
 
 find_package(Maya REQUIRED)
 include_directories(${MAYA_INCLUDE_DIR} ${PARENT_DIR}/src)
@@ -12,7 +12,7 @@ MAYA_PLUGIN(${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME} ${MAYA_TARGET_TYPE} DESTINATION plug-ins)
 
-add_definitions(-D_BOOL -DREQUIRE_IOSTREAM, -DMAYA_VERSION=${MAYA_VERSION})
+add_definitions(-D_BOOL -DREQUIRE_IOSTREAM -DMAYA_VERSION=${MAYA_VERSION})
 
 
 if (APPLE)
