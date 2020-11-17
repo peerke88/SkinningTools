@@ -1,5 +1,9 @@
 file(GLOB_RECURSE SOURCE_FILES "*.cpp" "*.h" "*.hpp") 
 
+add_definitions( -DTBX_MAYA_ENABLE_USING_NAMESPACE_TBX_MAYA )
+add_definitions( -DTBX_MESH_ENABLE_USING_NAMESPACE_TBX_MESH )
+add_definitions( -DTBX_ENABLE_USING_NAMESPACE_TBX )
+
 find_package(Maya REQUIRED)
 include_directories(${MAYA_INCLUDE_DIR} ${PARENT_DIR}/src)
 
