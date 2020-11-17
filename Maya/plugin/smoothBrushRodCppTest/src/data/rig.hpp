@@ -81,8 +81,8 @@ public:
     const tbx_mesh::Mesh_topology& topo() const { return mesh().topo(); }
     const tbx_mesh::Mesh_geometry& geom() const { return mesh().geom(); }
 
-    inline unsigned nb_vertices() const;
-    inline tbx::Vec3 vertex(tbx_mesh::Vert_idx idx) const;
+    unsigned nb_vertices() const;
+    tbx::Vec3 vertex(tbx_mesh::Vert_idx idx) const;
 
     const std::vector<std::vector<float> >& get_per_edge_weights() const { return mesh().attrs().get_per_edge_weights(); }
     const std::vector<float>& get_sum_edge_weights() const { return mesh().attrs().get_sum_edge_weights(); }
