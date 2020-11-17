@@ -132,7 +132,7 @@ def launch(list_defines, arch_string, maya_version_list, build_type, use_separat
             print("please define the environment variable:")
             print("VISUAL_STUDIO_PATH=path_to_visual_compiler_binaries")
             print("the path usually looks like:")
-            print("C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin")
+            print('C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin')
             sys.exit()
 
         print("Visual Studio Path: ")
