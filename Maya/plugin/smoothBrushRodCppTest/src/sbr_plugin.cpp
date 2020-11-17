@@ -22,10 +22,13 @@
  * <code>void main(){ }</code> for Maya plugins
 */
 // =============================================================================
-namespace skin_brush {
+using namespace skin_brush; //{
 // =============================================================================
 
 /// @brief first function executed by Maya when loading the plugin
+#if __APPLE
+extern
+#endif    
 MStatus initializePlugin(MObject obj)
 {
     try {
@@ -69,6 +72,9 @@ MStatus initializePlugin(MObject obj)
 // -----------------------------------------------------------------------------
 
 /// @brief last function executed by Maya when unloading the plugin
+#if __APPLE
+extern
+#endif
 MStatus uninitializePlugin(MObject obj)
 {
 
@@ -90,4 +96,4 @@ MStatus uninitializePlugin(MObject obj)
     return MS::kSuccess;
 }
 
-} // END skin_brush Namespace ===============================================
+//} // END skin_brush Namespace ===============================================
