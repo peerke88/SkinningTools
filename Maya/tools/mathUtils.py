@@ -126,3 +126,12 @@ def measureLength(object1, object2):
     pos1 = MVector(*cmds.xform(object1, q=True, ws=True, t=True))
     pos2 = MVector(*cmds.xform(object2, q=True, ws=True, t=True))
     return (pos1 - pos2).length()
+
+
+def getCenterPosition(inPositions):
+    amount = len(inPositions)
+    baseVec = MVector()
+    for pos in toVec3List(inPositions):
+        baseVec += pos
+
+    return baseVec / amount

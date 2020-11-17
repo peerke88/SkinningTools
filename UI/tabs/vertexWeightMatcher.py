@@ -45,10 +45,17 @@ class TransferWeightsWidget(QWidget):
     def __skinClusterFunc(self):
         v2 = nullVBoxLayout()
         grid = nullGridLayout()
-        self.source = QLabel('No source')
-        self.target = QLabel('No target')
+        self.source = QLineEdit('No source')
+        self.source.setPlaceholderText("No source given...")
+        self.target = QLineEdit('No target')
+        self.target.setPlaceholderText("No target given...")
         btn = buttonsToAttach("Grab Source", partial(self.__grabSkinCl, self.source))
         btn1 = buttonsToAttach("Grab Target", partial(self.__grabSkinCl, self.target))
+
+        for l in [self.source, self.target]:
+            l.setText('')
+            l.setStyleSheet('background-color: #C23A3A;')
+            l.setEnabled(False)
 
         for i, w in enumerate([self.source, self.target, btn, btn1]):
             row = i / 2
@@ -80,8 +87,11 @@ class TransferWeightsWidget(QWidget):
     def __grabSkinCl(self, toSet=None):
         sc = skinCluster()
         if sc is None:
+            toSet.setText('')
+            toSet.setStyleSheet('background-color: #C23A3A;')
             return
         toSet.setText(sc)
+        toSet.setStyleSheet('background-color: #17D206;')
 
     def addLoadingBar(self, loadingBar):
         self.__loadBar = loadingBar
@@ -213,7 +223,9 @@ class ClosestVertexWeightWidget(QWidget):
             h0.addWidget(w)
 
         self.line1 = QLineEdit()
+        self.line1.setPlaceholderText("No Source given...")
         self.line2 = QLineEdit()
+        self.line2.setPlaceholderText("No Target given...")
         for l in [self.line1, self.line2]:
             l.userData = []
             l.setEnabled(0)
@@ -303,7 +315,9 @@ class TransferUvsWidget(QWidget):
         h0 = nullHBoxLayout()
 
         self.line1 = QLineEdit()
+        self.line1.setPlaceholderText("No Source given...")
         self.line2 = QLineEdit()
+        self.line2.setPlaceholderText("No Target given...")
         for l in [self.line1, self.line2]:
             l.setEnabled(0)
         
@@ -421,6 +435,7 @@ class AssignWeightsWidget(QWidget):
     def __setButtons(self):
         h = nullHBoxLayout()
         self.searchLine = QLineEdit()
+        self.searchLine.setPlaceholderText("Type part of joint name to search...")
         self.analyzeBtn = QPushButton("analyze")
         self.addBtn = QPushButton("add")
         for w in [QLabel("Search:"), self.searchLine, self.analyzeBtn, self.addBtn]:
