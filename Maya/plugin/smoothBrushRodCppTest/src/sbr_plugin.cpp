@@ -35,10 +35,10 @@ MStatus initializePlugin(MObject obj)
 
         std::string plugin_name = "Skin brushes";
 
-        tbx::g_timer = tbx::Time_tracker(g_time_tracking_on);
-        tbx::g_timer.set_display_func( [](std::string msge){ MGlobal::displayInfo( MString(msge.c_str()) ); } );
+        g_timer = Time_tracker(g_time_tracking_on);
+        g_timer.set_display_func( [](std::string msge){ MGlobal::displayInfo( MString(msge.c_str()) ); } );
 
-        if (tbx_maya::g_debug_mode)
+        if (g_debug_mode)
             MGlobal::displayWarning("SWE: DEBUG MODE ON");
 
         MFnPlugin plugin(obj, "Rodolphe Vaillant", "1.0.0", "Any", &status);
@@ -60,7 +60,7 @@ MStatus initializePlugin(MObject obj)
 
     }
     catch (std::exception& e) {
-        tbx_maya::maya_print_error(e);
+        maya_print_error(e);
         return MS::kFailure;
     }
     return MS::kSuccess;
@@ -83,7 +83,7 @@ MStatus uninitializePlugin(MObject obj)
         mayaCheck(plugin.deregisterNode(Node_swe_cache::_s_id));
     }
     catch (std::exception& e) {
-        tbx_maya::maya_print_error(e);
+        maya_print_error(e);
         return MS::kFailure;
     }
 

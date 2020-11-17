@@ -30,7 +30,7 @@ namespace skin_brush {
 // TODO: delete this unoptimal function.
 void normalize(std::vector<std::map<int, float> >& weights,
                std::vector<std::map<int, float> >& buffer_weights,
-               const tbx_maya::Sub_mesh& sub_mesh)
+               const Sub_mesh& sub_mesh)
 {
     std::map<int, float>::iterator it;
     // Eliminate near zero weigths and normalize :
@@ -64,7 +64,7 @@ void normalize(std::vector<std::map<int, float> >& weights,
 //TODO: use this instead:
 void normalize_sub(std::vector<std::map<int, float> >& weights,
                    std::vector<std::map<int, float> >& sub_buffer_weights,
-                   const tbx_maya::Sub_mesh& sub_mesh)
+                   const Sub_mesh& sub_mesh)
 {
     std::map<int, float>::iterator it;
     // Eliminate near zero weigths and normalize :
@@ -101,7 +101,7 @@ void normalize_sub(std::vector<std::map<int, float> >& weights,
 
 void normalize_sub(std::vector<std::map<int, float> >& weights,
                    const std::vector<bool>& locked_joints,
-                   const tbx_maya::Sub_mesh& sub_mesh)
+                   const Sub_mesh& sub_mesh)
 {
     std::vector< std::pair<int,float> > vertex_weight;
     vertex_weight.reserve(100);
@@ -171,7 +171,7 @@ std::vector<int> grow_selection(const std::vector<int>& selection,
             new_selection.push_back( idx );
     }
 
-    tbx_assert( !tbx::has_duplicates(new_selection) );
+    tbx_assert( !has_duplicates(new_selection) );
     return new_selection;
 }
 
@@ -181,7 +181,7 @@ void get_maya_selection(std::vector<int>& vertex_list,
                         MObject skin_cluster)
 {
     MObject mesh_shape;
-    if( !tbx_maya::find_dfm_output_deformed_mesh(skin_cluster, mesh_shape) ){
+    if( !find_dfm_output_deformed_mesh(skin_cluster, mesh_shape) ){
         mayaAbort("Can't find output mesh");
     }
 
@@ -189,7 +189,7 @@ void get_maya_selection(std::vector<int>& vertex_list,
     {
 
         vertex_list.clear();
-        tbx_maya::get_selection_and_convert_to_vertex(vertex_list, mesh_shape);
+        get_selection_and_convert_to_vertex(vertex_list, mesh_shape);
 
     }
     else
@@ -216,13 +216,13 @@ void build_selection(
         get_maya_selection(vertex_list, skin_cluster);
     }
 
-    tbx_assert( !tbx::has_duplicates(vertex_list) );
+    tbx_assert( !has_duplicates(vertex_list) );
 
     Node_swe_cache* cache = nullptr;
     if( (cache = find_cache(skin_cluster, false)) )
     {
         auto vert_list = grow_selection(vertex_list, cache->get_mesh()->topo().first_ring(), 30 );
-        tbx_maya::skin_weights::get_subset_through_mplug( skin_cluster, vert_list, cache->get_skeleton()->_weights);
+        skin_weights::get_subset_through_mplug( skin_cluster, vert_list, cache->get_skeleton()->_weights);
     }
 
 }
@@ -247,9 +247,9 @@ Node_swe_cache* find_cache(MObject& skin_cluster, bool update)
 
 // -----------------------------------------------------------------------------
 
-MString get_joint_name(tbx::bone::Id id, const Node_swe_cache* cache)
+MString get_joint_name(bone::Id id, const Node_swe_cache* cache)
 {
-    return tbx_maya::get_name(cache->get_skeleton()->get_dag_path(id));
+    return get_name(cache->get_skeleton()->get_dag_path(id));
 }
 
 
