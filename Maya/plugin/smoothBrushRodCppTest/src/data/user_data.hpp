@@ -23,7 +23,7 @@ struct User_data {
         auto it = _user_data.find(id);
         if( it != _user_data.end() )
         {
-            tbx::Uptr<Data>& data = it->second;
+            const tbx::Uptr<Data>& data = it->second;
             if( data )
                 return dynamic_cast<const T*>( data.get() );
         }
