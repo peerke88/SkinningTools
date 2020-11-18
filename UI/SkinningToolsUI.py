@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from SkinningTools.py23 import *
 from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -12,7 +13,6 @@ from SkinningTools.UI.advancedToolTip import AdvancedToolTip
 from SkinningTools.UI.weightEditor import weightEditor
 import tempfile, os
 from functools import partial
-from collections import OrderedDict
 
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.skinBrushes import SkinBrushes
@@ -20,8 +20,8 @@ from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 
-__VERSION__ = "5.0.20201028"
-
+__VERSION__ = "5.0.20201118"
+_DEBUG = True
 
 class SkinningToolsUI(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
@@ -126,7 +126,8 @@ class SkinningToolsUI(QMainWindow):
         tab.view.frame.setLayout(vLayout)
 
         self.__addVertNBoneFunc()
-        self.__addBrushTools()
+        if _DEBUG:
+            self.__addBrushTools()
         self.__addCopyRangeFunc()
         self.__addSimpleTools()
 
@@ -142,8 +143,8 @@ class SkinningToolsUI(QMainWindow):
     def __addVertNBoneFunc(self):
         tab = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions")
         vLayout = nullVBoxLayout()
-        widget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
-        vLayout.addWidget(widget)
+        self.vnbfWidget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
+        vLayout.addWidget(self.vnbfWidget)
         tab.view.frame.setLayout(vLayout)
 
     def __addBrushTools(self):
@@ -312,20 +313,22 @@ class SkinningToolsUI(QMainWindow):
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("tools", self.mayaToolsTab.currentIndex())
         self.settings.setValue("tabs", self.tabs.currentIndex())
+        self.settings.setValue("vnbf", self.vnbfWidget.getCheckValues())
+        self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
 
     def loadUIState(self):
-        getGeo = self.settings.value("geometry")
+        getGeo = self.settings.value("geometry", None)
         if getGeo is None:
             return
         self.restoreGeometry(getGeo)
-        tools = {"tools": self.mayaToolsTab,
-                 "tabs": self.tabs}
-        for key, comp in tools.items():
-            index = self.settings.value(key)
-            if index is None:
-                index = 0
+        tools = { "tools": self.mayaToolsTab,
+                  "tabs": self.tabs,
+                  "copyTls": self.copyToolsTab,
+                }
+        for key, comp in tools.iteritems():
+            index = self.settings.value(key, 0)
             comp.setCurrentIndex(index)
-
+        self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
 
     def hideEvent(self, event):
         self.saveUIState()

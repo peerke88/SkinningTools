@@ -23,8 +23,13 @@ def nullGridLayout(parent=None, size=0):
     return h
 
 
+def pushButton(text=''):
+    btn = QPushButton(text)
+    btn.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
+    return btn
+
 def buttonsToAttach(name, command, *args):
-    button = QPushButton()
+    button = pushButton()
 
     button.setText(name)
     button.setObjectName(name)
@@ -36,9 +41,10 @@ def buttonsToAttach(name, command, *args):
 
 def svgButton(name='', pixmap='', size=None):
     btn = QPushButton(name.lower())
+    btn.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
     if name != '':
         btn.setLayoutDirection(Qt.LeftToRight)
-        btn.setStyleSheet("QPushButton { text-align: left; }")
+        btn.setStyleSheet("QPushButton { text-align: left; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444); }")
     _empty = False
     if isinstance(pixmap, str):
         if "empty" in pixmap.lower():
@@ -192,23 +198,25 @@ def addChecks(cls, button, checks=None):
         button.checks[check] = chk
 
     functions, popup = addContextToMenu(cls, checks, button)
-    button.customContextMenuRequested.connect(functools.partial(onContextMenu, button, popup))
+    button.customContextMenuRequested.connect(functools.partial(onContextMenu, button, popup, functions))
 
 
 def addContextToMenu(cls, actionNames, btn):
     popMenu = QMenu(cls)
-    allFunctions = []
+    allFunctions = {}
     for actionName in actionNames:
         check = QAction(actionName, cls)
         check.setCheckable(True)
         check.toggled.connect(btn.checks[actionName].setChecked)
         popMenu.addAction(check)
-        allFunctions.append(check)
+        allFunctions[actionName] = check
 
     return allFunctions, popMenu
 
 
-def onContextMenu(buttonObj, popMenu, point):
+def onContextMenu(buttonObj, popMenu, functions, point):
+    for key, value in buttonObj.checks.iteritems():
+        functions[key].setChecked(value.isChecked())
     popMenu.exec_(buttonObj.mapToGlobal(point))
 
 

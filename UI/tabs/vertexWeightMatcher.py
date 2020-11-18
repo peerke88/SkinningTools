@@ -54,7 +54,7 @@ class TransferWeightsWidget(QWidget):
 
         for l in [self.source, self.target]:
             l.setText('')
-            l.setStyleSheet('background-color: #C23A3A;')
+            l.setStyleSheet('color:#000; background-color: #ad4c4c;')
             l.setEnabled(False)
 
         for i, w in enumerate([self.source, self.target, btn, btn1]):
@@ -88,7 +88,7 @@ class TransferWeightsWidget(QWidget):
         sc = skinCluster()
         if sc is None:
             toSet.setText('')
-            toSet.setStyleSheet('background-color: #C23A3A;')
+            toSet.setStyleSheet('color:#000; background-color: #ad4c4c;')
             return
         toSet.setText(sc)
         toSet.setStyleSheet('background-color: #17D206;')
@@ -196,7 +196,6 @@ class TransferWeightsWidget(QWidget):
             else:
                 cmds.warning('%s does not exist in currentScene' % (selectionItem[0].split('.')[0]))
 
-
 class ClosestVertexWeightWidget(QWidget):
     def __init__(self, parent=None):
         super(ClosestVertexWeightWidget, self).__init__(parent)
@@ -251,7 +250,7 @@ class ClosestVertexWeightWidget(QWidget):
     def clearUI(self):
         for l in [self.line1, self.line2]:
             l.setText('')
-            l.setStyleSheet('background-color: #C23A3A;')
+            l.setStyleSheet('color:#000; background-color: #ad4c4c;')
         self.compSetting = [0, 0]
         self.__checkEnabled()
 
@@ -360,7 +359,7 @@ class TransferUvsWidget(QWidget):
     def clearUI(self):
         for l in [self.line1, self.line2]:
             l.setText('')
-            l.setStyleSheet('background-color: #C23A3A;')
+            l.setStyleSheet('color:#000; background-color: #ad4c4c;')
         self.compSetting = [0, 0]
         self.__checkEnabled()
 
@@ -422,12 +421,12 @@ class AssignWeightsWidget(QWidget):
         if joint in self.__widgets.keys():
             return
         h = nullVBoxLayout()
-        _btn = QPushButton(joint)
+        _btn = buttonsToAttach(joint, partial(self._addData, joint))
         h.addWidget(_btn)
 
         self.frameLayout.addLayout(h)
         self.__widgets[joint] = h
-        _btn.clicked.connect(partial(self._addData, joint))
+        # _btn.clicked.connect(partial(self._addData, joint))
 
     def _addData(self, joint):
         self.__softSkinData.addSoftSkinInfo(joint)
@@ -436,8 +435,8 @@ class AssignWeightsWidget(QWidget):
         h = nullHBoxLayout()
         self.searchLine = QLineEdit()
         self.searchLine.setPlaceholderText("Type part of joint name to search...")
-        self.analyzeBtn = QPushButton("analyze")
-        self.addBtn = QPushButton("add")
+        self.analyzeBtn = buttonsToAttach("analyze", self.addBones)
+        self.addBtn = buttonsToAttach("add", self.addBone)
         for w in [QLabel("Search:"), self.searchLine, self.analyzeBtn, self.addBtn]:
             h.addWidget(w)
 
@@ -447,14 +446,14 @@ class AssignWeightsWidget(QWidget):
         _frame.setLayout(self.frameLayout)
         self.layout().addLayout(h)
         self.layout().addWidget(_frame)
-        _build = QPushButton("build info")
+        _build = buttonsToAttach("build info", self.build)
         self.layout().addWidget(_build)
         # add filter?
         # add buttons based on analyze, or add buttons based on buttonpress
 
-        self.analyzeBtn.clicked.connect(self.addBones)
-        self.addBtn.clicked.connect(self.addBone)
-        _build.clicked.connect(self.build)
+        # self.analyzeBtn.clicked.connect(self.addBones)
+        # self.addBtn.clicked.connect(self.addBone)
+        # _build.clicked.connect(self.build)
 
     def addBone(self):
         # get the joint to add to the current setup
@@ -471,7 +470,7 @@ class AssignWeightsWidget(QWidget):
         self.clearUI()
 
         selection = interface.getSelection()
-        print selection
+        print(selection)
         if len(selection) > 0:
             selection = selection[0]
         if "." in selection:
@@ -497,10 +496,6 @@ class AssignWeightsWidget(QWidget):
 
 '''
 #todo:
-
-
-add new class:
-filter line on top
 
 add all joints in a list + a select button next to it
 all buttons are gray from the start

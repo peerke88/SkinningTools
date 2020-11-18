@@ -1,6 +1,7 @@
 from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCommand, _CTX
 from functools import partial
 import os
 
@@ -34,7 +35,17 @@ class VertAndBoneFunction(QWidget):
         trsfrSK_Btn = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS)
         trsfrPS_Btn = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS)
         nghbors_Btn = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS)
-        smthBrs_Btn = svgButton("smooth Brush", _svgPath("brush"), size=self.__IS)
+        # smthBrs_Btn = svgButton("smooth Brush", _svgPath("brush"), size=self.__IS)
+        smthBrs_Lay = nullHBoxLayout()
+        initSmt_Btn = svgButton("BP", _svgPath("Empty"), size=self.__IS)
+        initSmt_Btn.setMaximumWidth(25)
+        smthBrs_Btn = svgButton("smooth", _svgPath("brush"), size=self.__IS)
+        self._smthSpin = QDoubleSpinBox()
+        self._smthSpin.setFixedSize(self.__IS + 10, self.__IS + 10)
+        self._smthSpin.setEnabled(False)
+        for w in [initSmt_Btn, smthBrs_Btn, self._smthSpin]:
+            smthBrs_Lay.addWidget(w)
+
         toJoint_Btn = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS)
         rstPose_Btn = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS)
         cutMesh_Btn = svgButton("create proxy", _svgPath("proxy"), size=self.__IS)
@@ -65,29 +76,21 @@ class VertAndBoneFunction(QWidget):
 
         growL = nullHBoxLayout()
         storsel_Btn = svgButton("store internal", _svgPath("Empty"), size=self.__IS)
-        self.shrinks_Btn = svgButton("-", _svgPath("Empty"), size=self.__IS)
-        self.growsel_Btn = svgButton("+", _svgPath("Empty"), size=self.__IS)
+        self.shrinks_Btn = svgButton("", _svgPath("shrink"), size=self.__IS)
+        self.growsel_Btn = svgButton("", _svgPath("grow"), size=self.__IS)
         for i, w in enumerate([self.shrinks_Btn, storsel_Btn, self.growsel_Btn]):
             if i != 1:
                 w.setEnabled(False)
                 w.setMaximumWidth(30)
-                w.setStyleSheet("QPushButton { text-align: center; }")
+                # w.setStyleSheet("QPushButton { text-align: center; font-size: 20pt; color: #730087; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);}")
             growL.addWidget(w)
 
         self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn,
-                          trsfrPS_Btn, nghbors_Btn, smthBrs_Btn, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, SurfPin_Btn,
+                          trsfrPS_Btn, nghbors_Btn, smthBrs_Lay, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, SurfPin_Btn,
                           copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn,
                           seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, BindFix_Btn,  growL ]
 
-        _rc = int(len(self.__buttons)*.5)
-        for index, btn in enumerate(self.__buttons):
-            row = index / _rc
-            if isinstance(btn, QLayout):
-                g.addLayout(btn, index - (row * _rc), row)
-                continue
-            g.addWidget(btn, index - (row * _rc), row)
-
-        self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        self._setBtnLayout(g)
 
         addChecks(self, AvgWght_Btn, ["use distance"])
         addChecks(self, trsfrSK_Btn, ["smooth", "uvSpace"])
@@ -99,7 +102,12 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, unifyBn_Btn, ["query"])
         addChecks(self, onlySel_Btn, ["invert"])
         addChecks(self, BindFix_Btn, ["model only", "in Pose"])
+        addChecks(self, smthBrs_Btn, ["relax", "volume"])
+        smthBrs_Btn.checks["relax"].stateChanged.connect(partial(self._updateBrush_func, smthBrs_Btn))
+        smthBrs_Btn.checks["volume"].stateChanged.connect(self._smthSpin.setEnabled)
         onlySel_Btn.checks["invert"].stateChanged.connect(partial(self._pruneOption, onlySel_Btn))
+
+        self.checkedButtons = [AvgWght_Btn, trsfrSK_Btn, trsfrPS_Btn, nghbors_Btn, toJoint_Btn, cutMesh_Btn, delBone_Btn, unifyBn_Btn, onlySel_Btn, BindFix_Btn, smthBrs_Btn]
 
         AvgWght_Btn.clicked.connect(partial(self._AvgWght_func, AvgWght_Btn))
         cpyWght_Btn.clicked.connect(partial(interface.copyVtx, self.progressBar))
@@ -109,11 +117,13 @@ class VertAndBoneFunction(QWidget):
         trsfrSK_Btn.clicked.connect(partial(self._trsfrSK_func, trsfrSK_Btn, False))
         trsfrPS_Btn.clicked.connect(partial(self._trsfrSK_func, trsfrPS_Btn, True))
         nghbors_Btn.clicked.connect(partial(self._nghbors_func, nghbors_Btn))
-        smthBrs_Btn.clicked.connect(interface.paintSmoothBrush)
+        initSmt_Btn.clicked.connect(interface.initBpBrush)
+        smthBrs_Btn.clicked.connect(partial(self._smoothBrs_func, smthBrs_Btn))
         toJoint_Btn.clicked.connect(partial(self._convertToJoint_func, toJoint_Btn))
         rstPose_Btn.clicked.connect(partial(interface.resetPose, self.progressBar))
         cutMesh_Btn.clicked.connect(partial(self._cutMesh_func, cutMesh_Btn))
         SurfPin_Btn.clicked.connect(interface.pinToSurface)
+        self._smthSpin.valueChanged.connect(partial(self._updateBrush_func, smthBrs_Btn))
 
         copy2bn_Btn.clicked.connect(partial(interface.moveBones, False, self.progressBar))
         b2bSwch_Btn.clicked.connect(partial(interface.moveBones, True, self.progressBar))
@@ -131,11 +141,38 @@ class VertAndBoneFunction(QWidget):
         storsel_Btn.clicked.connect(self._storesel_func)
         self.shrinks_Btn.clicked.connect(self._shrinks_func)
         self.growsel_Btn.clicked.connect(self._growsel_func)
-        BindFix_Btn.clicked.connect(partial(self._bindFix_func))
+        BindFix_Btn.clicked.connect(partial(self._bindFix_func, BindFix_Btn))
 
         if _DEBUG:
             for chk in [smthBrs_Btn]:
-                chk.setStyleSheet("background-color: red")
+                chk.setStyleSheet("background-color: #ad4c4c")
+
+    def getCheckValues(self):
+        fullList = []
+        for btn in self.checkedButtons:
+            checkList = []
+            for key, value in btn.checks.iteritems():
+                checkList.append([key, value.isChecked()])
+            fullList.append(checkList)
+        return fullList
+
+    def setCheckValues(self, values):
+        if values is None:
+            return
+        for index, btn in enumerate(self.checkedButtons):
+            for key, value in values[index]:
+                btn.checks[key].setChecked(value)
+
+    def _setBtnLayout(self, g):
+        _rc = int(len(self.__buttons)*.5)
+        for index, btn in enumerate(self.__buttons):
+            row = index / _rc
+            if isinstance(btn, QLayout):
+                g.addLayout(btn, index - (row * _rc), row)
+                continue
+            g.addWidget(btn, index - (row * _rc), row)
+
+        self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     # -- checkbox modifiers    
     def _pruneOption(self, btn, value):
@@ -184,5 +221,21 @@ class VertAndBoneFunction(QWidget):
         self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
         self.borderSelection.grow()
 
-    def _bindFix_func(self, *args):
+    def _bindFix_func(self, sender,  *args):
         interface.prebindFixer(sender.checks["model only"].isChecked(), sender.checks["in Pose"].isChecked(), self.progressBar)
+
+    def _smoothBrs_func(self, sender,  *args):
+        _radius = 0.0
+        if sender.checks["volume"].isChecked():
+            _radius = self._smthSpin.value()
+
+        rodPaintSmoothBrush(_radius, sender.checks["relax"].isChecked())
+
+    def _updateBrush_func(self, sender,  *args):
+        _radius = 0.0
+        if sender.checks["volume"].isChecked():
+            _radius = self._smthSpin.value()
+        selection = interface.getSelection()
+        sc = api.skinClusterForObject(selection[0])
+        if sc:
+            updateBrushCommand(_CTX, sc, _radius, sender.checks["relax"].isChecked())

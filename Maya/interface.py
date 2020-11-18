@@ -467,6 +467,11 @@ def getUVInfo(inMesh):
 def transferUV(source, target, sMap = "map1", tMap = "map1", progressBar = None):
     skinCluster.transferUvToSkinnedObject(source, target, sMap, tMap, progressBar)
 
+def initBpBrush():
+    selection = getSelection()
+    sc = shared.skincluster(selection[0])
+    cmds.SBR_cache_manager(buildCache = sc)
+
 class vertexWeight(object):
     def __init__(self, inProgressBar=None):
         self.vertexWeightInfo = None

@@ -55,7 +55,7 @@ class VertexInfluenceEditor(QGroupBox):
 
         for i, skBone in enumerate(skinBones):
             sliderLayout = nullHBoxLayout()
-            sliderFrame = QFrame()
+            sliderFrame = QWidget()
             sliderFrame.setLayout(sliderLayout)
             gripSlider = SliderControl(skBone, label=skBone.rsplit('|', 1)[-1], mn=0.0, mx=1.0, rigidRange=True, labelOnSlider=True)
             gripSlider.slider.setValue(weights[i])

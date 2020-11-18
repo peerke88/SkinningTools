@@ -84,6 +84,7 @@ class WeightEditorWindow(QWidget):
     
         self.createCallback()
         self.getSkinWeights()
+        self.setStyleSheet("border 0px;")
         
     def getIgnoreList(self, row, column, rowLen, colLen):
         toIgnore = []

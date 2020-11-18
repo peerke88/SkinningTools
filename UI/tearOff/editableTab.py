@@ -41,8 +41,7 @@ class TabWidget(QTabWidget):
         view = QScrollArea()
         view.setWidgetResizable(1)
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        view.frame = QFrame()
-        view.frame.setFrameShape(QFrame.NoFrame)
+        view.frame = QWidget()
         view.setWidget(view.frame)
         tab.view = view
         layout.addWidget(view)

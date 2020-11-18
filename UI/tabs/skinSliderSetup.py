@@ -25,8 +25,6 @@ class SkinSliderSetup(QWidget):
         self.jointSearchLE.editingFinished.connect(self.searchJointName)
         self.jointSearchLE.textChanged.connect(self.searchJointName)
         searchLay.addWidget(self.jointSearchLE)
-        # self.showButton = QPushButton("")#"show infl.")
-        # self.showButton = toolButton(":/RS_visible.png")
         self.showButton = HoverIconButton()
         self.showButton.setCustomIcon(":/RS_visible.png", ":/RS_visible.png", ":/hotkeyFieldClear.png")
         self.showButton.setCheckable(True)
@@ -34,7 +32,7 @@ class SkinSliderSetup(QWidget):
         self.showButton.setChecked(True)
         
         searchLay.addWidget(self.showButton)
-        _frm = QFrame()
+        _frm = QWidget()
         _frm.setMinimumWidth(10)
         _frm.setMaximumHeight(1)
         searchLay.addWidget(_frm)

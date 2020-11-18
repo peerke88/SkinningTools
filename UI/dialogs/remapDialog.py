@@ -31,7 +31,7 @@ class RemapDialog(QDialog):
         self.view.setWidgetResizable(1)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.frame = QFrame()
+        self.view.frame = QWidget()
         self.view.setWidget(self.view.frame)
         self.view.frame.setLayout(nullGridLayout())
         self.layout().addWidget(self.view)

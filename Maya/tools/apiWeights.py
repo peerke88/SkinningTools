@@ -41,7 +41,6 @@ class ApiWeights():
         skinFn = shared.getMfnSkinCluster(dagPath.fullPathName())
         return skinFn, skinCluster
 
-    @shared.dec_profile
     def getData(self, inNodes = None, progressBar = None):
         if progressBar:
             utils.setProgress(0, progressBar, "start gathering skinData" )

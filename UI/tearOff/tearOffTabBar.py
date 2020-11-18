@@ -17,6 +17,7 @@ class TearoffTabBar(QTabBar):
         self.__pressedIndex = -1
         self.__isWest = False
         self.__size = 30
+        self.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
 
     def mousePressEvent(self, event):
         button = event.button()

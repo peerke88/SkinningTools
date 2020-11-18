@@ -25,12 +25,12 @@ class MayaToolsHeader(QWidget):
         h = nullHBoxLayout()
         g = nullGridLayout()
 
-        self.skSave = QPushButton("Save >>")
-        self.vtSave = QPushButton("Save >>")
+        self.skSave = pushButton("Save >>")
+        self.vtSave = pushButton("Save >>")
         self.skLine = QLineEdit()
         self.vtLine = QLineEdit()
-        self.skLoad = QPushButton("<< Load")
-        self.vtLoad = QPushButton("<< Load")
+        self.skLoad = pushButton("<< Load")
+        self.vtLoad = pushButton("<< Load")
 
         g.addWidget(QLabel("  skin:"), 0, 0)
         g.addWidget(QLabel("  Vtx :"), 1, 0)
@@ -87,9 +87,9 @@ class MayaToolsHeader(QWidget):
         if self.skLine.text == '':
             return
         if self._skSaveLoad.needsRemap():
-            rmpdialog = RemapDialog(self._skSaveLoad, interface.getAllJoints(), shelf)
-            rmpdialog.exec_()
+            rmpDialog = RemapDialog(self._skSaveLoad, interface.getAllJoints(), shelf)
+            rmpDialog.exec_()
             # @todo: make sure that the order here is correct?
             # maybe this doesnt work as intended and we need to remap by index
-            self._skSaveLoad.boneInfo = rmpdialog.getConnectionInfo().values()
+            self._skSaveLoad.boneInfo = rmpDialog.getConnectionInfo().values()
         self._skSaveLoad.setSkinWeigth()
