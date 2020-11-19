@@ -44,7 +44,7 @@ MAYA_PLUGIN(${PROJECT_NAME})
 message ( "sdfsqdsf ${build_type}")
 install(TARGETS ${PROJECT_NAME} ${MAYA_TARGET_TYPE} DESTINATION release)
 
-add_definitions(-D_BOOL -DREQUIRE_IOSTREAM -DMAYA_VERSION=${MAYA_VERSION})
+add_definitions(-D_BOOL -DREQUIRE_IOSTREAM -DMAYA_VERSION=${MAYA_VERSION} -Dbuild_type="release")
 
 
 if (APPLE)
