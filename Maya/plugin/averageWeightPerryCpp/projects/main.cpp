@@ -10,11 +10,11 @@
 #define _WINSOCKAPI_
 #include <windows.h>
 #endif
-#ifndef MACOS
-#include <GL/gl.h>
-#else
-#include <OpenGL/gl.h>
-#endif
+// #ifndef MACOS
+// #include <GL/gl.h>
+// #else
+// #include <OpenGL/gl.h>
+// #endif
 
 #include <maya/MObject.h>
 #include "utils.hpp"

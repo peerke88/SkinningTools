@@ -38,10 +38,10 @@ class WeightsManager(object):
         self.skinInfo = ApiWeights(True)
 
         
-    def gatherData(self):
+
+    def gatherData(self, inObjects, weightdirectory, fileName, binary=False):
         setProgress(0, self.progressBar, "start gathering skinData" )
 
-        inObjects = interface.getSelection()
         self.skinInfo.getData(inObjects, self.progressBar)
 
         _jsonDict = {}
@@ -60,12 +60,13 @@ class WeightsManager(object):
         _jsonDict["bbox"] = self.skinInfo.boundingBoxes
         _jsonDict["uvs"] = self.skinInfo.uvCoords
 
-        setProgress(100.0, self.progressBar, "data saved")
-        return _jsonDict
-        
+        with open(os.path.join(weightdirectory, '%s.skinWeights'%fileName), 'w') as f:
+            json.dump(_jsonDict, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
 
-    @shared.dec_profile
+        setProgress(100.0, self.progressBar, "data saved")
+
     def readData(self, jsonFile):
+
         with open(jsonFile) as f:
             data = json.load(f)
         return data
@@ -86,7 +87,7 @@ class WeightsManager(object):
             if cmds.objExists(curMesh):
                 remapMesh[curMesh] = curMesh 
                 continue
-            selector = MeshSelector(inMesh = curMesh, inBB = _data["bbox"][curMesh], bbInfo)
+            selector = MeshSelector(inMesh = curMesh, inBB = _data["bbox"][curMesh], meshes = bbInfo)
             selector.exec_()
 
             remapMesh[curMesh] = selector.combo.currentText()
@@ -134,7 +135,8 @@ class WeightsManager(object):
                     setWeights = [0.0] * len(_data["infl"][inMesh])
                     for _id, wghtIndex in enumerate(closestWghtId[i]):
                         oldweights = [x * distanceWeight[i][_id] for x in _data["weights"][inMesh][wghtIndex]]
-                        [setWeights[j] += wt for j, wt in enumerate(oldweights)]
+                        for j, wt in enumerate(oldweights):
+                            setWeights[j] += wt
                     closestWeights.append(setWeights)
             else:
                 closestWeights = _data["weights"][inMesh][::]

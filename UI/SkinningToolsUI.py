@@ -19,6 +19,7 @@ from SkinningTools.UI.tabs.skinBrushes import SkinBrushes
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
+from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
 __VERSION__ = "5.0.20201118"
 _DEBUG = True
@@ -65,7 +66,7 @@ class SkinningToolsUI(QMainWindow):
         interface.doSelect(__sel)
 
     def __uiElements(self):
-        self.settings = QSettings("uiSkinSave", "SkinningTools")
+        self.settings = QSettings("SkinningTools_PL", "uiSkinSave")
         self.progressBar = MessageProgressBar(self)
         self.BezierGraph = BezierGraph()
 
@@ -198,7 +199,12 @@ class SkinningToolsUI(QMainWindow):
         tab.view.frame.setLayout(vLayout)
 
     def __weightManagerSetup(self):
-        self.tabs.addGraphicsTab("Weight Manager")
+        interface.forceLoadPlugin("SkinEditPlugin")
+        tab = self.tabs.addGraphicsTab("Weight Manager")
+        vLayout = nullVBoxLayout()
+        self.__weightUI = WeightsUI(self.settings, self.progressBar, self)
+        vLayout.addWidget(self.__weightUI)
+        tab.view.frame.setLayout(vLayout)
 
     # ------------------------- utilities ---------------------------------
 
@@ -327,6 +333,8 @@ class SkinningToolsUI(QMainWindow):
                 }
         for key, comp in tools.iteritems():
             index = self.settings.value(key, 0)
+            if index > comp.count()-1:
+                index = -1
             comp.setCurrentIndex(index)
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
 

@@ -113,8 +113,8 @@ class ApiWeights():
 
                 if self.__extraInfo:
                     # note: instead of getting the data of the joint based on joint position we get the bindpose position!
-                    jntTRS = OpenMaya.MFnTransform(jntDag)
-                    jPos.append(jntTRS.translation(OpenMaya.MSpace.kWorld))
+                    # jntTRS = OpenMaya.MFnTransform(jntDag)
+                    # jPos.append(jntTRS.translation(OpenMaya.MSpace.kWorld))
                     floatMat = cmds.getAttr("%s.bindPreMatrix[%i]"%(skinName, infIndices[x])) 
                     jntTrs = OpenMaya.MTransformationMatrix(mathUtils.floatToMatrix(floatMat).inverse())
                     vec = jntTrs.translation(OpenMaya.MSpace.kWorld)
