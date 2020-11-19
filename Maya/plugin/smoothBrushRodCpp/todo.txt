@@ -1,1 +1,1 @@
-manually check file one by one to cleanup what's not needed
+Don't rely on VISUAL_STUDIO_PATH= var to infer the compiler.
