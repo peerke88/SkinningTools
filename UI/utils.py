@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.py23 import *
-import re, difflib, functools
+import re, difflib, functools, math
 from SkinningTools.UI.qt_util import *
 
 from SkinningTools.ThirdParty.kdtree import KDTree
@@ -174,7 +174,9 @@ def remap(iMin, iMax, oMin, oMax, v):
     t = invLerp(iMin, iMax, v)
     return lerp(oMin, oMax, t)
 
-
+def veclength(inVec):
+    return math.sqrt(sum(i**2 for i in x))
+    
 def widgetsAt(pos):
     widgets = []
     widget_at = QApplication.widgetAt(pos)
@@ -240,3 +242,29 @@ def getClosestVector(inList, currentPos, amountTosearch=1):
     sourceKDTree = KDTree.construct_from_data(inList)
     foundPoints = sourceKDTree.query(query_point=currentPos, t=amountTosearch)
     return foundPoints
+
+def remapClosestPoints(sourceList, targetList, amount):
+    sourceKDTree = KDTree.construct_from_data( sourceList )
+
+    remap = OrderedDict()
+    weights = OrderedDict()
+    for target in targetList:
+        closestPoints = sourceKDTree.query(query_point = target, t = amount)
+        indices = []
+        distances = []
+        total = 0.0
+        for pt in closestPoints:
+            indices.append( sourceList.index(pt) )
+            _curDist = veclength(pt) - veclength(target)
+            distances.append(_curDist)
+            total += _curDist
+
+        wght = []
+        for w in distances:
+            # smallest value has heighest weight
+            wght = 1.0 - (w/total)
+        remap[target] = indices
+        weights[target] = wght
+    return remap, weights
+
+

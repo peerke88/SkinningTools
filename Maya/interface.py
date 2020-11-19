@@ -469,7 +469,7 @@ def transferUV(source, target, sMap = "map1", tMap = "map1", progressBar = None)
 
 def initBpBrush():
     selection = getSelection()
-    sc = shared.skincluster(selection[0])
+    sc = shared.skinCluster(selection[0])
     cmds.SBR_cache_manager(buildCache = sc)
 
 class vertexWeight(object):

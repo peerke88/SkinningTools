@@ -8,6 +8,11 @@ import os
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG = True
 
+# @todo:
+# add reset to bindpose
+# add weight hammer
+# fix plugin load info for smoothbrush
+
 class VertAndBoneFunction(QWidget):
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(VertAndBoneFunction, self).__init__(parent)
@@ -35,7 +40,6 @@ class VertAndBoneFunction(QWidget):
         trsfrSK_Btn = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS)
         trsfrPS_Btn = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS)
         nghbors_Btn = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS)
-        # smthBrs_Btn = svgButton("smooth Brush", _svgPath("brush"), size=self.__IS)
         smthBrs_Lay = nullHBoxLayout()
         initSmt_Btn = svgButton("BP", _svgPath("Empty"), size=self.__IS)
         initSmt_Btn.setMaximumWidth(25)
@@ -43,6 +47,7 @@ class VertAndBoneFunction(QWidget):
         self._smthSpin = QDoubleSpinBox()
         self._smthSpin.setFixedSize(self.__IS + 10, self.__IS + 10)
         self._smthSpin.setEnabled(False)
+        self._smthSpin.setSingleStep(.05)
         for w in [initSmt_Btn, smthBrs_Btn, self._smthSpin]:
             smthBrs_Lay.addWidget(w)
 
@@ -142,10 +147,6 @@ class VertAndBoneFunction(QWidget):
         self.shrinks_Btn.clicked.connect(self._shrinks_func)
         self.growsel_Btn.clicked.connect(self._growsel_func)
         BindFix_Btn.clicked.connect(partial(self._bindFix_func, BindFix_Btn))
-
-        if _DEBUG:
-            for chk in [smthBrs_Btn]:
-                chk.setStyleSheet("background-color: #ad4c4c")
 
     def getCheckValues(self):
         fullList = []
