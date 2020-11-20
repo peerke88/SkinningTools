@@ -145,12 +145,11 @@ dmypy.json
 
 # Plugin C++ build files and libs.
 Maya/plugin/averageWeightPerryCpp/build/
-Maya/plugin/averageWeightPerryCpp/comp/
 Maya/plugin/averageWeightPerryCpp/x64/
-Maya/plugin/smoothBrushRodCpp/build
+# Commit the latest build of the plugin:
+!Maya/plugin/smoothBrushRodCpp/lib
 *.user
 
 # PyCharm files
 venv
-.idea
 *.profile
