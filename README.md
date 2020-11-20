@@ -7,6 +7,8 @@ main goal of the tools is to make clean code that is ready for Python 3
 maya code should be seperated in the Maya folder hopefully we can make some parts DCC agnostic to get the same or similar functionality in other dcc tools
 
 ### todo:
+ - add all functionality to menubar
+ - add settings page (size of elements/icons, language, etc)
  - create small videos/gifs to explain the tools as tooltips (use this for testing functionality)
  - create script to deploy the tool (gather only necessary information in a zip file)
  - create install mel script so users only need to drag and drop a mel file to install the tool

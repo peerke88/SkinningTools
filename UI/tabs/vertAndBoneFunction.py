@@ -230,7 +230,7 @@ class VertAndBoneFunction(QWidget):
         if sender.checks["volume"].isChecked():
             _radius = self._smthSpin.value()
 
-        rodPaintSmoothBrush(_radius, sender.checks["relax"].isChecked())
+        rodPaintSmoothBrush(_radius, int(sender.checks["relax"].isChecked()))
 
     def _updateBrush_func(self, sender,  *args):
         _radius = 0.0
@@ -239,4 +239,4 @@ class VertAndBoneFunction(QWidget):
         selection = interface.getSelection()
         sc = api.skinClusterForObject(selection[0])
         if sc:
-            updateBrushCommand(_CTX, sc, _radius, sender.checks["relax"].isChecked())
+            updateBrushCommand(_CTX, sc, _radius, int(sender.checks["relax"].isChecked()))

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, shutil, tempfile, json
 from SkinningTools.Maya import api, interface
+from SkinningTools.Maya.tools import shared
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
@@ -38,10 +39,10 @@ class WeightsManager(object):
         self.skinInfo = ApiWeights(True)
 
         
-
-    def gatherData(self, inObjects, weightdirectory, fileName, binary=False):
+    def gatherData(self):
         setProgress(0, self.progressBar, "start gathering skinData" )
 
+        inObjects = interface.getSelection()
         self.skinInfo.getData(inObjects, self.progressBar)
 
         _jsonDict = {}
@@ -60,13 +61,11 @@ class WeightsManager(object):
         _jsonDict["bbox"] = self.skinInfo.boundingBoxes
         _jsonDict["uvs"] = self.skinInfo.uvCoords
 
-        with open(os.path.join(weightdirectory, '%s.skinWeights'%fileName), 'w') as f:
-            json.dump(_jsonDict, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
-
         setProgress(100.0, self.progressBar, "data saved")
+        return _jsonDict
+        
 
     def readData(self, jsonFile):
-
         with open(jsonFile) as f:
             data = json.load(f)
         return data

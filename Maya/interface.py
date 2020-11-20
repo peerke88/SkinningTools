@@ -10,7 +10,7 @@ from SkinningTools.UI.dialogs.jointLabel import JointLabel
 from SkinningTools.UI.dialogs.jointName import JointName
 from random import randint
 from functools import partial
-import os
+import os, platform, sys
 
 cmds.selectPref(tso=True)
 
@@ -467,6 +467,31 @@ def getUVInfo(inMesh):
 def transferUV(source, target, sMap = "map1", tMap = "map1", progressBar = None):
     skinCluster.transferUvToSkinnedObject(source, target, sMap, tMap, progressBar)
 
+def getMayaVersion():
+    mayaVersion = str(cmds.about(apiVersion=True))[:-2]
+    if "maya" in sys.executable and platform.system() == "Windows":
+        mayaVersion = sys.executable.split("Maya")[-1].split(os.sep)[0]
+    elif platform.system() != "Windows":
+        mayaVersion = cmds.about(version=1)
+    return mayaVersion
+
+
+def getPluginSuffix():
+    pluginSuffix = ".mll"
+    if platform.system() == "Darwin":
+        pluginSuffix = ".bundle"
+    if platform.system() == "Linux":
+        pluginSuffix = ".bundle"
+    return pluginSuffix
+
+def pathToPlugin(pluginName):
+    pluginFile = "%s%s"%(pluginName, getPluginSuffix())
+    version = getMayaVersion()
+    for dirName, __, fList in os.walk(getInterfaceDir()):
+        if version in dirName and pluginFile in fList:
+            return os.path.join(dirName, pluginFile)
+
+@shared.dec_loadPlugin(pathToPlugin("smooth_brush_maya"))
 def initBpBrush():
     selection = getSelection()
     sc = shared.skinCluster(selection[0])

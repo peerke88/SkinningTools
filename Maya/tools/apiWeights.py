@@ -43,7 +43,7 @@ class ApiWeights():
 
     def getData(self, inNodes = None, progressBar = None):
         if progressBar:
-            utils.setProgress(0, progressBar, "start gathering skinData" )
+            setProgress(0, progressBar, "start gathering skinData" )
         self.doInit()
         selection = inNodes
         
@@ -139,10 +139,10 @@ class ApiWeights():
             self.meshInfluences[node] = jointInfluences
             self.allInfJoints += jointInfluences
             if progressBar:
-                utils.setProgress((index * percentage), progressBar, "get data from: %s"%(node))
+                setProgress((index * percentage), progressBar, "get data from: %s"%(node))
             
         self.allInfJoints = sorted(list(set(self.allInfJoints)))
 
         if progressBar:
-            utils.setProgress(95.0, progressBar, "gathered data")
+            setProgress(95.0, progressBar, "gathered data")
         

@@ -28,7 +28,7 @@ class SkinningToolsUI(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
         super(SkinningToolsUI, self).__init__(parent)
         # placeholder image
-        self.setWindowIcon(QtGui.QIcon(":/SP_MessageBoxWarning.png"))
+        self.setWindowIcon(QIcon(":/SP_MessageBoxWarning.png"))
 
         mainWidget = QWidget()
         self.__editor = None

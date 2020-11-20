@@ -49,8 +49,10 @@ class SkinningToolsSliderList(QWidget):
         if mesh in self.skinClusterCache:
             skinCluster, self.__joints = self.skinClusterCache[mesh]
         else:
-            skinCluster = api.skinClusterForObject(mesh)
+            # no popup to prevent feedbackloop
+            skinCluster = api.skinClusterForObject(mesh, True)
             if not skinCluster:
+                print("no skinCluster found")
                 return
             self.__joints = api.skinClusterInfluences(skinCluster)
             self.skinClusterCache[mesh] = skinCluster, self.__joints
