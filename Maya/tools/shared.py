@@ -145,16 +145,16 @@ def dec_loadPlugin(plugin):
     def _loadPlugin_func(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            _ret = func(*args, **kwargs)
             if not os.path.exists(plugin) and _DEBUG:
                 print("could not locate: %s"%plugin)
-                return _ret
+                return None
             loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
             registered = cmds.pluginInfo(plugin, q=True, registered=True)
 
             if not registered or not loaded:
                 cmds.loadPlugin(plugin)
 
+            _ret = func(*args, **kwargs)
             return _ret
 
         return inner
