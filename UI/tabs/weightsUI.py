@@ -19,6 +19,7 @@ class WeightsUI(QWidget):
 
         self.__IS = 30
 
+        self.__bbCube = ''
         self.__infoData = None
         self.__infoDetails = None
         self.__cache = {}
@@ -160,8 +161,54 @@ class WeightsUI(QWidget):
         btn.clicked.connect(partial(self._checkJoints, self.__cache[curFile]["infl"][currentText], btn))
         self.__infoDetails.layout().addWidget(btn, 2,2)
 
+        # --- uvs
+        self.__infoDetails.layout().addWidget(QLabel("UVs:"), 3,0)
+        chk = QCheckBox("instead of pos")
+        chk.setEnabled(False)
+        self.__incoDetails.layout().addWidget(chk, 3, 1)
+        btn = pushButton("check")
+        btn.setMinimumHeight(23)
+        btn.clicked.connect(partial(self._checkUvs, self.__cache[curFile]["uvs"][currentText], btn, chk))
+        self.__infoDetails.layout().addWidget(btn, 2,2)
+
 
     # @todo: move these functions to api/interface
+    def _checkUvs(self, uvs, currentMesh, sender, checkBox):
+        sel = interface.getSelection()
+        _selection = True
+        if not sel:
+            sel = [currentMesh]
+            _selection = False
+        if '.' in sel[0]:
+            sel = [sel[0].split('.')[0]]
+
+
+        checkBox.setEnabled(False)
+        if None in uvs:
+            sender.setStyleSheet('background-color: #ad4c4c;')
+            self.setToolTip("no uvs in saved weights file")
+            return 
+
+        uvCoords = []
+        meshPath = shared.getDagpath(sel[0])
+        vertIter = OpenMaya.MItMeshVertex(meshPath)
+        while not vertIter.isDone():
+            try:
+                u, v, __ = vertIter.getUVs()
+                uvCoords.append([u[0], v[0]])
+            except:
+                uvCoords.append(None)
+            vertIter.next()
+        
+        if None in uvCoords:
+            sender.setStyleSheet('background-color: #ad4c4c;')
+            self.setToolTip("no uvs on %s object in current scene"%["matching", "selected"][_selection])
+            return 
+
+        sender.setStyleSheet('background-color: #17D206;')
+        checkBox.setEnabled(True)
+
+
     def _checkVerts(self, verts, currentMesh, sender):
         sel = interface.getSelection()
         if not sel:
@@ -173,6 +220,7 @@ class WeightsUI(QWidget):
         amount = len(nVerts)
         if len(verts) != amount:
             sender.setStyleSheet('background-color: #ad4c4c;')
+            self.setToolTip("amount of verts do not match")
             return
             
         for i in xrange(5):
@@ -181,6 +229,7 @@ class WeightsUI(QWidget):
             nPos = smart_roundVec(cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1), 3)
             if pos == nPos:
                 continue
+            self.setToolTip("position of verts do not match")
             sender.setStyleSheet('background-color: #ad4c4c;')
 
     def _checkJoints(self, joints, sender):
@@ -188,26 +237,28 @@ class WeightsUI(QWidget):
             if cmds.objExists(jnt):
                 sender.setStyleSheet('background-color: #17D206;')
                 continue
+            self.setToolTip("joints in scene do not match")
             sender.setStyleSheet('background-color: #ad4c4c;')
 
-    
 
     def _makeBB(self, bbox):
-        if cmds.objExists("bboxCube"):
-            cmds.delete("bboxCube")
-        cube = cmds.polyCube(n = "bboxCube")[0]
-        cmds.move(bbox[0][0], '%s.f[5]' % cube, x=True)
-        cmds.move(bbox[0][1], '%s.f[3]' % cube, y=True)
-        cmds.move(bbox[0][2], '%s.f[2]' % cube, z=True)
-        cmds.move(bbox[1][0], '%s.f[4]' % cube, x=True)
-        cmds.move(bbox[1][1], '%s.f[1]' % cube, y=True)
-        cmds.move(bbox[1][2], '%s.f[0]' % cube, z=True)
-        shape = cmds.listRelatives(cube, s=1)[0]
+        if cmds.objExists(self.__bbCube):
+            cmds.delete(self.__bbCube)
+        self.__bbCube = cmds.polyCube(n = "bboxCube")[0]
+        cmds.move(bbox[0][0], '%s.f[5]' % self.__bbCube, x=True)
+        cmds.move(bbox[0][1], '%s.f[3]' % self.__bbCube, y=True)
+        cmds.move(bbox[0][2], '%s.f[2]' % self.__bbCube, z=True)
+        cmds.move(bbox[1][0], '%s.f[4]' % self.__bbCube, x=True)
+        cmds.move(bbox[1][1], '%s.f[1]' % self.__bbCube, y=True)
+        cmds.move(bbox[1][2], '%s.f[0]' % self.__bbCube, z=True)
+        shape = cmds.listRelatives(self.__bbCube, s=1)[0]
         cmds.setAttr("%s.overrideEnabled"%shape, 1)
         cmds.setAttr("%s.overrideShading"%shape, 0)
 
     def hideEvent(self, event):
         del self.__cache
+        if self.__bbCube != '':
+            cmds.delete(self.__bbCube)
 
 
 """

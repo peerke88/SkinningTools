@@ -42,7 +42,8 @@ class VertAndBoneFunction(QWidget):
         nghbors_Btn = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS)
         smthBrs_Lay = nullHBoxLayout()
         initSmt_Btn = svgButton("BP", _svgPath("Empty"), size=self.__IS)
-        initSmt_Btn.setMaximumWidth(25)
+        initSmt_Btn.setMaximumWidth(35)
+
         smthBrs_Btn = svgButton("smooth", _svgPath("brush"), size=self.__IS)
         self._smthSpin = QDoubleSpinBox()
         self._smthSpin.setFixedSize(self.__IS + 10, self.__IS + 10)
@@ -148,6 +149,8 @@ class VertAndBoneFunction(QWidget):
         self.growsel_Btn.clicked.connect(self._growsel_func)
         BindFix_Btn.clicked.connect(partial(self._bindFix_func, BindFix_Btn))
 
+        for w in [initSmt_Btn, storsel_Btn]:
+            w.setStyleSheet("QPushButton { text-align: center; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444); }")
     def getCheckValues(self):
         fullList = []
         for btn in self.checkedButtons:

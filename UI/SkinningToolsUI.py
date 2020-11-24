@@ -28,7 +28,7 @@ class SkinningToolsUI(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
         super(SkinningToolsUI, self).__init__(parent)
         # placeholder image
-        self.setWindowIcon(QIcon(":/SP_MessageBoxWarning.png"))
+        self.setWindowIcon(QIcon(":/commandButton.png"))
 
         mainWidget = QWidget()
         self.__editor = None
@@ -115,7 +115,7 @@ class SkinningToolsUI(QMainWindow):
 
 
     def __mayaToolsSetup(self):
-        tab = self.tabs.addGraphicsTab("Maya Tools")
+        tab = self.tabs.addGraphicsTab("Maya Tools", useIcon = ":/menuIconSkinning.png")
 
         self.mayaToolsTab = EditableTabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
@@ -133,7 +133,7 @@ class SkinningToolsUI(QMainWindow):
         self.__addSimpleTools()
 
     def __addSimpleTools(self):
-        tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools")
+        tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools", useIcon = ":/SP_FileDialogListView.png")
         vLayout = nullVBoxLayout()
         tab.view.frame.setLayout(vLayout)
         buttons = interface.dccToolButtons(self.progressBar)
@@ -142,21 +142,21 @@ class SkinningToolsUI(QMainWindow):
         vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __addVertNBoneFunc(self):
-        tab = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions")
+        tab = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions", useIcon = ":/create.png")
         vLayout = nullVBoxLayout()
         self.vnbfWidget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
         vLayout.addWidget(self.vnbfWidget)
         tab.view.frame.setLayout(vLayout)
 
     def __addBrushTools(self):
-        tab = self.mayaToolsTab.addGraphicsTab("Brushes")
+        tab = self.mayaToolsTab.addGraphicsTab("Brushes", useIcon = ":/menuIconPaintEffects.png")
         vLayout = nullVBoxLayout()
         widget = SkinBrushes(parent=self)
         vLayout.addWidget(widget)
         tab.view.frame.setLayout(vLayout)
 
     def __addCopyRangeFunc(self):
-        tab = self.mayaToolsTab.addGraphicsTab("copy functions")
+        tab = self.mayaToolsTab.addGraphicsTab("copy functions", useIcon = ":/lassoSelect.png")
         vLayout = nullVBoxLayout()
         tab.view.frame.setLayout(vLayout)
 
@@ -165,22 +165,19 @@ class SkinningToolsUI(QMainWindow):
 
         vLayout.addWidget(self.copyToolsTab)
         _dict = OrderedDict()
-        _dict["Copy closest weigth"] = ClosestVertexWeightWidget(self)
-        _dict["Transfer weigths"] = TransferWeightsWidget(self)
-        _dict["Transfer Uv's"] = TransferUvsWidget(self)
-        _dict["Assign soft selection"] = AssignWeightsWidget(self)
+        _dict["Copy closest weigth"] = [ClosestVertexWeightWidget(self), ":/arcLengthDimension.svg"]
+        _dict["Transfer weigths"] = [TransferWeightsWidget(self), ":/alignSurface.svg"]
+        _dict["Transfer Uv's"] = [TransferUvsWidget(self), ":/UVEditorBakeTexture.png"]
+        _dict["Assign soft selection"] = [AssignWeightsWidget(self), ":/Grab.png"]
         
         for key, value in _dict.iteritems():
-            _tab = self.copyToolsTab.addGraphicsTab(key)
+            _tab = self.copyToolsTab.addGraphicsTab(key, useIcon = value[1])
             _vLay = nullVBoxLayout()
             _tab.view.frame.setLayout(_vLay)
-            _vLay.addWidget(value)
-            _vLay.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
-
-        vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+            _vLay.addWidget(value[0])
 
     def __skinSliderSetup(self):
-        tab = self.tabs.addGraphicsTab("Skin Slider")
+        tab = self.tabs.addGraphicsTab("Skin Slider", useIcon = ":/nodeGrapherModeConnectedLarge.png")
         vLayout = nullVBoxLayout()
         self.__skinSlider = SkinSliderSetup(self)
         self.__skinSlider.isInView = False
@@ -191,7 +188,7 @@ class SkinningToolsUI(QMainWindow):
 
     def __componentEditSetup(self):
         interface.forceLoadPlugin("SkinEditPlugin")
-        tab = self.tabs.addGraphicsTab("Component Editor")
+        tab = self.tabs.addGraphicsTab("Component Editor", useIcon = ":/list.svg")
         vLayout = nullVBoxLayout()
         self.__editor = weightEditor.WeightEditorWindow(self)
         self.__editor.isInView = False
@@ -200,7 +197,7 @@ class SkinningToolsUI(QMainWindow):
 
     def __weightManagerSetup(self):
         interface.forceLoadPlugin("SkinEditPlugin")
-        tab = self.tabs.addGraphicsTab("Weight Manager")
+        tab = self.tabs.addGraphicsTab("Weight Manager", useIcon = ":/menuIconEdit.png")
         vLayout = nullVBoxLayout()
         self.__weightUI = WeightsUI(self.settings, self.progressBar, self)
         vLayout.addWidget(self.__weightUI)
@@ -229,6 +226,8 @@ class SkinningToolsUI(QMainWindow):
         tabs = self.sender()
         view = tabs.viewAtIndex(index)
         dialog = TearOffDialog(self._tabName(index, tabs), self)
+        if view.windowDispIcon is not None:
+            dialog.setWindowIcon(QIcon(view.windowDispIcon))
         dialog.setOriginalState(index, tabs)
         dialog.addwidget(view)
         if pos.y() > -1:

@@ -19,6 +19,7 @@ class TransferWeightsWidget(QWidget):
         for v in [v2, v1]:
             self.layout().addLayout(v)
 
+        self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.__restoreSettings()
 
     def __defaults(self):
@@ -242,6 +243,7 @@ class ClosestVertexWeightWidget(QWidget):
         self.rst = buttonsToAttach("reset", self.clearUI)
         for btn in [self.trnsComp, self.rst]:
             self.layout().addWidget(btn)
+        self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __defaults(self):
         self.compSetting = [0, 0]
@@ -351,6 +353,8 @@ class TransferUvsWidget(QWidget):
         for btn in [self.trnsComp, self.rst]:
             self.layout().addWidget(btn)
 
+        self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
     def __defaults(self):
         self.compSetting = [0, 0]
         self.__loadBar = None
@@ -402,7 +406,8 @@ class TransferUvsWidget(QWidget):
 class AssignWeightsWidget(QWidget):
     def __init__(self, parent=None, progressBar = None):
         super(AssignWeightsWidget, self).__init__(parent)
-        self.setLayout(nullVBoxLayout())
+        self.mainLayout = nullVBoxLayout()
+        self.setLayout(self.mainLayout)
 
         self.__softSkinData = SoftSkinBuilder(progressBar)
 
@@ -420,16 +425,34 @@ class AssignWeightsWidget(QWidget):
         # todo: do we need more info in this setup?
         if joint in self.__widgets.keys():
             return
-        h = nullVBoxLayout()
-        _btn = buttonsToAttach(joint, partial(self._addData, joint))
-        h.addWidget(_btn)
+        h = nullHBoxLayout()
+        lbl = QLabel(joint)
+
+        _view = toolButton(":/hotkeyFieldSearch.png")
+        _assign = toolButton(":/aselect.png")
+        _clear = toolButton(":/noAccess.png")
+        _view.clicked.connect( partial(self._viewData, joint)) 
+        _assign.clicked.connect(partial(self._addData, joint))
+        _clear.clicked.connect(partial(self._cleardData, joint))
+        for w in [lbl, _view, _assign, _clear]:
+            w.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
+            h.addWidget(w)
 
         self.frameLayout.addLayout(h)
         self.__widgets[joint] = h
+        
         # _btn.clicked.connect(partial(self._addData, joint))
 
     def _addData(self, joint):
         self.__softSkinData.addSoftSkinInfo(joint)
+
+    def _cleardData(self, joint):
+        print("clear the data on %s"%joint)
+        pass
+
+    def _viewData(self, joint):
+        print("check the data on %s"%joint)
+        pass
 
     def __setButtons(self):
         h = nullHBoxLayout()
@@ -441,13 +464,18 @@ class AssignWeightsWidget(QWidget):
             h.addWidget(w)
 
         #todo: need to figure out the scroll area so it fills the ui
-        _frame = QScrollArea()
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(1)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        _frame = QFrame()
+        scrollArea.setWidget(_frame)
         self.frameLayout = nullVBoxLayout()
         _frame.setLayout(self.frameLayout)
-        self.layout().addLayout(h)
-        self.layout().addWidget(_frame)
+        self.mainLayout.addLayout(h)
+        # self.mainLayout.addWidget(_frame)
+        self.mainLayout.addWidget(scrollArea)
         _build = buttonsToAttach("build info", self.build)
-        self.layout().addWidget(_build)
+        self.mainLayout.addWidget(_build)
         # add filter?
         # add buttons based on analyze, or add buttons based on buttonpress
 
@@ -491,7 +519,6 @@ class AssignWeightsWidget(QWidget):
 
     def clearUI(self):
         for jnt, h in self.__widgets.iteritems():
-            h.hide()
             h.deleteLater()
 
 '''

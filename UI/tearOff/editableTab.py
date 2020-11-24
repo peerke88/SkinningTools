@@ -23,7 +23,7 @@ class TabWidget(QTabWidget):
         self.setTabBar(tabBar)
         tabBar.tearOff.connect(self.tearOff.emit)
 
-    def addGraphicsTab(self, text="NewTAB", changeCurrent=True):
+    def addGraphicsTab(self, text="NewTAB", changeCurrent=True, useIcon = None):
         names = [self.tabText(i) for i in range(self.count())]
         text = getNumericName(text, names)
         tab = QWidget()
@@ -42,6 +42,7 @@ class TabWidget(QTabWidget):
         view.setWidgetResizable(1)
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         view.frame = QWidget()
+        view.windowDispIcon = useIcon
         view.setWidget(view.frame)
         tab.view = view
         layout.addWidget(view)

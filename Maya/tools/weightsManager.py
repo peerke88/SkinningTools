@@ -179,7 +179,7 @@ class WeightsManager(object):
             except:
                 uvCoords.append(None)
             vertIter.next()
-        return uvCoords
+        return positions, uvCoords
         
     def checkNeedsClosestVtxSearch(self, data, fromMesh, toMesh):
         _needsClosest = False
