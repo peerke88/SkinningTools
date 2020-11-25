@@ -732,6 +732,20 @@ class SoftSkinBuilder(object):
 
         return self.__weightInfo.meshInfluences[inMesh]
 
+    def getVerts(self, bone):
+        _info = []
+        if bone in self.boneWeights.keys():
+            _info = [x for x, i in enumerate(self.boneWeights[bone]) if i >= 1e-6]
+        if bone  in self._newWeights.keys():
+            _info.extend(self._newWeights[bone][0])
+        return _info
+
+    def removeData(self, bone):
+        #@Todo: figure out what to do with the original weights!
+        if not bone in self._newWeights.keys():
+            return
+        amount = len(self._newWeights[bone])
+        self._newWeights[bone] = [0.0] * amount
 
     def addSoftSkinInfo(self, bone):
         _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
@@ -748,6 +762,7 @@ class SoftSkinBuilder(object):
 
         if self.__currentMesh == _mesh:
             self._newWeights[bone] = [vertices, weights]
+
 
 
     def setSoftSkinInfo(self, inMesh, add = True):

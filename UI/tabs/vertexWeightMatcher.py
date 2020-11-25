@@ -4,6 +4,10 @@ from SkinningTools.UI.utils import *
 from SkinningTools.Maya.tools.shared import *
 from SkinningTools.Maya import interface
 from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget, SoftSkinBuilder
+
+
+
+# @TODO: move this over to maya/tools or move the entire file over to maya
 from maya import cmds
 
 
@@ -74,7 +78,10 @@ class TransferWeightsWidget(QWidget):
 
     def __restoreSettings(self):
         for key in self.settings.allKeys():
-            forceString = str(key)
+            try:
+                forceString = str(key)
+            except:
+                continue
             if not 'vtxSel/' in str(key):
                 continue
             data = self.settings.value(key, None)
@@ -441,23 +448,35 @@ class AssignWeightsWidget(QWidget):
         self.frameLayout.addLayout(h)
         self.__widgets[joint] = h
         
-        # _btn.clicked.connect(partial(self._addData, joint))
-
     def _addData(self, joint):
         self.__softSkinData.addSoftSkinInfo(joint)
 
     def _cleardData(self, joint):
-        print("clear the data on %s"%joint)
-        pass
+        self.__softSkinData.removeData(joint)
 
     def _viewData(self, joint):
-        print("check the data on %s"%joint)
-        pass
+        cmds.select(self.__softSkinData.getVerts(joint), r=1)
+
+    def searchJointName(self):
+        _allJoints = self.__widgets.keys()
+        jointSearch = _allJoints
+        if str(jointSearchLE.text()) != '':
+            _text = jointSearchLE.text().split(' ')
+            _text = [name for name in _text if name != '']
+            jointSearch = [inf for inf in _allJoints if any([True if s.upper() in inf.split('|')[-1].upper() else False for s in _text])]
+        self.inflEdit.showOnlyJoints(jointSearch)
+
+        for bone, w in self.__widgets.iteritems():
+            w.setVisible(bone in jointSearch)
+
 
     def __setButtons(self):
         h = nullHBoxLayout()
         self.searchLine = QLineEdit()
         self.searchLine.setPlaceholderText("Type part of joint name to search...")
+        self.jointSearchLE.editingFinished.connect(self.searchJointName)
+        self.jointSearchLE.textChanged.connect(self.searchJointName)
+        
         self.analyzeBtn = buttonsToAttach("analyze", self.addBones)
         self.addBtn = buttonsToAttach("add", self.addBone)
         for w in [QLabel("Search:"), self.searchLine, self.analyzeBtn, self.addBtn]:
@@ -472,7 +491,6 @@ class AssignWeightsWidget(QWidget):
         self.frameLayout = nullVBoxLayout()
         _frame.setLayout(self.frameLayout)
         self.mainLayout.addLayout(h)
-        # self.mainLayout.addWidget(_frame)
         self.mainLayout.addWidget(scrollArea)
         _build = buttonsToAttach("build info", self.build)
         self.mainLayout.addWidget(_build)
