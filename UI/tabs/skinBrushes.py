@@ -8,7 +8,7 @@ from functools import partial
 from maya import cmds
 from maya import mel
 import os
-
+ 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG = True
 _CTX = "artUserPaintContext" #"AverageWghtCtx"

@@ -411,6 +411,21 @@ class TransferUvsWidget(QWidget):
         self.clearUI()
 
 class AssignWeightsWidget(QWidget):
+    '''
+    #@note: untested!
+    
+    idea:
+
+    add all joints in a list + a select button next to it
+    all buttons are gray from the start
+
+    once the button next to the joint is selected it will store vertex selection into the button and make it green (selection can be soft selection)
+    maybe add a second button to analize the current vertices already inluenced by that given joint (turn buttons red?)
+
+    make sure all weights are normalized in the end
+    if the joints are not pre-analized we do an add influence command
+    otherwise we do a full override(maybe with apiweights functions)
+    '''
     def __init__(self, parent=None, progressBar = None):
         super(AssignWeightsWidget, self).__init__(parent)
         self.mainLayout = nullVBoxLayout()
@@ -460,8 +475,8 @@ class AssignWeightsWidget(QWidget):
     def searchJointName(self):
         _allJoints = self.__widgets.keys()
         jointSearch = _allJoints
-        if str(jointSearchLE.text()) != '':
-            _text = jointSearchLE.text().split(' ')
+        if str(searchLine.text()) != '':
+            _text = searchLine.text().split(' ')
             _text = [name for name in _text if name != '']
             jointSearch = [inf for inf in _allJoints if any([True if s.upper() in inf.split('|')[-1].upper() else False for s in _text])]
         self.inflEdit.showOnlyJoints(jointSearch)
@@ -474,15 +489,14 @@ class AssignWeightsWidget(QWidget):
         h = nullHBoxLayout()
         self.searchLine = QLineEdit()
         self.searchLine.setPlaceholderText("Type part of joint name to search...")
-        self.jointSearchLE.editingFinished.connect(self.searchJointName)
-        self.jointSearchLE.textChanged.connect(self.searchJointName)
+        self.searchLine.editingFinished.connect(self.searchJointName)
+        self.searchLine.textChanged.connect(self.searchJointName)
         
         self.analyzeBtn = buttonsToAttach("analyze", self.addBones)
         self.addBtn = buttonsToAttach("add", self.addBone)
         for w in [QLabel("Search:"), self.searchLine, self.analyzeBtn, self.addBtn]:
             h.addWidget(w)
 
-        #todo: need to figure out the scroll area so it fills the ui
         scrollArea = QScrollArea()
         scrollArea.setWidgetResizable(1)
         scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -494,12 +508,6 @@ class AssignWeightsWidget(QWidget):
         self.mainLayout.addWidget(scrollArea)
         _build = buttonsToAttach("build info", self.build)
         self.mainLayout.addWidget(_build)
-        # add filter?
-        # add buttons based on analyze, or add buttons based on buttonpress
-
-        # self.analyzeBtn.clicked.connect(self.addBones)
-        # self.addBtn.clicked.connect(self.addBone)
-        # _build.clicked.connect(self.build)
 
     def addBone(self):
         # get the joint to add to the current setup
@@ -539,16 +547,4 @@ class AssignWeightsWidget(QWidget):
         for jnt, h in self.__widgets.iteritems():
             h.deleteLater()
 
-'''
-#todo:
 
-add all joints in a list + a select button next to it
-all buttons are gray from the start
-
-once the button next to the joint is selected it will store vertex selection into the button and make it green (selection can be soft selection)
-maybe add a second button to analize the current vertices already inluenced by that given joint (turn buttons red?)
-
-make sure all weights are normalized in the end
-if the joints are not pre-analized we do an add influence command
-otherwise we do a full override(maybe with apiweights functions)
-'''

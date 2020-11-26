@@ -256,7 +256,8 @@ class WeightsUI(QWidget):
         cmds.setAttr("%s.overrideShading"%shape, 0)
 
     def hideEvent(self, event):
-        del self.__cache
+        if not self.__cache == {}:
+            del self.__cache
         if self.__bbCube != '':
             cmds.delete(self.__bbCube)
 

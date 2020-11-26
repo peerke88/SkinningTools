@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
+__VERSION__ = "5.0.20201118"
+_DEBUG = False
+
+def getDebugState():
+    return _DEBUG
+
+import tempfile, os
+from functools import partial
+
 from SkinningTools.py23 import *
+# @todo: add multiple interfaces later for different packages 
+# when using maya:
 from SkinningTools.Maya import api, interface
+
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
@@ -11,18 +23,16 @@ from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
 from SkinningTools.UI.advancedToolTip import AdvancedToolTip
 from SkinningTools.UI.weightEditor import weightEditor
-import tempfile, os
-from functools import partial
 
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
-from SkinningTools.UI.tabs.skinBrushes import SkinBrushes
+if _DEBUG:
+    from SkinningTools.UI.tabs.skinBrushes import SkinBrushes
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-__VERSION__ = "5.0.20201118"
-_DEBUG = True
+_DIR = os.path.dirname(__file__)
 
 class SkinningToolsUI(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
@@ -66,7 +76,7 @@ class SkinningToolsUI(QMainWindow):
         interface.doSelect(__sel)
 
     def __uiElements(self):
-        self.settings = QSettings("SkinningTools_PL", "uiSkinSave")
+        self.settings = QSettings(os.path.join(_DIR,'settings.ini'), QSettings.IniFormat)
         self.progressBar = MessageProgressBar(self)
         self.BezierGraph = BezierGraph()
 
@@ -102,6 +112,10 @@ class SkinningToolsUI(QMainWindow):
             helpAction.addAction(act)
 
         self.changeLN = QAction("[EN]", self)
+        
+        #@todo: add the functionality later
+        helpAction.setEnabled(False)
+        self.changeLN.setEnabled(False)
 
         self.menuBar().addMenu(helpAction)
         self.menuBar().addMenu(self.extraMenu)
@@ -325,6 +339,7 @@ class SkinningToolsUI(QMainWindow):
         getGeo = self.settings.value("geometry", None)
         if getGeo is None:
             return
+
         self.restoreGeometry(getGeo)
         tools = { "tools": self.mayaToolsTab,
                   "tabs": self.tabs,
@@ -332,21 +347,25 @@ class SkinningToolsUI(QMainWindow):
                 }
         for key, comp in tools.iteritems():
             index = self.settings.value(key, 0)
-            if index > comp.count()-1:
+            if index is None:
+                index = 0
+            elif index > comp.count()-1:
                 index = -1
             comp.setCurrentIndex(index)
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
 
     def hideEvent(self, event):
         self.saveUIState()
-        self.__skinSlider.clearCallback()
-        self.__editor.setClose()
-        api._cleanEventFilter()
-        self.__skinSlider.deleteLater()
-        self.__editor.deleteLater()
-        del self.__skinSlider
-        del self.__editor
-        self.deleteLater()
+        try:
+            self.__skinSlider.clearCallback()
+            self.__editor.setClose()
+            api._cleanEventFilter()
+            self.__skinSlider.deleteLater()
+            del self.__skinSlider
+            self.__editor.deleteLater()
+            del self.__editor
+        except:
+            self.deleteLater()
 
 
 def getSkinningToolsWindowName():

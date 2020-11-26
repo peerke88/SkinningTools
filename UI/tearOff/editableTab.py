@@ -88,9 +88,6 @@ class EditableTabWidget(TabWidget):
         TabWidget.__init__(self, parent)
         self.setAcceptDrops(False)
         self.setObjectName('EditableTabWidget')
-        palette = self.palette()
-        palette.setColor(QPalette.Midlight, QColor(0, 0, 0, 0))
-        self.setPalette(palette)
 
     def setCustomTabBar(self):
         tabBar = EditableTabBar(self)

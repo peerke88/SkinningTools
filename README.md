@@ -64,4 +64,8 @@ maya code should be seperated in the Maya folder hopefully we can make some part
     - Qt: LGPL 2.1 (http://qt-project.org/doc/qt-5.0/qtdoc/lgpl.html)
     - dot: EPL (http://www.graphviz.org/License.php)
 ```
-
+* google_trans
+```
+  Author: SujuHan 
+  Licences: Freeware(MIT) https://pypi.org/project/google-trans/#files
+```

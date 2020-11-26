@@ -5,8 +5,9 @@ from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCo
 from functools import partial
 import os
 
+from SkinningTools.UI.SkinningToolsUI import getDebugState
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DEBUG = True
+_DEBUG = getDebugState()
 
 # @todo:
 # add reset to bindpose

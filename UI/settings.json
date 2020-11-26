@@ -1,2 +1,0 @@
-// the idea here is to have certain settings saved that change the way some tools work:
-// for example the detection of the marking menu now tries to detect in 4 pixel range of the current mouse if there is a joint there
