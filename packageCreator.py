@@ -17,14 +17,36 @@ currently we glob all necessary files together and place them accordingly
  - update documentation (this should be added to www.perryleijten.com)
 """
 
-import sys, os, errno
+import sys, os, errno, datetime, runpy, fileinput, subprocess
 from shutil import copytree, copy2, rmtree, make_archive
 
 
+relPath = os.path.normpath(os.path.dirname(os.path.dirname(__file__)))
+curFolder = os.path.normpath(os.path.dirname(__file__))
+baseFolder =os.path.normpath(os.path.join(curFolder, "package"))
 
-relPath = os.path.dirname(os.path.dirname(__file__))
-curFolder = os.path.dirname(__file__)
-baseFolder =os.path.join(curFolder, "package")
+def setVersionDate( ):
+	now = datetime.datetime.now( )
+	versionDate = "%s%02d%02d" % (now.year, now.month, now.day)
+	old = ''
+	
+	file_path = os.path.join(curFolder, "UI/SkinningToolsUI.py")
+	with fileinput.input(file_path, inplace=True) as f:
+		for line in f:
+			if "__VERSION__ = " in line:
+
+				splitted = line.split( '"' )
+				old = splitted[1]
+				base = splitted[ 0 ]
+				end = splitted[ -1 ]
+				new = "5.0.%s"%versionDate
+				line = '%s"%s"%s' % (base, new, end)
+				line.replace(old, new)
+			print(line, end = '')
+
+	print( "Updated Version <%s> to <%s>!" % (old, new), True )
+	return new
+_vers = setVersionDate()
 
 if os.path.isdir(baseFolder):
 	rmtree(baseFolder)
@@ -32,8 +54,7 @@ os.mkdir(baseFolder)
 
 
 toMove = []
-_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll"]
-_noFolder = [".git"]
+_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip"]
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
@@ -46,7 +67,7 @@ for dirName, __, fList in os.walk(curFolder):
 		suffix = file.split(".")[-1]
 		if suffix in _exclude and not "qcachegrind" in dirName:
 			continue
-		if ".git" in dirName:
+		if ".git" in dirName or ".vs" in dirName or "Logs" in dirName or ".idea" in dirName:
 			continue
 		if "docs" in dirName:
 			continue
@@ -55,10 +76,7 @@ for dirName, __, fList in os.walk(curFolder):
 		toMove.append(os.path.join(dirName, file))
 
 for f in toMove:
-	if "test" in f.lower():
-		print f
-	#print f + " > " + f.split("%s/"%curFolder)[-1]
-	dst = os.path.join(baseFolder, f.split("%s/"%curFolder)[-1])
+	dst = os.path.join(baseFolder, "SkinningTools", f.replace("\\", "/").split("%s/"%curFolder.replace("\\", "/"))[-1])
 	try:
 		os.makedirs(os.path.dirname(dst))
 	except OSError as e:
@@ -67,6 +85,9 @@ for f in toMove:
 	copy2(f, dst)
 print("succesfully copied files")
 
-make_archive("SkinTools", 'zip', baseFolder)
+_baseINI = os.path.join(baseFolder, "__init__.py")
+open(_baseINI, 'w').close()
 
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
 print("succesfully build package")

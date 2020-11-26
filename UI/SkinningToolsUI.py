@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20201118"
+__VERSION__ = "5.0.20201126"
 _DEBUG = False
 
 def getDebugState():
@@ -390,3 +390,4 @@ def showUI(newPlacement=False):
     window.show()
 
     return window
+
