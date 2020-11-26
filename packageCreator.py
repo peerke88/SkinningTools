@@ -18,7 +18,7 @@ currently we glob all necessary files together and place them accordingly
 """
 
 import sys, os, errno
-from shutil import copytree, copy2, rmtree
+from shutil import copytree, copy2, rmtree, make_archive
 
 
 
@@ -66,3 +66,7 @@ for f in toMove:
 			raise
 	copy2(f, dst)
 print("succesfully copied files")
+
+make_archive("SkinTools", 'zip', baseFolder)
+
+print("succesfully build package")

@@ -4,13 +4,13 @@ refactor of the original skinning tools
 https://gumroad.com/l/skinningTools_PL
 
 main goal of the tools is to make clean code that is ready for Python 3
-maya code should be seperated in the Maya folder hopefully we can make some parts DCC agnostic to get the same or similar functionality in other dcc tools
+maya code should be seperated in the Maya folder hopefully we can make some parts DCC agnostic to get the same or similar functionality in other dcc tools (future dev)
 
 ### todo:
  - add all functionality to menubar
  - add settings page (size of elements/icons, language, etc)
+ - add translator class for automated language information, option to save and modify
  - create small videos/gifs to explain the tools as tooltips (use this for testing functionality)
- - create script to deploy the tool (gather only necessary information in a zip file)
  - create install mel script so users only need to drag and drop a mel file to install the tool
 
 
@@ -64,8 +64,8 @@ maya code should be seperated in the Maya folder hopefully we can make some part
     - Qt: LGPL 2.1 (http://qt-project.org/doc/qt-5.0/qtdoc/lgpl.html)
     - dot: EPL (http://www.graphviz.org/License.php)
 ```
-* google_trans
+* googletrans
 ```
-  Author: SujuHan 
-  Licences: Freeware(MIT) https://pypi.org/project/google-trans/#files
+  Author: Su Hun Han 
+  Licences: Freeware(MIT) https://pypi.org/project/googletrans/
 ```

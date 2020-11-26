@@ -147,7 +147,6 @@ dmypy.json
 Maya/plugin/averageWeightPerryCpp/build/
 Maya/plugin/averageWeightPerryCpp/x64/
 # Commit the latest build of the plugin:
-!Maya/plugin/smoothBrushRodCpp/lib
 *.user
 
 # PyCharm files
