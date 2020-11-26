@@ -153,3 +153,5 @@ Maya/plugin/averageWeightPerryCpp/x64/
 # PyCharm files
 venv
 *.profile
+
+package/

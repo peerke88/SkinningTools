@@ -17,19 +17,28 @@ currently we glob all necessary files together and place them accordingly
  - update documentation (this should be added to www.perryleijten.com)
 """
 
-import sys, os
-from shutil import copyfile
+import sys, os, errno
+from shutil import copytree, copy2, rmtree
+
+
 
 relPath = os.path.dirname(os.path.dirname(__file__))
 curFolder = os.path.dirname(__file__)
 baseFolder =os.path.join(curFolder, "package")
 
+if os.path.isdir(baseFolder):
+	rmtree(baseFolder)
+os.mkdir(baseFolder)
+
+
 toMove = []
 _exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll"]
 _noFolder = [".git"]
-_noFile = ["reloader.py", "packageCreator.py"]
+_noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
+		if "package" in dirName or "test" in dirName.lower() or "commons" in dirName:
+			continue
 		if not '.' in file:
 			continue
 		if file.startswith('.'):
@@ -46,7 +55,14 @@ for dirName, __, fList in os.walk(curFolder):
 		toMove.append(os.path.join(dirName, file))
 
 for f in toMove:
+	if "test" in f.lower():
+		print f
 	#print f + " > " + f.split("%s/"%curFolder)[-1]
 	dst = os.path.join(baseFolder, f.split("%s/"%curFolder)[-1])
-	#copyfile(f, dst)
+	try:
+		os.makedirs(os.path.dirname(dst))
+	except OSError as e:
+		if e.errno != errno.EEXIST:
+			raise
+	copy2(f, dst)
 print("succesfully copied files")
