@@ -4,6 +4,13 @@ from maya import cmds
 
 
 def hold(Force=False):
+    """ hold the current selected objects
+    this is an override function for the copy (ctrl+c) function
+    it forces only clean connections to be copied and stored somewhere else so when pasted the scene isn't a mess
+
+    :param Force: if `True` forces the export of selected object to take place ,if `False` it will not force the action (might break in some cases)
+    :type Force: bool
+    """
     try:
         selection = saveSelectionToAttrs()
         tempDir = cmds.internalVar(utd=True)
@@ -19,6 +26,13 @@ def hold(Force=False):
 
 
 def fetch():
+    """ fetch the holded objects
+    this is an override function for the paste (ctrl+v) function
+    it forces only clean connections to be pasted in the current scene without making a mess out of it
+
+    :return: created nodes
+    :rtype: list
+    """
     try:
         topLevelDagObjects = cmds.ls(assemblies=True, l=True)
         allDagObjects = cmds.ls(l=True)
@@ -53,6 +67,15 @@ def fetch():
 
 
 def cleanupFetch(topLevelDagObjects, remainingTopDagNodes):
+    """ clean the connections and objects fetched
+    
+    :param topLevelDagObjects: all objects that are part of the root of the scene before fetch
+    :type topLevelDagObjects: list
+    :param remainingTopDagNodes: all objects that are part of the root of the scene after fetch
+    :type remainingTopDagNodes:list
+    :return: newly added top level nodes
+    :rtype: list
+    """
     if topLevelDagObjects == None or len(topLevelDagObjects) == 0:
         return []
     if remainingTopDagNodes == None or len(remainingTopDagNodes) == 0:
@@ -65,6 +88,11 @@ def cleanupFetch(topLevelDagObjects, remainingTopDagNodes):
 
 
 def saveSelectionToAttrs():
+    """ add identifying attributes to the objects about to be stored
+    
+    :return: the current selection we want to hold
+    :rtype: list
+    """
     selection = cmds.ls(sl=True, fl=True, l=True)
     for obj in selection:
         try:
@@ -75,6 +103,11 @@ def saveSelectionToAttrs():
 
 
 def removeSelectionFromAttrs(nodes):
+    """ cleanup identifying attributes to the objects about to be stored
+    
+    :param nodes: the nodes that are imported into the new scene will have their attribute removed
+    :type nodes: list
+    """
     for node in nodes:
         if cmds.objExists(node + ".holdFetchAttr"):
             try:
@@ -84,6 +117,13 @@ def removeSelectionFromAttrs(nodes):
 
 
 def selectFromAttrs(topNodes):
+    """ based on top nodes imported we are going to check what is added to the scene
+    
+    :param topNodes: the topnodes that are imported into the new scene
+    :type topNodes: list
+    :return: all new added nodes
+    :rtype: list
+    """
     selection = []
     for topNode in topNodes:
         decendants = cmds.listRelatives(topNode, ad=True, f=True)

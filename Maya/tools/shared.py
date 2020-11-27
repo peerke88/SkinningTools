@@ -50,7 +50,7 @@ def dec_profile(func):
     @wraps(func)
     def _profile_func(*args, **kwargs):
         if not _DEBUG:
-            print "release: profile decorator lingering in code please remove: %s, %s"%(os.path.basename(inspect.getfile(func)), func.__name__)
+            print("release: profile decorator lingering in code please remove: %s, %s"%(os.path.basename(inspect.getfile(func)), func.__name__))
             return func(*args, **kwargs)
         
         currentBaseFolder = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -399,6 +399,15 @@ def convertToVertexList(inObject):
     return []
 
 def getComponents(meshDag, component):
+    """ convert the given input to a list of component indices
+    
+    :param meshDag: the object to search through
+    :type meshDag: OpenMaya.MDagPath
+    :param component: the depend node to check for component flags
+    :type component: OpenMaya.MDependNode
+    :return: indices of all the components on the current object
+    :rtype: OpenMaya.MIntArray
+    """
     vtxArray = OpenMaya.MIntArray()
     meshFn = OpenMaya.MFnMesh(meshDag)
     if component.hasFn(OpenMaya.MFn.kMeshVertComponent):
@@ -425,12 +434,26 @@ def getComponents(meshDag, component):
     return vtxArray 
     
 def selectHierarchy(node):
+    """ get the hierarchy of the current given object
+    
+    :param node: the object to search through
+    :type node: string
+    :return: list of the objects children and current object included
+    :rtype: list
+    """
     ad = cmds.listRelatives(node, ad=1, f=1) or []
     ad.append(node[0])
     return ad[::-1]
 
 
 def getJointIndexMap(inSkinCluster):
+    """ get a map of how the joints are connected to the skincluster at which index
+    
+    :param inSkinCluster: the skincluster to use as base
+    :type inSkinCluster: string
+    :return: map of all the joints and how they are conencted to the skincluster
+    :rtype: dict
+    """
     inConns = cmds.listConnections('%s.matrix' % inSkinCluster, s=1, d=0, c=1, type="joint")
     indices = []
     _connectDict = {}
@@ -442,6 +465,13 @@ def getJointIndexMap(inSkinCluster):
 
 
 def convertToIndexList(vertList):
+    """ convert components given to a list of indices
+    
+    :param vertList: list of components
+    :type vertList: list
+    :return: list of integers representing the components values
+    :rtype: list
+    """
     indices = []
     for i in vertList:
         index = int(i[i.index("[") + 1: -1])
@@ -450,6 +480,17 @@ def convertToIndexList(vertList):
 
 
 def convertToCompList(indices, inMesh, comp="vtx"):
+    """ convert indices to a list of the given component
+    
+    :param indices: list of integers representing the components values
+    :type indices: list
+    :param inMesh: the name of the mesh
+    :type inMesh: string
+    :param comp: the component type
+    :type comp: string
+    :return: list of components
+    :rtype: list
+    """
     vertices = []
     for i in list(indices):
         vrt = "%s.%s[%s]" % (inMesh, comp, i)
@@ -459,6 +500,13 @@ def convertToCompList(indices, inMesh, comp="vtx"):
 
 
 def toToEdgeNumber(vtx):
+    """ convert vertex to a list of connected edge numbers
+    
+    :param vtx: the vertex to gather data from
+    :type vtx: string
+    :return: list of all connected edges
+    :rtype: list
+    """
     toEdges = cmds.polyListComponentConversion(vtx, te=True)
     edges = cmds.filterExpand(toEdges, sm=32, fp=1)
     en = []
@@ -468,6 +516,21 @@ def toToEdgeNumber(vtx):
 
 
 def checkEdgeLoop(inMesh, vtx1, vtx2, first=True, maxLength=40):
+    """ check relations between 2 vertices if they are on the same loop
+    
+    :param inMesh: the mesh on which the vertices are placed
+    :type inMesh: string
+    :param vtx1: the first vertex to gather data from
+    :type vtx1: string
+    :param vtx2: the second vertex to gather data from
+    :type vtx2: string
+    :param first: if `True` it will only return the first loop found, if `False` it will return any loop found
+    :type first: bool
+    :param maxLength:  maximum amount of edges to search between before giving up
+    :type maxLength: int
+    :return: list of edges between the 2 vertices
+    :rtype: list
+    """
     e1n = toToEdgeNumber(vtx1)
     e2n = toToEdgeNumber(vtx2)
     found = []
@@ -483,6 +546,15 @@ def checkEdgeLoop(inMesh, vtx1, vtx2, first=True, maxLength=40):
 
 
 def getDagpath(node, extendToShape=False):
+    """ get openmaya data from given object
+    
+    :param node: the object to get the openmaya data from
+    :type node: string
+    :param extendToShape: if `True` will return the path of the shape, if `False` it will return the path of the transform
+    :type extendToShape: bool
+    :return: the openmaya object (returns dependnode if the object is not a dagnode)
+    :rtype: MDagPath, MDependNode
+    """
     sellist = OpenMaya.MGlobal.getSelectionListByName(node)
     try:
         if extendToShape:
@@ -493,6 +565,13 @@ def getDagpath(node, extendToShape=False):
 
 
 def getMfnSkinCluster(mDag):
+    """ get openmaya skincluster data from given object
+    
+    :param node: the object to get the skinclusterdata from
+    :type node: MDagPath
+    :return: the skincluster object
+    :rtype: MFnSkinCluster
+    """
     if isinstance(mDag, OpenMaya.MDagPath):
         skinNode = skinCluster(mDag.fullPathName())
     else:
@@ -501,6 +580,13 @@ def getMfnSkinCluster(mDag):
 
 
 def traverseHierarchy(inObject):
+    """ traverse the hierarchy of the current object to gahter all mesh nodes
+    
+    :param inObject: the topnode to search from
+    :type inObject: string
+    :return: list of all transforms holding mesh shape data
+    :rtype: list
+    """
     if not isinstance(inObject, list):
         inObject = [inObject]
     polygonMesh = []
@@ -521,6 +607,15 @@ def traverseHierarchy(inObject):
 # --- vertex island functions ---
 
 def getConnectedVerts(inMesh, vtxSelectionSet):
+    """ get seperate groups of vertices that are connected by edges
+    
+    :param inMesh: the mesh to use for gathering data
+    :type inMesh: string
+    :param vtxSelectionSet: list of all vertices in our current selection to convert to island groups
+    :type vtxSelectionSet: list
+    :return: dictionary holding information of all gathered islands
+    :rtype: dict
+    """
     mObject = OpenMaya.MGlobal.getSelectionListByName(inMesh).getDependNode(0)
     iterVertLoop = OpenMaya.MItMeshVertex(mObject)
 
@@ -552,12 +647,28 @@ def getConnectedVerts(inMesh, vtxSelectionSet):
 
 
 def getNeighbours(mVtxItter, index):
+    """ get the direct neighbors of current vertex index connected by edge
+    
+    :param mVtxItter: the iterator that goes over all vertices
+    :type mVtxItter: MItMeshVertex
+    :param index: index of the vertex to get neighbor data from
+    :type index: int
+    :return: set of all neighbours of current index
+    :rtype: set
+    """
     mVtxItter.setIndex(index)
     intArray = mVtxItter.getConnectedVertices()
     return set(int(x) for x in intArray)
 
 
 def growLatticePoints(points):
+    """ get all neighbours of a point on a lattice
+    
+    :param points: point on a lattice
+    :type points: string
+    :return: list of neighbouring points
+    :rtype: list
+    """
     base = points[0].split('.')[0]
     allPoints = cmds.filterExpand("%s.pt[*]" % base, sm=46, fp=1)
 
@@ -581,6 +692,14 @@ def growLatticePoints(points):
 
 
 def getWeights(inMesh):
+    """ get the complete weight data of a given mesh 
+    weightData = [[value]* joints] * vertices
+    
+    :param inMesh: the object to get the data from
+    :type inMesh: string
+    :return: list of all weights
+    :rtype: list
+    """
     sc = skinCluster(inMesh)
     shape = cmds.listRelatives(inMesh, s=1)[0]
 
@@ -606,6 +725,13 @@ def getWeights(inMesh):
 
 
 def setWeigths(inMesh, weightData):
+    """ set the complete weight data of a given mesh 
+    
+    :param inMesh: the object to set the data to
+    :type inMesh: string
+    :param weightData: full list of weight data [[value]* joints] * vertices
+    :type weightData: list
+    """
     sc = skinCluster(inMesh)
     shape = cmds.listRelatives(inMesh, s=1)[0]
 
@@ -632,6 +758,15 @@ def setWeigths(inMesh, weightData):
 # -------------
 
 def getPolyOnMesh(point, inMesh):
+    """ sget polygonal mesh data of a point on the surface 
+    
+    :param point: point in space
+    :type point: list
+    :param inMesh: the object to get the data form
+    :type inMesh: string
+    :return: all elements close to given point
+    :rtype: faceId, triangleID, u coordinate, v coordinate
+    """
     meshDag = getDagpath(inMesh, extendToShape=True)
 
     meshIntersector = OpenMaya.MMeshIntersector()
@@ -644,21 +779,47 @@ def getPolyOnMesh(point, inMesh):
     return meshPoint.face, meshPoint.triangle, u, v
 
 
-def getTriIndex(inMesh, polygon_index, triangleIndex):
+def getTriIndex(inMesh, polygonIndex, triangleIndex):
+    """ get the points that create the current triangle
+    
+    :param inMesh: the object to get the data form
+    :type inMesh: string
+    :param polygonIndex: index of the current polygon( quad / ngon)
+    :type polygonIndex: int
+    :param triangleIndex: index of the triangle within current polygon
+    :type triangleIndex: int
+    :return: list of vertices that cover current triangle
+    :rtype: list
+    """
     meshDag = getDagpath(inMesh, extendToShape=True)
     polyIt = OpenMaya.MItMeshPolygon(meshDag)
 
-    prevIndexPTR = polyIt.setIndex(polygon_index)
+    prevIndexPTR = polyIt.setIndex(polygonIndex)
     points, verts = polyIt.getTriangle(triangleIndex, OpenMaya.MSpace.kWorld)
 
     return (verts[0], verts[1], verts[2])
 
 
-def getTriWeight(inMesh, polygon_index, triangleIndex, u, v):
+def getTriWeight(inMesh, polygonIndex, triangleIndex, u, v):
+    """ get the weight of the current coordinate based on the triangles position
+    
+    :param inMesh: the object to get the data form
+    :type inMesh: string
+    :param polygonIndex: index of the current polygon( quad / ngon)
+    :type polygonIndex: int
+    :param triangleIndex: index of the triangle within current polygon
+    :type triangleIndex: int
+    :param u: u coordinate on the texture map
+    :type u: float
+    :param v: v coordinate on the texture map
+    :type v: flaot
+    :return: list of joint influences and the weights necessary to attach the point to the triangle
+    :rtype: list
+    """
     skinClusterName = skinCluster(inMesh)
     influences = cmds.listConnections("%s.matrix" % skinClusterName, source=True)
 
-    vtxIndex = getTriIndex(inMesh, polygon_index, triangleIndex)
+    vtxIndex = getTriIndex(inMesh, polygonIndex, triangleIndex)
     barycentricCoords = [u, v, 1.0 - u - v]
 
     weights = [0.0 for _ in range(len(influences))]
@@ -670,6 +831,15 @@ def getTriWeight(inMesh, polygon_index, triangleIndex, u, v):
 
 
 def skinConstraint(inMesh, transform, floatPrecision=3):
+    """ attach a transform to mesh based on the transforms position
+    
+    :param inMesh: the object to get the data form
+    :type inMesh: string
+    :param transform: transorm object to attach to the skincluster
+    :type transform: string
+    :param floatPrecision: amount of decimals used to calculate the weight information
+    :type floatPrecision: int
+    """
     floatPrecision = max(floatPrecision, 1)
     point = cmds.xform(transform, q=True, t=True, ws=True)
     faceId, triangleID, u, v = getPolyOnMesh(point, inMesh)
@@ -696,6 +866,17 @@ def skinConstraint(inMesh, transform, floatPrecision=3):
 
 
 def createWeightedMM(transforms, weights, floatPrecision):
+    """ creat matrix multiple based on the weights of the current triangle
+    
+    :param transforms: list of joints that will drive the matrix
+    :type transforms: list
+    :param weights: list of weights on how much the matrix needs to be driven
+    :type weights: list
+    :param floatPrecision: amount of decimals used to calculate the weight information
+    :type floatPrecision: int
+    :return: the matrix which holds the positional information
+    :rtype: wtAddMatrix node
+    """
     Trs = []
     Wgth = []
 

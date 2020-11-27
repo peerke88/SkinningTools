@@ -129,6 +129,13 @@ def measureLength(object1, object2):
 
 
 def getCenterPosition(inPositions):
+    """ get the center position from all input positions
+
+    :param inPositions: list of vectors that represent a cluster of positions
+    :type inPositions: list
+    :return: center position of current given positions
+    :rtype: MVector
+    """
     amount = len(inPositions)
     baseVec = MVector()
     for pos in toVec3List(inPositions):

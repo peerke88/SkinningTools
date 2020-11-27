@@ -177,3 +177,4 @@ autoapi_dirs = ['../Maya', "../UI"]
 autoapi_template_dir = '_autoapi_templates'
 autoapi_add_toctree_entry =True
 autoapi_options = ['members','undoc-members','private-members','show-inheritance','show-inheritance-diagram','show-module-summary','special-members','imported-members', ]
+autoapi_ignore = ['*smoothBrushRodCpp*', '*averageWeightPerryCpp*']

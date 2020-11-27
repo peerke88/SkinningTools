@@ -1,0 +1,35 @@
+// drag and drop this file on maya window for create shelf button
+global proc findMe(){};
+
+global proc string currentFolder (string $proc_name){
+    string $whatIs=`whatIs $proc_name`;
+    string $fullPath=`substring $whatIs 25 999`;
+    string $buffer[];
+    string $slash="/";
+    if (`gmatch $whatIs "*\\\\*"`)
+    	$slash="\\";
+    int $numTok=`tokenize $fullPath $slash $buffer`;
+    int $numLetters=size($fullPath);
+    int $numLettersLastFolder=size($buffer[$numTok-1]);
+    string $scriptLocation=`substring $fullPath 1 ($numLetters-$numLettersLastFolder)`;
+    return $scriptLocation;
+};
+
+global proc placeTools(string $path){
+	print $path;
+	print "\n";
+	string $usr =  `internalVar -userScriptDir`;
+	string $version = `about -v`;
+	$version += "/";
+	string $res = substituteAllString($usr, $version, "");
+	print $res;
+	print "\n";
+
+
+	string $source = $path + "SkinningTools" ;
+	python("import shutil; source = '" + $source + "';" + "dest = '" + $res +"'; shutil.move(source, dest);");
+};
+
+$place_path=currentFolder("findMe");
+// print $place_path;
+placeTools($place_path);

@@ -57,7 +57,7 @@ class DictionaryCreator(QWidget):
 
 	def setCurrentLanguage(inLanguage):
 		#@Note this might not be necessary if we force the user to take the languages from google api
-		if inLanguage in LANGUAGES.keys()
+		if inLanguage in LANGUAGES.keys():
 			self.currentLanguage = inLanguage
 			return True
 		if inLanguage in LANGUAGES.values():

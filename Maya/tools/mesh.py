@@ -47,11 +47,6 @@ def shortestPathVertex(start, end):
     :rtype: list
 
     """
-    def measureLength(object1, object2):
-        pos1 = MVector(*cmds.xform(object1, q=True, ws=True, t=True))
-        pos2 = MVector(*cmds.xform(object2, q=True, ws=True, t=True))
-        return (pos1 - pos2).length()
-
     curMesh = start.split('.')[0]
 
     firstExtendedEdges = cmds.polyListComponentConversion(start, te=True)
@@ -105,12 +100,22 @@ def shortestPathVertex(start, end):
     if not startIndex in shared.convertToIndexList(newVertexSelection[0]):
         inOrder.reverse()
 
-    # totalDistance = measureLength(inOrder[-1], end)
     inOrder = shared.convertToCompList(inOrder, curMesh)
     return [start] + inOrder + [end]
 
 
 def shortestPathNurbsSurface(start, end, diagonal=False):
+    """ get the shortest path walking over the edges between 2 selected control vertices
+
+    :param start: control vertex to start from
+    :type start: string
+    :param end: control vertex to end with
+    :type end: string
+    :param diagonal: if `True` the shortest path can cross cv's diagonally, if `False` it can only go straight
+    :type diagonal: bool
+    :return: list of control vertices to walk in order
+    :rtype: list
+    """
     surface = start.split('.')[0]
     allCvs = cmds.filterExpand("%s.cv[*][*]" % surface, sm=28, fp=1)
     graph = shared.Graph()
@@ -150,6 +155,15 @@ def shortestPathNurbsSurface(start, end, diagonal=False):
 
 
 def shortestPathNurbsCurve(start, end):
+    """ get the shortest path walking over the edges between 2 selected control vertices
+
+    :param start: control vertex to start from
+    :type start: string
+    :param end: control vertex to end with
+    :type end: string
+    :return: list of control vertices to walk in order
+    :rtype: list
+    """
     startIndex = int(start[start.index("[") + 1: -1])
     endIndex = int(end[end.index("[") + 1: -1])
     numbers = [startIndex, endIndex]
@@ -165,6 +179,15 @@ def shortestPathNurbsCurve(start, end):
 
 
 def shortestPathLattice(start, end):
+    """ get the shortest path walking over the edges between 2 selected points
+
+    :param start: points to start from
+    :type start: string
+    :param end: points to end with
+    :type end: string
+    :return: list of points to walk in order
+    :rtype: list
+    """
     allCvs = cmds.filterExpand("%s.pt[*]" % surface, sm=46, fp=1)
     graph = shared.Graph()
     recomputeDict = {}
@@ -191,6 +214,19 @@ def shortestPathLattice(start, end):
 
 
 def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=None):
+    """ use the component selection for pathfinding, to make sure that any skinnable mesh can be walked over
+
+    :param selection: 2 component objects that indicate the start and end of a possible path
+    :type selection: list
+    :param useDistance: if `True` will use the lenght of the path to define the weight , if `False` will use the amount of points as weight
+    :type useDistance: bool
+    :param diagonal: if `True` the shortest path can cross cv's diagonally, if `False` it can only go straight
+    :type diagonal: bool
+    :param weightWindow: the window that has control over a bezier curveto define the fallof of weight
+    :type weightWindow: fallofCurveUI
+    :return: map of vertices in order and the weight applied to them
+    :rtype: list
+    """
     start = selection[0]
     end = selection[-1]
     surface = start.split('.')[0]
@@ -233,6 +269,13 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
 
 
 def edgesToSmooth(inEdges):
+    """ use 2 edgeloops to find the relation of the vertices on opposite sides
+
+    :param inEdges: list of 2 edgeloops
+    :type inEdges: list
+    :return: list of vertices that are closely connected together based on the edgeselection
+    :rtype: list
+    """
     curMesh = inEdges[0].split('.')[0]
     convertToVerts = shared.convertToIndexList(shared.convertToVertexList(inEdges))
 
@@ -266,6 +309,12 @@ def edgesToSmooth(inEdges):
 
 @shared.dec_undo
 def polySkeleton(radius=5):
+    """ convert the current selected skeleton to a polygonal object 
+    this can be beneficial to show how the skeleton looks in other dcc tools, like zbrush
+
+    :param radius: the radius to give each joint in the output
+    :type radius: float
+    """
     currentUnit = cmds.currentUnit(q=True, l=True)
     if currentUnit != 'cm':
         cmds.currentUnit(l='cm')
@@ -305,6 +354,11 @@ def polySkeleton(radius=5):
 
 
 def softSelection():
+    """ convert the soft selection in the scene to vertices and weights
+
+    :return: list of vertices in the soft selection range and the weight of that vertex
+    :rtype: list, list
+    """
     _sel = cmds.ls(sl=1) or None
     if _sel is None or not '.' in _sel[0]:
         print("no components selected to get information from, current selection: %s" % _sel)
@@ -334,6 +388,15 @@ def softSelection():
 
 @shared.dec_undo
 def extractFacesByVertices(vertices, internal=False):
+    """ use the given components to create a new mesh with the same skinning information
+    
+    :param vertices: the components to use as information to generate the new mesh
+    :type vertices: list
+    :param internal: if `True` will only convert the the inner selection, if `False` will grow the selection once to cover more ground
+    :type internal: bool
+    :return: new created mesh
+    :rtype: string
+    """
     vertices = cmds.filterExpand(vertices, sm=31)
     if not vertices:
         return None
@@ -387,7 +450,20 @@ def extractFacesByVertices(vertices, internal=False):
     return path
 
 @shared.dec_undo
-def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressBar = None):    
+def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressBar = None):  
+    """ split the character into multiple meshes based on the skinning information
+    
+    :param inObject: object to seperate in multiple meshes
+    :type inObject: string
+    :param internal: if `True` will only convert the the inner selection, if `False` will grow the selection once to cover more ground
+    :type internal: bool
+    :param maya2020: if `True` will use the offsetparent matrix to connect the mesh to joints , if `False` will use a decompose matrix to connect the meshes
+    :type maya2020: bool
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: group object that holds all the meshes
+    :rtype: string
+    """  
     from SkinningTools.Maya.tools import joints
     skinClusterName = shared.skinCluster( inObject, silent=True )
     
@@ -441,6 +517,13 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
     return cmds.group(objList, n="LowRez_%s"%inObject)
 
 def setOrigShapeColor(inShape, inColor = (.8, 0.2, 0.2)):
+    """ set a new vertex color to the given shape
+    
+    :param inShape: shape to add vertex colors to
+    :type inShape: string
+    :param inColor: the color to give the object
+    :type inColor: tuple
+    """  
     cmds.sets(inShape, edit=True, forceElement='initialShadingGroup')
     sList = MSelectionList()
     sList.add(inShape)

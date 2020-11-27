@@ -437,7 +437,6 @@ def pinToSurface():
     else:
         cmds.error("selection does not match, needs polygon mesh and transform object, or polygon selection")
 
-    print driveMesh, transform
     shared.skinConstraint(driveMesh, transform )
 
 def prebindFixer( doModel, inPose ,progressBar = None):

@@ -7,11 +7,36 @@ from SkinningTools.Maya import interface, api
 from SkinningTools.Maya.tools import shared, mathUtils, mesh
 
 class ApiWeights():
+    """ this class handles all the management of a skincluster on a mesh
+    mutliple meshes can be handled at once
+
+    the default information gathered is:
+    meshes
+    vertices as indices
+    joints influences as list
+    all joint influences from all meshes at the same time as list
+    skincluster names
+    skinweights as a list of floats
+
+    extra info can be gathered for matching skincluster information to a new mesh:
+    vertex positions in bindpose
+    joint positions in bindpose
+    the bounding box of a mesh to check if the closest positions are going to work
+    the uv coordinates of the mesh if applicable
+    """
     def __init__(self, extraInfo = False):
+        """ constructor method
+
+        :param extraInfo: if `True` will gather more info about the current meshes, if `False` will only gather the base info needed
+        :type extraInfo: bool
+        """
         self.__extraInfo = extraInfo
         self.doInit()
 
     def doInit(self):
+        """ init of all the data that we want to gather
+        seperated as we might want to clear the values when necessary
+        """
         self.meshWeights = {}
         self.meshVerts = {}
         self.meshInfluences = {}
@@ -24,7 +49,15 @@ class ApiWeights():
             self.boundingBoxes = {}
             self.uvCoords = {}
 
-    def selectedVertIds(self, node, show_bad=False):
+    def selectedVertIds(self, node):
+        """ get the current selection of vertices, if mesh is seleced we take all vertices, if node is given we take information from that node
+        seperated as we might want to clear the values when necessary
+        
+        :param node: a node specified to get vertex information from
+        :type node: string
+        :return: list of vertex ids
+        :rtype: list
+        """
         selection = interface.getSelection()
         vertices = shared.convertToVertexList(selection)
         if vertices == []:
@@ -33,6 +66,13 @@ class ApiWeights():
         return vtxArrays
 
     def getSkinFn(self, dagPath=None):
+        """ get the openmaya skinFn from the current object or skincluster
+        
+        :param dagPath: dagpath to search skincluster
+        :type dagPath: OpenMaya.MFnDagpath
+        :return: the openmaya version of the skincluster
+        :rtype: OpenMayaAnim.MFnSkinCluster
+        """
         if not dagPath:
             return None
         skinCluster = shared.skinCluster(dagPath.fullPathName(), True)
@@ -42,6 +82,13 @@ class ApiWeights():
         return skinFn, skinCluster
 
     def getData(self, inNodes = None, progressBar = None):
+        """ this function gathers all the data for the given nodes
+        
+        :param inNodes: list of mesh nodes to gather skinning information from
+        :type inNodes: list
+        :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+        :type progressBar: QProgressBar
+        """
         if progressBar:
             setProgress(0, progressBar, "start gathering skinData" )
         self.doInit()
@@ -112,9 +159,6 @@ class ApiWeights():
                 infIndices[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
 
                 if self.__extraInfo:
-                    # note: instead of getting the data of the joint based on joint position we get the bindpose position!
-                    # jntTRS = OpenMaya.MFnTransform(jntDag)
-                    # jPos.append(jntTRS.translation(OpenMaya.MSpace.kWorld))
                     floatMat = cmds.getAttr("%s.bindPreMatrix[%i]"%(skinName, infIndices[x])) 
                     jntTrs = OpenMaya.MTransformationMatrix(mathUtils.floatToMatrix(floatMat).inverse())
                     vec = jntTrs.translation(OpenMaya.MSpace.kWorld)

@@ -76,7 +76,7 @@ class WeightsUI(QWidget):
 
     def _getData(self, *args):
         _data = self.__wm.gatherData()
-        print _data
+        print(_data)
 
     def _savePath(self, binary = False):
         _default = self.settings.value("weightPath", os.path.dirname(cmds.file(q=True, sn=True)))

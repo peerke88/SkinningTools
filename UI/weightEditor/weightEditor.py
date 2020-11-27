@@ -446,7 +446,7 @@ class WeightEditorWindow(QWidget):
             items[0] = node.split('|')[-1]
             self._data.append(items)
             
-            _current = self.apiWeights.selectedVertIds(node, show_bad=False)
+            _current = self.apiWeights.selectedVertIds(node)
             if not _current:
                 continue
                 

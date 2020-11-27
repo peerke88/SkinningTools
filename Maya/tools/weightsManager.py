@@ -33,6 +33,11 @@ class WeightsManager(object):
     place a base file setup where these files can be stored by default for quick save and load
     """
     def __init__(self, inProgressBar = None):
+        """ contructor method
+
+        :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+        :type progressBar: QProgressBar
+        """
         super(WeightsManager, self).__init__()
         self.progressBar = inProgressBar
 
@@ -40,6 +45,11 @@ class WeightsManager(object):
 
         
     def gatherData(self):
+        """ gather the data from current selection of objects
+
+        :return: data from current selected objects
+        :rtype: dict
+        """
         setProgress(0, self.progressBar, "start gathering skinData" )
 
         inObjects = interface.getSelection()
@@ -48,7 +58,6 @@ class WeightsManager(object):
         _jsonDict = {}
         _jsonDict["meshes"] = self.skinInfo.meshNodes
         _jsonDict["weights"] = self.skinInfo.meshWeights
-        # fix these values so they are using json safe lists
         _vertIDS = {}
         for key, value in self.skinInfo.meshVerts.iteritems():
             _vertIDS[key] = [x for x in value]
@@ -66,11 +75,26 @@ class WeightsManager(object):
         
 
     def readData(self, jsonFile):
+        """ read the data from a json file
+
+        :return: data from the json file
+        :rtype: dict
+        """
         with open(jsonFile) as f:
             data = json.load(f)
         return data
 
     def importData(self, jsonFile, closestNPoints = 3, uvBased = False):
+        """ import data from a json file 
+        this setup tries to make it possible to load skinning information that does not match the original object
+
+        :param jsonFile: the file that holds all the skinning information
+        :type jsonFile: string
+        :param closestNPoints: closest amount of positions to search from
+        :type closestNPoints: int
+        :param uvBased: if `True` will try to search information based on UV's, if `False`  will use the points in the 3d scene
+        :type uvBased: bool
+        """
         _data = readData(jsonFile)
         
         # get all information on objects in the scene
@@ -166,6 +190,13 @@ class WeightsManager(object):
         
 
     def _getPosAndUvCoords(self, inMesh):
+        """ get positional data of the current mesh's components
+
+        :param inMesh: the mesh to gather data from
+        :type inMesh: string
+        :return: list of positions and uv coordinates
+        :rtype: list
+        """
         positions = []
         uvCoords = []
         meshPath = shared.getDagpath(inMesh)
@@ -182,6 +213,17 @@ class WeightsManager(object):
         return positions, uvCoords
         
     def checkNeedsClosestVtxSearch(self, data, fromMesh, toMesh):
+        """ check the current mesh's positional data with the stored data
+
+        :param data: data from the stored meshes
+        :type data: dict
+        :param fromMesh: the direct mesh to compare with that was stored
+        :type fromMesh: string
+        :param toMesh: the mesh that will get the information
+        :type toMesh: string
+        :return: `True` if object data does not match
+        :rtype: bool
+        """
         _needsClosest = False
         for i in xrange(5):
             _id =  randint(0, (_data["vertIds"][fromMesh][-1] + 1))

@@ -13,13 +13,20 @@ from maya.api import OpenMaya
 from maya import cmds
 
 def checkBasePose(skinCluster):
+    """ check if the current object is in bindpose, using the prebind matrices and the worldmatrices of the joints
+    :note: only compare worldspace translate values as precision might be difficult here
+
+    :param skinCluster: the current skincluster to check
+    :type skinCluster: string
+    :return: `True` if the setup is in bindpose, `False` if not
+    :rtype: bool
+    """
     bp = cmds.listConnections("%s.bindPose" % skinCluster, source=True) or None
     if bp:
         return cmds.dagPose(bp[0], q=True, atPose=True) is not None
     jointMap = shared.getJointIndexMap(skinCluster)
 
     for key, val in jointMap.items():
-        # @note: only compare worldspace translate values as precision might be difficult here
         prebind = cmds.getAttr("%s.bindPreMatrix[%s]" % (skinCluster, val))[-4:-1]
         curInvMat = cmds.getAttr("%s.worldInverseMatrix" % key)[-4:-1]
         if not utils.compare_vec3(prebind, curInvMat):
@@ -29,6 +36,13 @@ def checkBasePose(skinCluster):
 
 @shared.dec_undo
 def forceCompareInfluences(meshes):
+    """ force the joints on the current meshes to be shared, this to make sure we cannot apply weights to joints that dont exist on the skincluster
+
+    :param meshes: the meshes on which all joints need to be shared
+    :type meshes: list
+    :return: `True` if the joints are the same for all meshes, `False` if not
+    :rtype: bool
+    """
     compared = joints.comparejointInfluences(meshes, True)
     outOfPose = False
     for inMesh in meshes:
@@ -54,6 +68,17 @@ def forceCompareInfluences(meshes):
 
 
 def getVertOverMaxInfluence(inObject, maxInfValue=8, progressBar=None):
+    """ get the information of the objects skincluster on if there are too many joints driving a single vertex
+
+    :param inObject: the object to gather information from
+    :type inObject: string
+    :param maxInfValue: the amount of joints that are allowed to deform a vertex at once
+    :type maxInfValue: int 
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: vertices that have too much influences, dictionary on the specific vertex on how many influences are present
+    :rtype: list
+    """
     utils.setProgress(0, progressBar, "get max info")
     sc = shared.skinCluster(inObject, True)
     vtxWeights = cmds.getAttr("%s.weightList[:]" % sc)
@@ -74,6 +99,17 @@ def getVertOverMaxInfluence(inObject, maxInfValue=8, progressBar=None):
 
 @shared.dec_undo
 def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
+    """ set the information of the objects skincluster if there are too many joints driving a single vertex to be under that limit
+
+    :param inObject: the object to gather information from
+    :type inObject: string
+    :param maxInfValue: the amount of joints that are allowed to deform a vertex at once
+    :type maxInfValue: int 
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed, 
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "get max info")
     toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue)
     if toMuchinfls == []:
@@ -111,6 +147,23 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
 
 @shared.dec_undo
 def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, SourceSelection, smoothValue=1, progressBar=None):
+    """ copy skincluster information from one vertex group to another based on closest proximity
+
+    :param TargetSkinCluster: the skincluster to gather information from
+    :type TargetSkinCluster: string
+    :param SourceSkinCluster:the skincluster to send information to
+    :type SourceSkinCluster: string
+    :param TargetSelection: the vertex selection to copy from
+    :type TargetSelection: list
+    :param SourceSelection: the vertex selection to copy to
+    :type SourceSelection: list
+    :param smoothValue: amount of closest positions to gather data from
+    :type smoothValue: int
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed, vertices if requested
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "get source info")
 
     targetMesh = TargetSelection[0].split('.')[0]
@@ -211,10 +264,21 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
 
 @shared.dec_undo
 def transferClosestSkinning(objects, smoothValue, progressBar=None):
+    """ copy skincluster information from one object to others based on closest proximity
+
+    :param objects: objects to use for data, first selected will be used to gather data, the rest will be copied to
+    :type objects: list
+    :param smoothValue: amount of closest positions to gather data from
+    :type smoothValue: int
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "get closest info")
     baseObject = objects[0]
     origSkinCluster = shared.skinCluster(baseObject)
-    origJoints = joints.getInfluencingJoints(origSkinCluster)  # cmds.listConnections("%s.matrix"%origSkinCluster, source=True)
+    origJoints = joints.getInfluencingJoints(origSkinCluster) 
 
     percentage = 99.0 / len(objects)
     for iteration, currentObj in enumerate(objects):
@@ -235,6 +299,23 @@ def transferClosestSkinning(objects, smoothValue, progressBar=None):
 
 @shared.dec_undo
 def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False, progressBar=None):
+    """ copy skincluster information from one object to others 
+
+    :param baseSkin: objects to use for data
+    :type baseSkin: string
+    :param otherSkins: objects that will get the data from the baseskin
+    :type otherSkins: list
+    :param inPlace: if `True` will delete the history on other objects before applying the skin (building new skincluster info), if `False` will build on top of existing skincluster info
+    :type inPlace: bool
+    :param sAs: if `True` will use surface association method to copy over information, if `False` will use a brute force approach
+    :type sAs: bool
+    :param uvSpace: if `True` will use uv space information to copy skin, if `False` will use closest vertex position
+    :type uvSpace: bool
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "transfer skinning")
     
     sc = shared.skinCluster(baseSkin, silent=False)
@@ -272,6 +353,17 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
 
 @shared.dec_undo
 def Copy2MultVertex(selection, lastSelected, progressBar=None):
+    """ copy information between vertices
+
+    :param selection: the selection of vertices that will get the information
+    :type selection: list 
+    :param lastSelected: the vertex we gather information from
+    :type lastSelected: string
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed, vertices if requested
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "start copy vertex")
     index = int(lastSelected.split("[")[-1].split("]")[0])
     currentMesh = lastSelected.split('.')[0]
@@ -293,6 +385,17 @@ def Copy2MultVertex(selection, lastSelected, progressBar=None):
 
 @shared.dec_undo
 def hammerVerts(inSelection, needsReturn=True, progressBar=None):
+    """ a quick and dirty way of smoothing vertex selection
+
+    :param inSelection: the selection of vertices that will be smoothed
+    :type inSelection: list 
+    :param needsReturn: if `True` will return a vertex list of affected vertices, if `False` will return default value
+    :type needsReturn: bool
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed, vertices if requested
+    :rtype: bool, list
+    """
     utils.setProgress(0, progressBar, "start Hammer")
     currentMesh = inSelection[0].split('.')[0]
     sc = shared.skinCluster(currentMesh, True)
@@ -308,6 +411,17 @@ def hammerVerts(inSelection, needsReturn=True, progressBar=None):
 
 @shared.dec_undo
 def switchVertexWeight(vertex1, vertex2, progressBar=None):
+    """ swap information between 2 skinned vertices
+
+    :param vertex1: the first vertex to use skin info 
+    :type vertex1: string
+    :param vertex2: the second vertex to use skin info
+    :type vertex2: string
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "start switch")
     currentMesh = vertex1.split('.')[0]
     sc = shared.skinCluster(currentMesh)
@@ -332,9 +446,24 @@ def switchVertexWeight(vertex1, vertex2, progressBar=None):
 
 
 @shared.dec_undo
-def transferUvToSkinnedObject(mesh_source, mesh_target, sourceMap="map1", targetMap="map1", progressBar=None):
+def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMap="map1", progressBar=None):
+    """ a way to copy uv map information from a static mesh to a skinned mesh without breaking the history stack
+
+    :param meshSource: the static mesh that holds correct uv information
+    :type meshSource: string
+    :param meshTarget: the skinned mesh that needs to get uv information
+    :type meshTarget: string
+    :param sourceMap: the uv map to get information from
+    :type sourceMap: string
+    :param targetMap: the uv map to send information to
+    :type targetMap: string
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "gather shape info")
-    shapes = cmds.listRelatives(mesh_target, s=1)
+    shapes = cmds.listRelatives(meshTarget, s=1)
     mesh_orig = None
     for shape in shapes:
         if cmds.getAttr("%s.intermediateObject" % shape) == 0:
@@ -348,7 +477,7 @@ def transferUvToSkinnedObject(mesh_source, mesh_target, sourceMap="map1", target
     utils.setProgress(22, progressBar, "transfer uv")
 
     cmds.setAttr("%s.intermediateObject" % mesh_orig, 0)
-    transformAttrs = cmds.transferAttributes(mesh_source, mesh_orig,
+    transformAttrs = cmds.transferAttributes(meshSource, mesh_orig,
                                              transferPositions=False,
                                              transferNormals=False,
                                              transferUVs=2,
@@ -378,7 +507,7 @@ def transferUvToSkinnedObject(mesh_source, mesh_target, sourceMap="map1", target
 
     utils.setProgress(87, progressBar, "clean connections")
 
-    shapes = cmds.listRelatives(mesh_target, s=1)
+    shapes = cmds.listRelatives(meshTarget, s=1)
     for shape in shapes:
         connections = cmds.listConnections(shape)
         if not connections:
@@ -390,6 +519,15 @@ def transferUvToSkinnedObject(mesh_source, mesh_target, sourceMap="map1", target
 
 @shared.dec_undo
 def seperateSkinnedObject(inMesh, progressBar=None):
+    """ seperate a skinned mesh that has different polygroups combined into multiple objects with skinning information intact
+
+    :param inMesh: the skinned mesh to split in multiple
+    :type inMesh: string
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "start seperate")
     shape = cmds.listRelatives(inMesh, ad=True, s=True)
     shells = mesh.getShellFaces(inMesh)
@@ -421,6 +559,15 @@ def seperateSkinnedObject(inMesh, progressBar=None):
 
 @shared.dec_undo
 def extractSkinnedShells(components, progressBar=None):
+    """ extract a selection of components as a new mesh with the same skinning info
+
+    :param components: list of components that define the new mesh
+    :type components: list
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: the mesh that is created
+    :rtype: string
+    """
     def _convertToFaces(components):
         convertedFaces = cmds.polyListComponentConversion(components, tf=True)
         return cmds.filterExpand(convertedFaces, sm=34)
@@ -448,7 +595,16 @@ def extractSkinnedShells(components, progressBar=None):
 
 
 @shared.dec_undo
-def combineSkinnedMeshes(meshes):
+def combineSkinnedMeshes(meshes, progressBar=None):
+    """ combine multiple skinned meshes into 1 single skinned mesh
+
+    :param meshes: list of meshes to combine
+    :type meshes: list
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: the mesh that is created
+    :rtype: string
+    """
     utils.setProgress(0, progressBar, "start Merge")
     cmds.polyUniteSkinned(meshes, ch=0, mergeUVSets=1)
     utils.setProgress(100, progressBar, "merged skins")
@@ -457,13 +613,26 @@ def combineSkinnedMeshes(meshes):
 
 @shared.dec_undo
 def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse=False, progressBar=None):
+    """ use the selection of joints and components to tell which joints are allowed to drive the current components
+
+    :param fullSelection: list of meshes and joints
+    :type fullSelection: list
+    :param fullSelection: list of only joints
+    :type fullSelection: list
+    :param fullSelection: if `True` will remove the current joints from the selection, if `False` will make sure only these joints drive the components
+    :type fullSelection: bool
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "get joint influences")
     polySelection = list(set(fullSelection) ^ set(jointOnlySelection))
     vertices = shared.convertToVertexList(polySelection)
     inMesh = vertices[0].split(".")[0]
     skinCluster = shared.skinCluster(inMesh, True)
 
-    attachedJoints = joints.getInfluencingJoints(skinCluster)  # cmds.skinCluster(skinCluster, q=True, inf=True)
+    attachedJoints = joints.getInfluencingJoints(skinCluster) 
     jointsToRemove = jointOnlySelection
     if not inverse:
         jointsToRemove = list(set(attachedJoints) - set(jointOnlySelection))
@@ -481,6 +650,21 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse=False,
 
 @shared.dec_undo
 def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progressBar=None):
+    """ a function that can walk over a mesh selection smooth the mesh gradually
+
+    :param input: list components
+    :type input: list
+    :param both: if `True` will smooth both the inner and outer part of the selection, if `False` will only smooth outside of the current selection
+    :type both: bool
+    :param growing: if `True` smooth and convert the selection to the outer shell of current selection, if `False` will keep the same selection
+    :type growing: bool
+    :param full: if `True` will get any component in the outer selection that is close to the current vertex, if `False` will only select vertices connected by an edge
+    :type full: bool
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: list of vertices in the new selection
+    :rtype: list
+    """
     utils.setProgress(0, progressBar, "start smooth")
     vertices = shared.convertToVertexList(input)
     inMesh = vertices[0].split('.')[0]
@@ -514,6 +698,17 @@ def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progr
 
 @shared.dec_undo
 def avgVertex(vertices, lastSelected, progressBar=None):
+    """ smooth a vertex's skinning information based on order of selection
+
+    :param vertices: list of vertices to gather information from
+    :type vertices: list
+    :param lastSelected: last selected object can get the average information
+    :type lastSelected: list
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "get average data")
     pointList = [x for x in vertices if x != lastSelected]
     inMesh = lastSelected.split('.')[0]
@@ -542,6 +737,15 @@ def avgVertex(vertices, lastSelected, progressBar=None):
 
 @shared.dec_undo
 def freezeSkinnedMesh(inMesh, progressBar=None):
+    """ 'freeze' a skinned mesh, remove construction history and transform information
+
+    :param inMesh: name of the skinned mesh to cleanup
+    :type inMesh: string
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "start freeze mesh")
     sc = shared.skinCluster(inMesh, True)
     attachedJoints = joints.getInfluencingJoints(sc)  # cmds.listConnections("%s.matrix"%sc, source=True)
@@ -564,6 +768,15 @@ def freezeSkinnedMesh(inMesh, progressBar=None):
 
 @shared.dec_undo
 def hardSkinSelectionShells(selection, progressBar=False):
+    """  use the current selection to define islands that are clustered togehter and make sure that each island shares the same skinning information
+
+    :param selection: list of components
+    :type selection: list
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: the current selection
+    :rtype: list
+    """
     utils.setProgress(0, progressBar, "converting to shells")
     expanded = shared.convertToVertexList(selection)
     inMesh = expanded[0].split('.')[0]
@@ -601,6 +814,19 @@ def hardSkinSelectionShells(selection, progressBar=False):
 
 @shared.dec_undo
 def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=None):
+    """ grouped function that allows multiple ways of averaging vertices based on how its selected
+
+    :param selection: list of components
+    :type selection: list
+    :param useDistance: if `True` the weight is measured by the distance between elements, if `False` weight is measured by the amount in the selection
+    :type useDistance: bool
+    :param weightAverageWindow: name of the skinned mesh to cleanup
+    :type weightAverageWindow: falloffCurveUI
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     utils.setProgress(0, progressBar, "get selection data")
     vertexAmount = len(selection)
     if vertexAmount < 2:
@@ -647,8 +873,17 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
 
 @shared.dec_undo
 def neighbourAverage(components, warningPopup=True, progressBar=None):
-    # use this function to get outer shells neighbour information
-    # convert 1 line inwards, and continue to move inwards doing this for nice smooth deformation!
+    """ force smooth skinning based on the current selection
+
+    :param components: current list of components
+    :type components: list
+    :param warningPopup: if `True` will open a popup when the selection might take too long, if `False` will not use the popup
+    :type warningPopup: bool
+    :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+    :type progressBar: QProgressBar
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     expandedVertices = shared.convertToVertexList(components)
     if warningPopup and len(expandedVertices) > 1000:
         result = cmds.confirmDialog(title='warning',
@@ -669,9 +904,20 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
     return True
 
 
-# operation = { 0:removes the values, 1:sets the values, 2: adds the values}
 @shared.dec_undo
 def doSkinPercent(bone, value, operation=0):
+    """ simple function to quickly set weights with the given value
+
+    :param bone: joint to change the weight influence of
+    :type bone: list
+    :param value: value to set the weight
+    :type value: float
+    :param operation: the operation on how to treat the weight
+    :type operation: int
+    :note operation: = { 0:removes the values, 1:sets the values, 2: adds the values}
+    :return: `True` if the function is completed
+    :rtype: bool
+    """
     _sel = cmds.ls(sl=1, fl=1)
     _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
     if _softSelect:
@@ -704,13 +950,22 @@ def doSkinPercent(bone, value, operation=0):
         newVal = value * _mult[operation]
         cmds.skinPercent(sc, vertices, r = _rel, tv=[bone, value * _mult[operation]], normalize=True)
 
-    #@todo: make sure that this is displaying the correct hilite in maya
-    # cmds.select(_sel, r=1)
     return True
 
 
 class SoftSkinBuilder(object):
+    """ this class handles the buildup of a skincluster using selections
+    the base of the infromation is gathered from the object itself
+
+    the user can then alter the weights using direct selection and assiging the values
+    or it can use the soft selection to define a bigger selection and smooth weights
+    """
     def __init__(self, progressBar = None):
+        """ constructor method
+        
+        :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
+        :type progressBar: QProgressBar
+        """
         self._progressBar = progressBar
 
         from SkinningTools.Maya.tools.apiWeights import ApiWeights
@@ -721,11 +976,19 @@ class SoftSkinBuilder(object):
         self._preAnalyzed = False
 
     def analyzeSkin(self, inMesh, pre = True):
-        print inMesh
+        """ analyze the current skin, get information from the given mesh and fill the constructor
+        
+        :param inMesh: the mesh to analyze
+        :type inMesh: string
+        :param pre: if `True` will set the current info to be pre-analyzed, if `False` will leave the function alone
+        :type pre: bool
+        :note pre: unused, this one will be used later to check if we are going to add, replace or create weights from scratch
+        :return: list of current joints influencing the mesh
+        :rtype: list
+        """
         if pre: 
             self._preAnalyzed = pre
         self.__weightInfo.getData([inMesh], self._progressBar)
-        print self.__weightInfo.meshInfluences[inMesh]
         _jntLen = len(self.__weightInfo.meshInfluences[inMesh])
         for index, bone in enumerate(self.__weightInfo.meshInfluences[inMesh]):
             self.boneWeights[bone] =  self.__weightInfo.meshWeights[inMesh][index*_jntLen: (1+index) * _jntLen]
@@ -733,6 +996,13 @@ class SoftSkinBuilder(object):
         return self.__weightInfo.meshInfluences[inMesh]
 
     def getVerts(self, bone):
+        """ get the vertices currently influenced by the given bone
+        
+        :param bone: name of the bone to get information from
+        :type bone: string
+        :return: list of vertices influenced
+        :rtype: list
+        """
         _info = []
         if bone in self.boneWeights.keys():
             _info = [x for x, i in enumerate(self.boneWeights[bone]) if i >= 1e-6]
@@ -741,13 +1011,23 @@ class SoftSkinBuilder(object):
         return _info
 
     def removeData(self, bone):
-        #@Todo: figure out what to do with the original weights!
+        """ remove the data associated with given bone
+        
+        :Todo: figure out what to do with the original weights!
+        :param bone: name of the bone to clear the date off
+        :type bone: string
+        """        
         if not bone in self._newWeights.keys():
             return
         amount = len(self._newWeights[bone])
         self._newWeights[bone] = [0.0] * amount
 
     def addSoftSkinInfo(self, bone):
+        """ add skinning info to the bone based on current selection
+        
+        :param bone: name of the bone to assign data too
+        :type bone: string
+        """   
         _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
         if _softSelect:
             vertices, weights = mesh.softSelection()
@@ -763,9 +1043,14 @@ class SoftSkinBuilder(object):
         if self.__currentMesh == _mesh:
             self._newWeights[bone] = [vertices, weights]
 
-
-
     def setSoftSkinInfo(self, inMesh, add = True):
+        """ set the skinning info to the mesh
+        
+        :param inMesh: name of the mesh to assignt the data to
+        :type inMesh: string
+        :param add: if `True` will add the info to the existing information, if `False` will override the information
+        :type add: bool
+        """   
         sc = shared.skinCluster(inMesh)
         if not sc:
             sc = cmds.skinCluster(inMesh, self.boneWeights.keys(), tsb=1)
