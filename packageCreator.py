@@ -54,7 +54,7 @@ os.mkdir(baseFolder)
 
 
 toMove = []
-_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip"]
+_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel"]
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
@@ -86,8 +86,11 @@ for f in toMove:
 print("succesfully copied files")
 
 _baseINI = os.path.join(baseFolder, "__init__.py")
+_melInstaller = os.path.join(curFolder, "dragDropInstall.mel")
+copy2(_melInstaller, baseFolder )
 open(_baseINI, 'w').close()
 
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _melInstaller])
 print("succesfully build package")

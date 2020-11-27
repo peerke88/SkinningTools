@@ -16,20 +16,15 @@ global proc string currentFolder (string $proc_name){
 };
 
 global proc placeTools(string $path){
-	print $path;
-	print "\n";
 	string $usr =  `internalVar -userScriptDir`;
 	string $version = `about -v`;
 	$version += "/";
 	string $res = substituteAllString($usr, $version, "");
-	print $res;
-	print "\n";
-
-
 	string $source = $path + "SkinningTools" ;
 	python("import shutil; source = '" + $source + "';" + "dest = '" + $res +"'; shutil.move(source, dest);");
+	// @todo: add functionality to make a shelf with the tool?
+	// or add the entire thing in a new menu (shelf is safest and only needs 1 button (add icon as well))
 };
 
 $place_path=currentFolder("findMe");
-// print $place_path;
 placeTools($place_path);

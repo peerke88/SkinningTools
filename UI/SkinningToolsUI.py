@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20201126"
+__VERSION__ = "5.0.20201127"
 _DEBUG = False
 
 def getDebugState():
