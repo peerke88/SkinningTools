@@ -4,8 +4,9 @@
 #  this file will represent an interface between the ui and the actual commands
 # this is where all the selection gets logged and the right arguments get piped through 
 from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
-from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster, mathUtils
+from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster, mathUtils, holdFetch
 from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.utils import *
 from SkinningTools.UI.dialogs.jointLabel import JointLabel
 from SkinningTools.UI.dialogs.jointName import JointName
 from random import randint
@@ -13,7 +14,6 @@ from functools import partial
 import os, platform, sys
 
 cmds.selectPref(tso=True)
-
 
 def getInterfaceDir():
     return os.path.dirname(os.path.abspath(__file__))
@@ -109,6 +109,10 @@ def removeUnused(progressBar = None):
     selection = getSelection()
     joints.removeUnusedInfluences(selection, progressBar)
 
+def resetToBindPoseobject(progressBar = None):
+    selection = getSelection()
+    joints.resetToBindPoseobject(selection, progressBar)
+
 # --- dcc ---
 
 def dccToolButtons(progressBar = None):
@@ -123,8 +127,10 @@ def dccToolButtons(progressBar = None):
     mb07 = buttonsToAttach('Prune Weights', cmds.PruneSmallWeightsOptions)
     mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
     mb09 = buttonsToAttach('Remove unused influences', partial(removeUnused, progressBar))
+    mb10 = buttonsToAttach('goto bind-pose', partial(resetToBindPoseobject, progressBar))
 
-    return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08, mb09]
+
+    return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08, mb09, mb10]
 
 
 # --- tools ---
@@ -165,6 +171,33 @@ def labelJoints(doCheck=True, progressBar=None):
     dialog.exec_()
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
     return result
+
+def hold():
+    holdFetch.hold(True)
+
+def fetch():
+    holdFetch.fetch()
+
+def createPolySkeleton(radius = 1):
+    from SkinningTools.Maya import api
+    d = QDialog(api.get_maya_window())
+    d.setLayout(nullVBoxLayout())
+    h = nullVBoxLayout()
+    h.addWidget(QLabel("radius value: "))
+    s = QDoubleSpinBox()
+    s.setValue(1)
+    h.addWidget(s)
+    d.layout().addLayout(h)
+    btn = pushButton("build poly skeleton")
+    d.layout().addWidget(btn)
+    btn.clicked.connect(d.accept)
+    d.exec_()
+
+    if d.result() == 0:
+        return None
+
+    mesh.polySkeleton(s.value())
+    return True
 
 
 @shared.dec_repeat
@@ -212,11 +245,7 @@ def convertToJoint(inName=None, progressBar=None):
     if "." in selection[0]:
         result = joints.convertVerticesToJoint(selection, inName, progressBar)
         return result
-
-    # @Todo: split selection in mesh and cluster selection
-    # if len(selection) > 1:
-    #     result = joints.convertClustersToJoint(selection, progressBar)
-    # else:    
+ 
     result = joints.convertClusterToJoint(selection, inName, progressBar)
     return result
 
@@ -383,6 +412,11 @@ def paintSmoothBrush():
 
     cmds.setToolTo(_ctx)
 
+@shared.dec_repeat
+def hammerVerts(progressBar = None):
+    selection = getSelection()
+    result = skinCluster.hammerVerts(selection, False, progressBar)
+    return result
 
 def getNeightbors(inComps):
     objType = cmds.objectType(inComps[0])
@@ -466,6 +500,9 @@ def getUVInfo(inMesh):
 def transferUV(source, target, sMap = "map1", tMap = "map1", progressBar = None):
     skinCluster.transferUvToSkinnedObject(source, target, sMap, tMap, progressBar)
 
+def deleteBindPoses(progressBar=None):
+    joints.removeBindPoses(progressBar)
+
 def getMayaVersion():
     mayaVersion = str(cmds.about(apiVersion=True))[:-2]
     if "maya" in sys.executable and platform.system() == "Windows":
@@ -473,7 +510,6 @@ def getMayaVersion():
     elif platform.system() != "Windows":
         mayaVersion = cmds.about(version=1)
     return mayaVersion
-
 
 def getPluginSuffix():
     pluginSuffix = ".mll"
@@ -682,3 +718,4 @@ def objectUnderMouse(margin=4, selectionType="joint"):
             boneName = fobj
             break
     return foundBone, boneName
+

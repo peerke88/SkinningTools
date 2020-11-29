@@ -52,7 +52,7 @@ class VertAndBoneFunction(QWidget):
         self._smthSpin.setSingleStep(.05)
         for w in [initSmt_Btn, smthBrs_Btn, self._smthSpin]:
             smthBrs_Lay.addWidget(w)
-
+        hammerV_Btn = svgButton("weight hammer", _svgPath("hammer"), size=self.__IS)
         toJoint_Btn = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS)
         rstPose_Btn = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS)
         cutMesh_Btn = svgButton("create proxy", _svgPath("proxy"), size=self.__IS)
@@ -69,6 +69,7 @@ class VertAndBoneFunction(QWidget):
         onlySel_Btn = svgButton("prune excluded infl.", _svgPath("onlySel"), size=self.__IS)
         infMesh_Btn = svgButton("influenced meshes", _svgPath("infMesh"), size=self.__IS)
         BindFix_Btn = svgButton("fix bind mesh", _svgPath("fixBind"), size=self.__IS)
+        delBind_Btn = svgButton("del bindPose", _svgPath("delbind"), size=self.__IS)
 
         maxL = nullHBoxLayout()
         self._maxSpin = QSpinBox()
@@ -93,9 +94,9 @@ class VertAndBoneFunction(QWidget):
             growL.addWidget(w)
 
         self.__buttons = [AvgWght_Btn, cpyWght_Btn, swchVtx_Btn, BoneLbl_Btn, shellUn_btn, trsfrSK_Btn,
-                          trsfrPS_Btn, nghbors_Btn, smthBrs_Lay, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, SurfPin_Btn,
+                          trsfrPS_Btn, nghbors_Btn, smthBrs_Lay, hammerV_Btn, toJoint_Btn, frzBone_Btn, rstPose_Btn, cutMesh_Btn, SurfPin_Btn,
                           copy2bn_Btn, b2bSwch_Btn, showInf_Btn, delBone_Btn, addinfl_Btn, unifyBn_Btn,
-                          seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, BindFix_Btn,  growL ]
+                          seltInf_Btn, sepMesh_Btn, onlySel_Btn, infMesh_Btn, maxL, vtxOver_Btn, BindFix_Btn, delBind_Btn,  growL ]
 
         self._setBtnLayout(g)
 
@@ -129,6 +130,8 @@ class VertAndBoneFunction(QWidget):
         toJoint_Btn.clicked.connect(partial(self._convertToJoint_func, toJoint_Btn))
         rstPose_Btn.clicked.connect(partial(interface.resetPose, self.progressBar))
         cutMesh_Btn.clicked.connect(partial(self._cutMesh_func, cutMesh_Btn))
+        hammerV_Btn.clicked.connect(partial(interface.hammerVerts, self.progressBar))
+        
         SurfPin_Btn.clicked.connect(interface.pinToSurface)
         self._smthSpin.valueChanged.connect(partial(self._updateBrush_func, smthBrs_Btn))
 
@@ -146,12 +149,14 @@ class VertAndBoneFunction(QWidget):
         vtxOver_Btn.clicked.connect(partial(self._vtexMax_func, True))
         frzBone_Btn.clicked.connect(partial(interface.freezeJoint, self.progressBar))
         storsel_Btn.clicked.connect(self._storesel_func)
+        delBind_Btn.clicked.connect(partial(interface.deleteBindPoses, self.progressBar))
         self.shrinks_Btn.clicked.connect(self._shrinks_func)
         self.growsel_Btn.clicked.connect(self._growsel_func)
         BindFix_Btn.clicked.connect(partial(self._bindFix_func, BindFix_Btn))
 
         for w in [initSmt_Btn, storsel_Btn]:
             w.setStyleSheet("QPushButton { text-align: center; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444); }")
+
     def getCheckValues(self):
         fullList = []
         for btn in self.checkedButtons:

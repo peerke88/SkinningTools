@@ -69,7 +69,6 @@ def autoLabelJoints(inputLeft="L_*", inputRight="R_*", progressBar=None):
     utils.setProgress(100, progressBar, "labeling joints")
     return True
 
-
 @shared.dec_undo
 def resetToBindPoseobject(inObject, progressBar=None):
     """ set joints back into their bindpose using the prebind matrix of the skincluster, only works when joints are not connected (rigged)
@@ -648,7 +647,7 @@ def removeUnusedInfluences(inObject, progressBar=None):
     """
     sc = shared.skinCluster(inObject)
     jointInfls = getInfluencingJoints(sc)
-    weightedInfls = cmds.skinCluster(sc, q=1, wi=1)
+    weightedInfls = cmds.ls(cmds.skinCluster(sc, q=1, wi=1), l=1)
 
     toRemove = list(set(jointInfls) - set(weightedInfls))
 
@@ -658,7 +657,7 @@ def removeUnusedInfluences(inObject, progressBar=None):
     index = 0
     for index, jnt in enumerate(toRemove):
         cmds.skinCluster(sc, e=1, ri=jnt)
-        utils.setProgress(index * percentage, progressBar, "removing joint %s from mesh" % jnt)
+        utils.setProgress(index * percentage, progressBar, "removing joint %s from mesh" % jnt.rsplit("|")[-1])
 
     cmds.setAttr("%s.nodeState" % sc, nodeState)
     utils.setProgress(100, progressBar, "removed %i joints from influence" % (index + 1))

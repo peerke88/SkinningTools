@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20201127"
+__VERSION__ = "5.0.20201128"
 _DEBUG = False
 
 def getDebugState():
@@ -112,6 +112,10 @@ class SkinningToolsUI(QMainWindow):
             helpAction.addAction(act)
 
         self.changeLN = QAction("[EN]", self)
+
+        self.holdAction.triggered.connect(interface.hold)
+        self.fetchAction.triggered.connect(interface.fetch)
+        self.objSkeletonAction.triggered.connect(interface.createPolySkeleton)
         
         #@todo: add the functionality later
         helpAction.setEnabled(False)
@@ -141,6 +145,7 @@ class SkinningToolsUI(QMainWindow):
         tab.view.frame.setLayout(vLayout)
 
         self.__addVertNBoneFunc()
+        #@todo: add a tab here that allows you to grab tools you use frequently (store this in qsettings)
         if _DEBUG:
             self.__addBrushTools()
         self.__addCopyRangeFunc()
@@ -367,10 +372,8 @@ class SkinningToolsUI(QMainWindow):
         except:
             self.deleteLater()
 
-
 def getSkinningToolsWindowName():
     return 'SkinningTools: %s' % __VERSION__
-
 
 def closeSkinningToolsMainWindow(windowName=getSkinningToolsWindowName(), mainWindow = api.get_maya_window()):
     if mainWindow:
@@ -378,7 +381,6 @@ def closeSkinningToolsMainWindow(windowName=getSkinningToolsWindowName(), mainWi
             if child.objectName() == windowName:
                 child.close()
                 child.deleteLater()
-
 
 def showUI(newPlacement=False):
     windowName = getSkinningToolsWindowName()
