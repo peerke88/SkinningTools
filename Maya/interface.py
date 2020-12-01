@@ -4,6 +4,8 @@
 #  this file will represent an interface between the ui and the actual commands
 # this is where all the selection gets logged and the right arguments get piped through 
 from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
+from SkinningTools.Maya.mayaWidget import *
+from SkinningTools.Maya.api import *
 from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster, mathUtils, holdFetch
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *

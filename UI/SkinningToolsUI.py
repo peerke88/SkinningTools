@@ -1,37 +1,33 @@
 # -*- coding: utf-8 -*-
 __VERSION__ = "5.0.20201128"
 
-import tempfile, os
-from functools import partial
-
-from SkinningTools.py23 import *
-# @todo: add multiple interfaces later for different packages 
-# when using maya:
-from SkinningTools.Maya import api, interface, mayaWidget
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
+
+from SkinningTools.Maya import interface
 
 _DIR = os.path.dirname(__file__)
 _DEBUG = getDebugState()
 
-from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
-from SkinningTools.UI.tearOff.tearOffDialog import *
+from SkinningTools.UI.advancedToolTip import AdvancedToolTip
 from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
-from SkinningTools.UI.advancedToolTip import AdvancedToolTip
+from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
+from SkinningTools.UI.tearOff.tearOffDialog import *
 from SkinningTools.UI.weightEditor import weightEditor
 
-from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 if _DEBUG:
     from SkinningTools.UI.tabs.skinBrushes import SkinBrushes
 from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
-from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
+from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
+from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-class SkinningToolsUI(mayaWidget.DockWidget):
+class SkinningToolsUI(interface.DockWidget):
     toolName = 'SkinningTools: %s' % __VERSION__
 
     def __init__(self, newPlacement=False, parent=None):
@@ -66,7 +62,7 @@ class SkinningToolsUI(mayaWidget.DockWidget):
             self.loadUIState()
 
         self.recurseMouseTracking(self, True)
-        api.dccInstallEventFilter()
+        interface.dccInstallEventFilter()
 
         self._callbackFilter()
         interface.doSelect(__sel)
@@ -339,6 +335,7 @@ class SkinningToolsUI(mayaWidget.DockWidget):
         self.settings.setValue("tabs", self.tabs.currentIndex())
         self.settings.setValue("vnbf", self.vnbfWidget.getCheckValues())
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
+        print("stored UI information, skinningtools closed properly")
 
     def loadUIState(self):
         getGeo = self.settings.value("geometry", None)
@@ -364,7 +361,7 @@ class SkinningToolsUI(mayaWidget.DockWidget):
         try:
             self.skinSlider.clearCallback()
             self.editor.setClose()
-            api._cleanEventFilter()
+            interface._cleanEventFilter()
             self.skinSlider.deleteLater()
             del self.skinSlider
             self.editor.deleteLater()
@@ -374,6 +371,6 @@ class SkinningToolsUI(mayaWidget.DockWidget):
 
 
 def showUI(newPlacement=False):
-    mainWindow = api.get_maya_window()
+    mainWindow = interface.get_maya_window()
     dock = SkinningToolsUI(newPlacement, mainWindow)
     dock.run()

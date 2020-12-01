@@ -5,10 +5,8 @@ The idea is to make this file as short as possible
 while leaving room for other packages to implement features.
 """
 import functools,os, sys, platform
-
 from SkinningTools.Maya.tools import shared, joints
 from SkinningTools.Maya.tools import weightPaintUtils
-from SkinningTools.UI.markingMenu import MarkingMenuFilter
 from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
 from maya.api import OpenMaya
@@ -295,6 +293,7 @@ class _EventFilter(QObject):
 
 
 def dccInstallEventFilter():
+    from SkinningTools.UI.markingMenu import MarkingMenuFilter
     """ install the eventfilter on the current dcc
     
     :return: `True` if succesfull
@@ -308,6 +307,7 @@ def dccInstallEventFilter():
 
 
 def _cleanEventFilter():
+    from SkinningTools.UI.markingMenu import MarkingMenuFilter
     """ remove the eventfilter on the current dcc
     
     :return: list of widgets from which the eventfilters where removed
@@ -329,7 +329,7 @@ def getIds(inList):
 
     :param inlist: list of maya components
     :type inlist: list
-    :return: lsit of indices
+    :return: list of indices
     :rtype: list
     """
     return shared.convertToIndexList(inList)

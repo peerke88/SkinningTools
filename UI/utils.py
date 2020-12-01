@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.py23 import *
-import re, difflib, functools, math
 from SkinningTools.UI.qt_util import *
-
 from SkinningTools.ThirdParty.kdtree import KDTree
+
+import re, difflib, math
+from functools import partial
 
 def getDebugState():
     isDebug = True
@@ -209,7 +210,7 @@ def addChecks(cls, button, checks=None):
         button.checks[check] = chk
 
     functions, popup = addContextToMenu(cls, checks, button)
-    button.customContextMenuRequested.connect(functools.partial(onContextMenu, button, popup, functions))
+    button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
 
 
 def addContextToMenu(cls, actionNames, btn):
