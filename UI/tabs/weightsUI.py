@@ -9,7 +9,7 @@ import os, json, random
 from maya import cmds
 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DEBUG = True
+_DEBUG = getDebugState()
 
 
 class WeightsUI(QWidget):

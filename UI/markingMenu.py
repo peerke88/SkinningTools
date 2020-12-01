@@ -1,9 +1,11 @@
 from SkinningTools.UI.qt_util import *
+from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface
 from SkinningTools.Maya.tools import skinCluster
 from functools import partial
 from math import *
 
+_DEBUG = getDebugState()
 
 class MarkingMenuFilter(QObject):
     _singleton = None
@@ -244,7 +246,7 @@ class testWidget(QMainWindow):
         self.setCentralWidget(mainWidget)
         self.setWindowFlags(Qt.Tool)
 
-        _MMfilter = MarkingMenuFilter(isDebug=True, parent=self)
+        _MMfilter = MarkingMenuFilter(isDebug=_DEBUG, parent=self)
         self.installEventFilter(_MMfilter)
 
 

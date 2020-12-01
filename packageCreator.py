@@ -55,7 +55,7 @@ os.mkdir(baseFolder)
 
 toMove = []
 _exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel"]
-_noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
+_noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py", "skinBrushes.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
 		if "package" in dirName or "test" in dirName.lower() or "commons" in dirName:

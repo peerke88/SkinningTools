@@ -138,6 +138,7 @@ def dccToolButtons(progressBar = None):
 def avgVtx(useDistance=True, weightAverageWindow=None, progressBar=None):
     selection = getSelection()
     result = skinCluster.AvarageVertex(selection, useDistance, weightAverageWindow, progressBar)
+    cmds.select(selection, r=1)
     return result
 
 

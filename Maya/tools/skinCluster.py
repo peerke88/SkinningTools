@@ -7,10 +7,12 @@ from SkinningTools.py23 import *
 from SkinningTools.Maya.tools import shared, joints, mesh
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI.qt_util import *
-from SkinningTools.UI import utils
+from SkinningTools.UI.utils import *
 
 from maya.api import OpenMaya
 from maya import cmds
+
+_DEBUG = getDebugState()
 
 def checkBasePose(skinCluster):
     """ check if the current object is in bindpose, using the prebind matrices and the worldmatrices of the joints
@@ -848,20 +850,32 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
             baseList = mesh.edgesToSmooth(selection)
 
         percentage = 99.0 / len(baseList)
-        for iteration, vertlist in enumerate(baseList):
-            vertMap = mesh.componentPathFinding(vertlist, useDistance, weightWindow=weightAverageWindow)
+        try:
+            cmds.setAttr( "%s.envelope"%sc, 0)
+            for iteration, vertlist in enumerate(baseList):
+                
+                vertMap = mesh.componentPathFinding(vertlist, useDistance, weightWindow=weightAverageWindow)
 
-            startWGT = cmds.skinPercent(sc, vertlist[0], q=True, v=True)
-            endWGT = cmds.skinPercent(sc, vertlist[1], q=True, v=True)
+                startWGT = cmds.skinPercent(sc, vertlist[0], q=True, v=True)
+                endWGT = cmds.skinPercent(sc, vertlist[1], q=True, v=True)
 
-            for vertex, percentage in vertMap.items():
-                newWeightsList = []
-                for idx, weight in enumerate(startWGT):
-                    value1 = endWGT[idx] * percentage
-                    value2 = startWGT[idx] * (1 - percentage)
-                    newWeightsList.append((infJoints[idx], value1 + value2))
-                cmds.skinPercent(sc, vertex, transformValue=newWeightsList)
-            utils.setProgress(iteration * percentage, progressBar, "set path average data")
+                for vertex, percentage in vertMap.items():
+                    newWeightsList = []
+                    for idx, weight in enumerate(startWGT):
+                        value1 = endWGT[idx] * percentage
+                        value2 = startWGT[idx] * (1 - percentage)
+                        newWeightsList.append((infJoints[idx], value1 + value2))
+                    cmds.skinPercent(sc, vertex, transformValue=newWeightsList)
+                utils.setProgress(iteration * percentage, progressBar, "set path average data")
+        except Exception, e:
+            if _DEBUG:
+                print(e)
+                print(e.__class__)
+                print(sys.exc_info())
+                cmds.warning(traceback.format_exc())
+        finally:
+            cmds.setAttr( "%s.envelope"%sc, 1)
+
         utils.setProgress(1.0, progressBar, "average skin applied to path")
         return True
 

@@ -5,7 +5,6 @@ from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCo
 from functools import partial
 import os
 
-from SkinningTools.UI.SkinningToolsUI import getDebugState
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG = getDebugState()
 
@@ -190,7 +189,7 @@ class VertAndBoneFunction(QWidget):
 
     # -- buttons with extra functionality
     def _AvgWght_func(self, sender):
-        interface.avgVtx(sender.checks["use distance"].isChecked(), self.BezierGraph, self.progressBar)
+        interface.avgVtx(sender.checks["use distance"].isChecked(), self.BezierGraph.curveAsPoints(), self.progressBar)
 
     def _trsfrSK_func(self, sender, inPlace):
         interface.copySkin(inPlace, sender.checks["smooth"].isChecked(), sender.checks["uvSpace"].isChecked(), self.progressBar)

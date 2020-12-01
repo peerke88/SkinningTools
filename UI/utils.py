@@ -5,6 +5,15 @@ from SkinningTools.UI.qt_util import *
 
 from SkinningTools.ThirdParty.kdtree import KDTree
 
+def getDebugState():
+    isDebug = True
+    try:    
+        from SkinningTools.UI.tabs import skinBrushes
+    except:
+        isDebug = False
+    return isDebug
+
+    
 def nullVBoxLayout(parent=None, size=0):
     v = QVBoxLayout()
     v.setContentsMargins(size, size, size, size)
@@ -266,5 +275,14 @@ def remapClosestPoints(sourceList, targetList, amount):
         remap[target] = indices
         weights[target] = wght
     return remap, weights
+
+def incrementName(name):
+    trailingNumber = re.compile(r'\d+$')
+    m = trailingNumber.search(name)
+    if m:
+        i = m.group(0)
+        return "%s%s"%( name[:-len(i)], int(i) + 1)
+    return name + '1'
+
 
 

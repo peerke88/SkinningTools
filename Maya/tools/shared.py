@@ -4,10 +4,10 @@ from functools import wraps
 from maya import cmds, mel
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
-
+from SkinningTools.UI.utils import *
 from SkinningTools.ThirdParty import pyprof2calltree
 
-_DEBUG = True
+_DEBUG = getDebugState()
 
 
 def dec_undo(func):
@@ -119,7 +119,7 @@ def dec_repeat(func):
             repeat_command = '%s%s(%s%s)' % (modules, func.__name__, args_string, kwargs_string)
             if not '' in [args_string, kwargs_string]:
                 repeat_command = '%s%s(%s, %s)' % (modules, func.__name__, args_string, kwargs_string)
-
+            print('python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
             cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
         except Exception as e:
             if _DEBUG:

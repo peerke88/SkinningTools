@@ -12,8 +12,9 @@ from SkinningTools.UI.markingMenu import MarkingMenuFilter
 from SkinningTools.UI.qt_util import QObject, QApplication
 from maya import cmds, mel
 from maya.api import OpenMaya
+from SkinningTools.UI.utils import *
 
-_DEBUG = True
+_DEBUG = getDebugState()
 
 def get_maya_window():
     """ get the current maya window as a qt widget

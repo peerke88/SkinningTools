@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 __VERSION__ = "5.0.20201128"
-_DEBUG = False
-
-def getDebugState():
-    return _DEBUG
 
 import tempfile, os
 from functools import partial
@@ -11,10 +7,13 @@ from functools import partial
 from SkinningTools.py23 import *
 # @todo: add multiple interfaces later for different packages 
 # when using maya:
-from SkinningTools.Maya import api, interface
-
+from SkinningTools.Maya import api, interface, mayaWidget
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+
+_DIR = os.path.dirname(__file__)
+_DEBUG = getDebugState()
+
 from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
 from SkinningTools.UI.tearOff.tearOffDialog import *
 from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
@@ -32,27 +31,24 @@ from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-_DIR = os.path.dirname(__file__)
+class SkinningToolsUI(mayaWidget.DockWidget):
+    toolName = 'SkinningTools: %s' % __VERSION__
 
-class SkinningToolsUI(QMainWindow):
     def __init__(self, newPlacement=False, parent=None):
         super(SkinningToolsUI, self).__init__(parent)
         # placeholder image
         self.setWindowIcon(QIcon(":/commandButton.png"))
 
-        mainWidget = QWidget()
-        self.__editor = None
-
         __sel = interface.getSelection()
         interface.doSelect('')
 
-        self.setCentralWidget(mainWidget)
+        self.setWindowTitle(self.__class__.toolName)
         
         self.__uiElements()
         self.__defaults()
 
         mainLayout = nullVBoxLayout(None, 3)
-        mainWidget.setLayout(mainLayout)
+        self.setLayout(mainLayout)
 
         self.__menuSetup()
         self.__tabsSetup()
@@ -93,8 +89,8 @@ class SkinningToolsUI(QMainWindow):
 
     # ------------------------- ui Setups ---------------------------------
     def __menuSetup(self):
-        self.setMenuBar(QMenuBar())
-        self.menuBar().setLayoutDirection(Qt.RightToLeft)
+        self.menuBar = QMenuBar(self)
+        self.menuBar.setLayoutDirection(Qt.RightToLeft)
         self.extraMenu = QMenu('Extra', self)
         helpAction = QMenu('', self)
         helpAction.setIcon(QIcon(":/QR_help.png"))
@@ -121,9 +117,9 @@ class SkinningToolsUI(QMainWindow):
         helpAction.setEnabled(False)
         self.changeLN.setEnabled(False)
 
-        self.menuBar().addMenu(helpAction)
-        self.menuBar().addMenu(self.extraMenu)
-        self.menuBar().addAction(self.changeLN)
+        self.menuBar.addMenu(helpAction)
+        self.menuBar.addMenu(self.extraMenu)
+        self.menuBar.addAction(self.changeLN)
 
     def __tabsSetup(self):
         self.tabs = EditableTabWidget()
@@ -198,20 +194,22 @@ class SkinningToolsUI(QMainWindow):
     def __skinSliderSetup(self):
         tab = self.tabs.addGraphicsTab("Skin Slider", useIcon = ":/nodeGrapherModeConnectedLarge.png")
         vLayout = nullVBoxLayout()
-        self.__skinSlider = SkinSliderSetup(self)
-        self.__skinSlider.isInView = False
-        self.__skinSlider.createCallback()
 
-        vLayout.addWidget(self.__skinSlider)
+        self.skinSlider = SkinSliderSetup(self)
+        self.skinSlider.isInView = False
+        self.skinSlider.createCallback()
+
+        vLayout.addWidget(self.skinSlider)
         tab.view.frame.setLayout(vLayout)
 
     def __componentEditSetup(self):
         interface.forceLoadPlugin("SkinEditPlugin")
         tab = self.tabs.addGraphicsTab("Component Editor", useIcon = ":/list.svg")
         vLayout = nullVBoxLayout()
-        self.__editor = weightEditor.WeightEditorWindow(self)
-        self.__editor.isInView = False
-        vLayout.addWidget(self.__editor)
+        
+        self.editor = weightEditor.WeightEditorWindow(self)
+        self.editor.isInView = False
+        vLayout.addWidget(self.editor)
         tab.view.frame.setLayout(vLayout)
 
     def __weightManagerSetup(self):
@@ -225,13 +223,15 @@ class SkinningToolsUI(QMainWindow):
     # ------------------------- utilities ---------------------------------
 
     def _callbackFilter(self, *args):
-        self.__skinSlider.isInView = not self.__skinSlider.visibleRegion().isEmpty() 
-        self.__editor.isInView = not self.__editor.visibleRegion().isEmpty()
+        if self.skinSlider is not None:
+            self.skinSlider.isInView = not self.skinSlider.visibleRegion().isEmpty() 
+            if self.skinSlider.isInView :
+                self.skinSlider._update()
         
-        if self.__skinSlider.isInView :
-            self.__skinSlider._update()
-        if self.__editor.isInView :
-            self.__editor.getSkinWeights()
+        if self.editor is not None:
+            self.editor.isInView = not self.editor.visibleRegion().isEmpty()
+            if self.editor.isInView :
+                self.editor.getSkinWeights()
 
     def _tabName(self, index=-1, mainTool=None):
 
@@ -359,37 +359,21 @@ class SkinningToolsUI(QMainWindow):
             comp.setCurrentIndex(index)
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
 
-    def hideEvent(self, event):
+    def closeEvent(self, event):
         self.saveUIState()
         try:
-            self.__skinSlider.clearCallback()
-            self.__editor.setClose()
+            self.skinSlider.clearCallback()
+            self.editor.setClose()
             api._cleanEventFilter()
-            self.__skinSlider.deleteLater()
-            del self.__skinSlider
-            self.__editor.deleteLater()
-            del self.__editor
+            self.skinSlider.deleteLater()
+            del self.skinSlider
+            self.editor.deleteLater()
+            del self.editor
         except:
             self.deleteLater()
 
-def getSkinningToolsWindowName():
-    return 'SkinningTools: %s' % __VERSION__
-
-def closeSkinningToolsMainWindow(windowName=getSkinningToolsWindowName(), mainWindow = api.get_maya_window()):
-    if mainWindow:
-        for child in mainWindow.children():
-            if child.objectName() == windowName:
-                child.close()
-                child.deleteLater()
 
 def showUI(newPlacement=False):
-    windowName = getSkinningToolsWindowName()
     mainWindow = api.get_maya_window()
-    closeSkinningToolsMainWindow(windowName, mainWindow)
-    window = SkinningToolsUI(newPlacement, mainWindow)
-    window.setObjectName(windowName)
-    window.setWindowTitle(windowName)
-    window.show()
-
-    return window
-
+    dock = SkinningToolsUI(newPlacement, mainWindow)
+    dock.run()
