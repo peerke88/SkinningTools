@@ -237,7 +237,7 @@ class VertAndBoneFunction(QWidget):
             return
         self.__favSettings = inSettings
         for index in self.__favSettings:
-            btn = self.__buttons[index]
+            btn = self.__buttons[int(index)]
             for b in self.getGroupedLayout(btn):
                 self.favourited.append(b)
 

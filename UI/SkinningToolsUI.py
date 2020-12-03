@@ -357,7 +357,7 @@ class SkinningToolsUI(interface.DockWidget):
             comp.setCurrentIndex(index)
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
         self.vnbfWidget.setFavSettings(self.settings.value("favs",[]))
-        self.vnbfWidget.setFavcheck.setChecked(self.settings.value("useFav",False))
+        self.vnbfWidget.setFavcheck.setChecked(bool(self.settings.value("useFav",False)))
 
     def hideEvent(self, event):
         # @note add the saveinto the hide event as well to make sure its always triggered, 
