@@ -71,8 +71,6 @@ try:
 except:
     pass
 
-import os
-
 nameRegExp = QRegExp('\\w+')
 
 

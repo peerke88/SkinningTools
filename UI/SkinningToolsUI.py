@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20201128"
+__VERSION__ = "5.0.20201201"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -334,8 +334,9 @@ class SkinningToolsUI(interface.DockWidget):
         self.settings.setValue("tools", self.mayaToolsTab.currentIndex())
         self.settings.setValue("tabs", self.tabs.currentIndex())
         self.settings.setValue("vnbf", self.vnbfWidget.getCheckValues())
+        self.settings.setValue("favs", self.vnbfWidget.getFavSettings())
+        self.settings.setValue("useFav", self.vnbfWidget.setFavcheck.isChecked())
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
-        print("stored UI information, skinningtools closed properly")
 
     def loadUIState(self):
         getGeo = self.settings.value("geometry", None)
@@ -355,8 +356,18 @@ class SkinningToolsUI(interface.DockWidget):
                 index = -1
             comp.setCurrentIndex(index)
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
+        self.vnbfWidget.setFavSettings(self.settings.value("favs",[]))
+        self.vnbfWidget.setFavcheck.setChecked(self.settings.value("useFav",False))
+
+    def hideEvent(self, event):
+        # @note add the saveinto the hide event as well to make sure its always triggered, 
+        # its only storing info so it doesnt break anything
+        QApplication.restoreOverrideCursor()
+        self.saveUIState()
+        super(SkinningToolsUI, self).hideEvent(event)
 
     def closeEvent(self, event):
+        QApplication.restoreOverrideCursor()
         self.saveUIState()
         try:
             self.skinSlider.clearCallback()

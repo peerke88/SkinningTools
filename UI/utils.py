@@ -83,6 +83,25 @@ def toolButton(pixmap='', orientation=0, size=None):
         btn.setIconSize(QSize(size, size))
     return btn
 
+def arrowButton(arrowType, sizePolicy ):
+    """ toolbutton function with arrows
+    
+    :param arrowType: Arrow, arrow type to add to the button
+    :type arrowType: Qt.Arrow
+    :param sizePolicy: list of sizepolicy information for width and height
+    :type sizePolicy: QSizePolicy
+    :return: the button  
+    :rtype: QToolButton
+    """
+    btn = QToolButton()
+    btn.setArrowType(arrowType)
+    if arrowType in [Qt.LeftArrow, Qt.RightArrow]:
+        btn.setMaximumWidth(12)
+    else:
+        btn.setMaximumHeight(12) 
+    btn.setSizePolicy(*sizePolicy)
+    btn.setStyleSheet('border: 0px;')
+    return btn
 
 def findMissingItems(inList):
     origSet = set(inList)
