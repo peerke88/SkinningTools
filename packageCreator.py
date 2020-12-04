@@ -87,10 +87,13 @@ print("succesfully copied files")
 
 _baseINI = os.path.join(baseFolder, "__init__.py")
 _melInstaller = os.path.join(curFolder, "dragDropInstall.mel")
+_pyInstaller = os.path.join(curFolder, "packageInstaller.py")
 copy2(_melInstaller, baseFolder )
+copy2(_pyInstaller, baseFolder )
 open(_baseINI, 'w').close()
 
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _melInstaller])
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _pyInstaller])
 print("succesfully build package")

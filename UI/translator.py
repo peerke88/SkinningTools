@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 """
 the translator class is there to provide ease of acces on changing ui language
 (looking into qtranslator, but that has a lot of difficult extra mess to it so lets write our own)

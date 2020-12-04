@@ -27,6 +27,8 @@ from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
+import webbrowser
+
 class SkinningToolsUI(interface.DockWidget):
     toolName = 'SkinningTools: %s' % __VERSION__
 
@@ -103,19 +105,32 @@ class SkinningToolsUI(interface.DockWidget):
         for act in [docAction, self.tooltipAction]:
             helpAction.addAction(act)
 
-        self.changeLN = QAction("[EN]", self)
+        self.changeLN = QMenu("[EN]", self)
+        
+        for language in ["[EN]", "[日本]"]:
+            ac = QAction(language, self)
+            self.changeLN.addAction(ac)
+            ac.triggered.connect(self._changeLanguage)
 
         self.holdAction.triggered.connect(interface.hold)
         self.fetchAction.triggered.connect(interface.fetch)
         self.objSkeletonAction.triggered.connect(interface.createPolySkeleton)
-        
+        docAction.triggered.connect(self._openHelp)
+
         #@todo: add the functionality later
-        helpAction.setEnabled(False)
-        self.changeLN.setEnabled(False)
+        self.tooltipAction.setEnabled(False)
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.extraMenu)
-        self.menuBar.addAction(self.changeLN)
+        self.menuBar.addMenu(self.changeLN)
+        self.layout().setMenuBar(self.menuBar)
+
+    def _openHelp(self):
+        webUrl = r"https://www.perryleijten.com/skinningtool/html/"
+        webbrowser.open(webUrl)
+
+    def _changeLanguage(self):
+        self.changeLN.setTitle(self.sender().text())
 
     def __tabsSetup(self):
         self.tabs = EditableTabWidget()

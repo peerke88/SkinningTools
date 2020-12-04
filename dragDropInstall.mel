@@ -15,6 +15,8 @@ global proc string currentFolder (string $proc_name){
     return $scriptLocation;
 };
 
+/*
+// these tools are now redundant as we found the information we need in python 
 global proc placeTools(string $path){
 	string $usr =  `internalVar -userScriptDir`;
 	string $version = `about -v`;
@@ -25,6 +27,11 @@ global proc placeTools(string $path){
 	// @todo: add functionality to make a shelf with the tool?
 	// or add the entire thing in a new menu (shelf is safest and only needs 1 button (add icon as well))
 };
+*/
+global proc runPythonTools(string $path){
+	python("import sys; sys.path.insert(0,r'"+$path+"'); import packageInstaller;reload(packageInstaller);packageInstaller.doFunction()");
+};
 
 $place_path=currentFolder("findMe");
-placeTools($place_path);
+// placeTools($place_path);
+runPythonTools($place_path);

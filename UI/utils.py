@@ -2,6 +2,7 @@
 from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
+from SkinningTools.ThirdParty import requests
 
 import re, difflib, math
 from functools import partial
@@ -304,5 +305,40 @@ def incrementName(name):
         return "%s%s"%( name[:-len(i)], int(i) + 1)
     return name + '1'
 
+# ----------- google drive functionality --------
 
+#taken from this StackOverflow answer: https://stackoverflow.com/a/39225039
+def gDriveDownload(id, destination):
+    setProgress(0, inText="start download information")
+    URL = "https://docs.google.com/uc?export=download"
+    session = requests.Session()
 
+    setProgress(10, inText="open session")
+    response = session.get(URL, params = { 'id' : id }, stream = True)
+
+    setProgress(20, inText="confirming token")
+    token = getConfirmToken(response)
+
+    setProgress(40, inText="confirmed token")
+    if token:
+        params = { 'id' : id, 'confirm' : token }
+        response = session.get(URL, params = params, stream = True)
+
+    setProgress(80, inText="checking response")
+    saveResponseContent(response, destination)    
+    
+    setProgress(100, inText="downloaded information")
+
+def getConfirmToken(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+    return None
+
+def saveResponseContent(response, destination):
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(32768):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+
+# ------------------ google drive end -------------------------------
