@@ -71,4 +71,5 @@ def doFunction():
     """use this function to gather all the data necessary that is to be moved"""
     currentMaya = cmds.about(v=1)
     scriptDir =  cmds.internalVar(userScriptDir=1).replace("%s/"%currentMaya, "/")
-    checkSkinningToolsFolderExists(scriptDir)
+    # checkSkinningToolsFolderExists(scriptDir)
+    moveFolder(os.path.join(CURRENTFOLDER, "SkinningTools"), os.path.join(inScriptDir, "SkinningTools"))

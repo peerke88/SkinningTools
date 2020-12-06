@@ -69,9 +69,3 @@ maya code should be seperated in the Maya folder hopefully we can make some part
   Author: Su Hun Han 
   Licences: Freeware(MIT) https://pypi.org/project/googletrans/
 ```
-
-* requests
-```
-  Author : Kenneth Reitz
-  Licenses: Apache Software License (Apache 2.0) https://pypi.org/project/requests/
-```

@@ -2,17 +2,12 @@
 from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
-from SkinningTools.ThirdParty import requests
 
-import re, difflib, math
+import re, difflib, math, requests
 from functools import partial
 
 def getDebugState():
     isDebug = True
-    try:    
-        from SkinningTools.UI.tabs import skinBrushes
-    except:
-        isDebug = False
     return isDebug
 
     

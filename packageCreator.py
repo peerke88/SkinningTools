@@ -55,7 +55,7 @@ os.mkdir(baseFolder)
 
 toMove = []
 _exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel"]
-_noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py", "skinBrushes.py"]
+_noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
 		if "package" in dirName or "test" in dirName.lower() or "commons" in dirName:
@@ -84,6 +84,16 @@ for f in toMove:
 			raise
 	copy2(f, dst)
 print("succesfully copied files")
+
+def _turnOffDebug():
+	l = ''
+	file_path = os.path.join(baseFolder, "SkinningTools/UI/utils.py")
+	with fileinput.input(file_path, inplace=True) as f:
+		for line in f:
+			if "isDebug = True" in line:
+				line = line.replace("True", "False")
+			print(line, end = '')
+_turnOffDebug()
 
 _baseINI = os.path.join(baseFolder, "__init__.py")
 _melInstaller = os.path.join(curFolder, "dragDropInstall.mel")
