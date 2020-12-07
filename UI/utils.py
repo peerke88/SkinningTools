@@ -3,7 +3,8 @@ from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 
-import re, difflib, math, requests
+
+import re, difflib, math
 from functools import partial
 
 def getDebugState():
@@ -304,6 +305,7 @@ def incrementName(name):
 
 #taken from this StackOverflow answer: https://stackoverflow.com/a/39225039
 def gDriveDownload(id, destination):
+    from SkinningTools.ThirdParty import requests
     setProgress(0, inText="start download information")
     URL = "https://docs.google.com/uc?export=download"
     session = requests.Session()
