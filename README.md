@@ -15,8 +15,8 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 
 ## Authors
 
-* [Rodolphe Vaillant](http://rodolphe-vaillant.fr/)
 * [Mio Zwickl](https://www.artstation.com/ikitamonday)
+* [Rodolphe Vaillant](http://rodolphe-vaillant.fr/)
 * [Trevor van Hoof](http://trevorius.com/scrapbook/)
 * [Jan Pijpers](https://www.janpijpers.com/)
 * [Perry Leijten](https://www.perryleijten.com/)

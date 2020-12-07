@@ -867,7 +867,7 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
                         newWeightsList.append((infJoints[idx], value1 + value2))
                     cmds.skinPercent(sc, vertex, transformValue=newWeightsList)
                 utils.setProgress(iteration * percentage, progressBar, "set path average data")
-        except Exception, e:
+        except Exception as e:
             if _DEBUG:
                 print(e)
                 print(e.__class__)

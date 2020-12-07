@@ -83,7 +83,7 @@ for f in toMove:
 		if e.errno != errno.EEXIST:
 			raise
 	copy2(f, dst)
-print("succesfully copied files")
+
 
 def _turnOffDebug():
 	file_path = os.path.join(baseFolder, "SkinningTools/UI/utils.py")
@@ -108,13 +108,15 @@ copy2(_melInstaller, baseFolder )
 copy2(_pyInstaller, baseFolder )
 open(_baseINI, 'w').close()
 
-_melInstaller2 = os.path.join(baseFolder, "dragDropInstall.mel")
-_pyInstaller2 = os.path.join(baseFolder, "packageInstaller.py")
+print("succesfully copied files")
 
 _turnOffDebug()
 
+print("changed debug to release")
+
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
-subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _melInstaller2])
-subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _pyInstaller2])
-print("succesfully build package")
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "dragDropInstall.mel")])
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "packageInstaller.py")])
+
+print("succesfully build & zipped package")
