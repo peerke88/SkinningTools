@@ -23,6 +23,8 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 Authors
 ==================
 
+* `Mio Zwickl`_
+
 * `Rodolphe Vaillant`_
 
 * `Trevor van Hoof`_
@@ -31,6 +33,7 @@ Authors
 
 * `Perry Leijten`_
 
+.. _Mio Zwickl: https://www.artstation.com/ikitamonday
 .. _Rodolphe Vaillant: http://rodolphe-vaillant.fr/
 .. _Trevor van Hoof: http://trevorius.com/scrapbook/
 .. _Jan Pijpers: https://www.janpijpers.com/
@@ -44,7 +47,6 @@ Prerequisites
  - Maya 2017+
  - Python 2.7 (3.7)
  - sphinx
-
 
 
 Acknowledgments
@@ -69,8 +71,16 @@ Acknowledgments
 ``qcahcegrind``
   * Author: `Josef Weidendorfer`_
 
+``googletrans``
+  * Author: `Su Hun Han`_
+
+``requests``
+  * Author: `Kenneth Reitz`_
+  Licences: Apache 2.0 http://python-requests.org
 
 .. _Daniele Niero: https://github.com/daniele-niero
 .. _Ryan Porter: https://yantor3d.wordpress.com/
 .. _David Allouche: https://github.com/pwaller/pyprof2calltree/blob/master/LICENSE
 .. _Josef Weidendorfer: http://kcachegrind.sourceforge.net/html/Home.html
+.. _Su Hun Han: https://pypi.org/project/googletrans/
+.. _Kenneth Reitz: http://python-requests.org

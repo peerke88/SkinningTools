@@ -11,12 +11,12 @@ maya code should be seperated in the Maya folder hopefully we can make some part
  - add settings page (size of elements/icons, language, etc)
  - add translator class for automated language information, option to save and modify
  - create small videos/gifs to explain the tools as tooltips (use this for testing functionality)
- - create install mel script so users only need to drag and drop a mel file to install the tool
 
 
 ## Authors
 
 * [Rodolphe Vaillant](http://rodolphe-vaillant.fr/)
+* [Mio Zwickl](https://www.artstation.com/ikitamonday)
 * [Trevor van Hoof](http://trevorius.com/scrapbook/)
 * [Jan Pijpers](https://www.janpijpers.com/)
 * [Perry Leijten](https://www.perryleijten.com/)
@@ -68,4 +68,9 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 ```
   Author: Su Hun Han 
   Licences: Freeware(MIT) https://pypi.org/project/googletrans/
+```
+* requests
+```
+  Author: Kenneth Reitz
+  Licences: Apache 2.0 http://python-requests.org
 ```
