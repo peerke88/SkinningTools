@@ -58,7 +58,7 @@ _exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "pro", "pri", "txt
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
-		if "package" in dirName or "test" in dirName.lower() or "commons" in dirName:
+		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName:
 			continue
 		if not '.' in file:
 			continue
@@ -86,14 +86,20 @@ for f in toMove:
 print("succesfully copied files")
 
 def _turnOffDebug():
-	l = ''
 	file_path = os.path.join(baseFolder, "SkinningTools/UI/utils.py")
 	with fileinput.input(file_path, inplace=True) as f:
 		for line in f:
 			if "isDebug = True" in line:
 				line = line.replace("True", "False")
 			print(line, end = '')
-_turnOffDebug()
+
+	file_path = os.path.join(baseFolder, "dragDropInstall.mel")
+	with fileinput.input(file_path, inplace=True) as f:
+		for line in f:
+			if "packageInstaller.doFunction(True)" in line:
+				line = line.replace("True", "False")
+			print(line, end = '')
+
 
 _baseINI = os.path.join(baseFolder, "__init__.py")
 _melInstaller = os.path.join(curFolder, "dragDropInstall.mel")
@@ -102,8 +108,13 @@ copy2(_melInstaller, baseFolder )
 copy2(_pyInstaller, baseFolder )
 open(_baseINI, 'w').close()
 
+_melInstaller2 = os.path.join(baseFolder, "dragDropInstall.mel")
+_pyInstaller2 = os.path.join(baseFolder, "packageInstaller.py")
+
+_turnOffDebug()
+
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
-subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _melInstaller])
-subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _pyInstaller])
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _melInstaller2])
+subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _pyInstaller2])
 print("succesfully build package")

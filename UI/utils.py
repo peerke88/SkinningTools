@@ -2,7 +2,7 @@
 from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
-
+from SkinningTools.ThirdParty import requests
 
 import re, difflib, math
 from functools import partial
@@ -305,9 +305,8 @@ def incrementName(name):
 
 #taken from this StackOverflow answer: https://stackoverflow.com/a/39225039
 def gDriveDownload(id, destination):
-    from SkinningTools.ThirdParty import requests
     setProgress(0, inText="start download information")
-    URL = "https://docs.google.com/uc?export=download"
+    URL = " https://drive.google.com/u/0/uc?id="
     session = requests.Session()
 
     setProgress(10, inText="open session")
@@ -337,5 +336,6 @@ def saveResponseContent(response, destination):
         for chunk in response.iter_content(32768):
             if chunk: # filter out keep-alive new chunks
                 f.write(chunk)
+
 
 # ------------------ google drive end -------------------------------
