@@ -94,8 +94,10 @@ def downloadExtraFiles(currentSkinningFolder):
         with open(toFolder, 'w'): pass
     print "gdrive install to folder: %s"%toFolder
     # change id based on what needs to be downlaoded
-    id  = "1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx" #< pointer to the old gif zip
-    utils.gDownload(id, toFolder)
+    url = ["https://drive.google.com/file/d/1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx/view?usp=sharing"]
+
+    utils.gDriveDownload(url, toFolder)
+
 
 def doFunction(testing = True):
     """use this function to gather all the data necessary that is to be moved"""
@@ -106,5 +108,5 @@ def doFunction(testing = True):
         scriptDir =  cmds.internalVar(userScriptDir=1).replace("%s/"%currentMaya, "/")
     print "trying to place the file in: %s"%scriptDir
     checkSkinningToolsFolderExists(scriptDir)
+    downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
     moveFolder(os.path.join(CURRENTFOLDER, "SkinningTools"), os.path.join(scriptDir, "SkinningTools"))
-    # downloadExtraFiles(os.path.join(scriptDir, "SkinningTools"))
