@@ -94,9 +94,11 @@ def downloadExtraFiles(currentSkinningFolder):
         with open(toFolder, 'w'): pass
     print "gdrive install to folder: %s"%toFolder
     # change id based on what needs to be downlaoded
-    url = ["https://drive.google.com/file/d/1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx/view?usp=sharing"]
-
-    utils.gDriveDownload(url, toFolder)
+    files = {
+            "testFile.7z" : "https://drive.google.com/file/d/1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx/view?usp=sharing"
+    }
+    
+    utils.gDriveDownload(files, toFolder)
 
 
 def doFunction(testing = True):

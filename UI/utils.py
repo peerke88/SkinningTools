@@ -606,11 +606,11 @@ def incrementName(name):
 
 # ----------- google drive functionality --------
 
-def gDriveDownload(url, destination, progressBar = None):
+def gDriveDownload(urlinfo, destination, progressBar = None):
     """ google download functionality
     
-    :param url: list of files to download
-    :type url: list
+    :param urlinfo: dict of  filenames and corresponding files to download 
+    :type urlinfo: dict
     :param destination: the folder to place downloaded files
     :type destination: string
     :param progressBar: the progressbar to show how much is downloaded
@@ -620,10 +620,10 @@ def gDriveDownload(url, destination, progressBar = None):
     
     setProgress(10, progressBar, inText="send request")
     percentage = 80.0/len(url)
-    for index, u in enumerate(url):
+    for index, u in enumerate(urlinfo.keys()):
 
-        response = requests.get(u)
-        saveResponseContent(response, destination)    
+        response = requests.get(urlinfo[u])
+        saveResponseContent(response, ps.path.join( destination, u ) )
         setProgress(10 + (index * percentage), progressBar, inText="checking response")
     
     setProgress(100, progressBar, inText="downloaded information")
