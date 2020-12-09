@@ -8,9 +8,21 @@ from math import *
 _DEBUG = getDebugState()
 
 class MarkingMenuFilter(QObject):
+    """ the marking menu filter
+    this eventfilter will grab mouse inputs and when the conditions are met it will spawn a popup window at the mouse location
+    """
     _singleton = None
 
     def __init__(self, name="MarkingMenu", isDebug=False, parent=None):
+        """ the constructor
+        
+        :param name: name for the object to be spawned
+        :type name: string
+        :param isDebug: if `True` will act as if most conditions are met, if `False` will work as intended
+        :type isDebug: bool
+        :param parent: the object to attach the popup menu too
+        :type parent: QWidget
+        """
         super(MarkingMenuFilter, self).__init__(parent)
         self.__debug = isDebug
         self.MenuName = name
@@ -19,11 +31,17 @@ class MarkingMenuFilter(QObject):
 
     @staticmethod
     def singleton():
+        """ singleton method
+        making sure that this object can only exist once and cannot be instantiated more then once
+        """
         if MarkingMenuFilter._singleton is None:
             MarkingMenuFilter._singleton = MarkingMenuFilter()
         return MarkingMenuFilter._singleton
 
     def eventFilter(self, obj, event):
+        """ the event filter
+        here we check if all conditions necessary for the widget to spawn are met
+        """
         if MarkingMenuFilter is None:
             return False
         super(MarkingMenuFilter, self).eventFilter(obj, event) 
@@ -64,6 +82,13 @@ class MarkingMenuFilter(QObject):
 
 
 class radialMenu(QMainWindow):
+    """ marking menu popup window
+    this window will spawn without frame or background
+    we draw everything in this window with QGraphicsScene items
+    the window should remove itself when the mouse button is released returning info on the object that is under the mouse
+
+    :todo: make a connection with the main widget to override certain values in the setup
+    """
     _red = QColor(208, 52, 52, 255)
     _green = QColor(80, 230, 80, 255)
 
@@ -79,6 +104,15 @@ class radialMenu(QMainWindow):
     _availableSpaces = 8
 
     def __init__(self, parent=None, inputObjects=None, flags=Qt.FramelessWindowHint):
+        """ the constructor
+
+        :param parent: the window to attach this ui to
+        :type parent: QWidget
+        :param inputObjects: list of a boolean value if the current hit worked and the name of the bone found under the mouse
+        :type inputObjects: list
+        :param flags: this flags default is to make sure we dont spawn a window, this could be overwritten for debug purposes
+        :type flags: Qt.window flags
+        """
         super(radialMenu, self).__init__(parent, flags)
         # @note: clean this part up!!
 
@@ -106,11 +140,23 @@ class radialMenu(QMainWindow):
         self._buildButtons()
 
     def _setPen(self, color, width, style):
+        """ override function to change the pen style of the widget
+
+        :param color: the color to be used in drawing
+        :type color: QColor
+        :param width: widht of the pen stroke
+        :type width: int
+        :param style: style of the stroke (single line/ dash pattern)
+        :type style: Qt.penStyle
+        """
         self.pen.setStyle(style)
         self.pen.setWidth(width)
         self.pen.setColor(color)
 
     def __drawUI(self):
+        """ build the ui, 
+        the main ui is a circle on which we can spawn the necessary buttons
+        """
         self._setPen(self._red, 2, Qt.DotLine)
         backgroundCircle = QGraphicsEllipseItem(-self.__radius + self.mappingPos.x(), -self.__radius + self.mappingPos.y(), self.__radius * 2, self.__radius * 2)
         backgroundCircle.setPen(self.pen)
@@ -134,6 +180,13 @@ class radialMenu(QMainWindow):
             self.scene.addItem(item)
 
     def updateLine(self, pos):
+        """ a line from the center of the circle to the position of the mouse
+        this to display which element will be chosen on mouse release
+        the collision of the line with any of the buttons will show an outline on the object to highlite the selection
+
+        :param pos: position of the mouse
+        :type pos: QPos
+        """
         self.itemToDraw.setLine(self.mappingPos.x(), self.mappingPos.y(),
                                 pos.x() - self.OrigPos.x() + self.mappingPos.x(),
                                 pos.y() - self.OrigPos.y() + self.mappingPos.y())
@@ -154,15 +207,47 @@ class radialMenu(QMainWindow):
             self.__ActiveItem = None
 
     def getActiveItem(self):
+        """ return the activated item that is in collision with the mouse
+
+        :return: widget under mouse
+        :rtype: QWidget
+        """
         return self.__ActiveItem
 
     @staticmethod
     def rotateVec(origin, point, angle):
+        """ angular math to get the correct positions on a circle based on center, length and angle
+        
+        :param origin: center of the circle
+        :type origin: QPos
+        :param point: top point of the circle (12 o`clock)
+        :type point: QPos
+        :param angle: the angle at wich to rotate the point clockwise
+        :type angle: QPos
+        :return: position on the circle at the given angle
+        :rtype: QPos
+        """
         qx = origin.x() + cos(angle) * (point.x() - origin.x()) - sin(angle) * (point.y() - origin.y())
         qy = origin.y() + sin(angle) * (point.x() - origin.x()) + cos(angle) * (point.y() - origin.y())
         return QPointF(qx, qy)
 
     def __MMButton(self, inText, position, inValue=None, inFunction=None, operation=1):
+        """ single marking menu button
+        
+        :param inText: the text to display
+        :type inText: string
+        :param position: position on the circle
+        :type position: QPos
+        :param inValue: the value it will represent
+        :type inValue: float
+        :param inFunction: the function to run once triggered
+        :type inFunction: <function>
+        :param operation: the operation on how to treat the weight
+        :type operation: int
+        :note operation: { 0:removes the values, 1:sets the values, 2: adds the values}
+        :return: the widget with all functionality
+        :rtype: QLabel
+        """
         item = QLabel(inText)
         item.setStyleSheet(self.__borders["default"])
         item.setAlignment(Qt.AlignCenter)
@@ -172,9 +257,22 @@ class radialMenu(QMainWindow):
             item.runFunction = partial(inFunction, item, inValue, operation)
         return item
 
-    def __MMCheck(self, inText, position, inVal=True, inFunction=None):
+    def __MMCheck(self, inText, position, inValue=True, inFunction=None):
+        """ single marking menu checkbox 
+        
+        :param inText: the text to display
+        :type inText: string
+        :param position: position on the circle
+        :type position: QPos
+        :param inValue: the value it will represent
+        :type inValue: float
+        :param inFunction: the function to run once triggered
+        :type inFunction: <function>
+        :return: the widget with all functionality
+        :rtype: QCheckBox
+        """
         item = QCheckBox(inText)
-        item.setChecked(inVal)
+        item.setChecked(inValue)
         item.setStyleSheet(self.__borders["default"])
         w = QPainter().fontMetrics().width(item.text()) + 20
         item.setGeometry(position.x() - (w * .5) - 2, position.y() - 11.5, w + 4, 21)
@@ -183,6 +281,8 @@ class radialMenu(QMainWindow):
         return item
 
     def _buildButtons(self):
+        """ build up the marking menu based on given bone and all elements necessary
+        """
         angle = pi / self._availableSpaces
         angle += angle
         origin = QPointF(0, 0)
@@ -225,13 +325,30 @@ class radialMenu(QMainWindow):
         return True
 
     def __funcPressed(self, _, value, operation=0):
+        """ function that will run when a button is clicked
+        
+        :param value: the value that will be set on the selection
+        :type value: float
+        :param operation: the operation on how to treat the weight
+        :type operation: int
+        :note operation: { 0:removes the values, 1:sets the values, 2: adds the values}
+        """
         skinCluster.doSkinPercent(self.inputObjects[1], value, operation=operation)
 
     def _setCheckState(self, item, *_):
+        """ function that will run once the checkbox state has changed
+        in this case it will change soft selection settings 
+        
+        :param item: the checkbox
+        :type item: QCheckbox
+        """
         self.checkState = not item.isChecked()
         interface.setSmoothAware(self.checkState)
 
     def showAtMousePos(self):
+        """ show the current setup at the position on screen where the mouse is located, 
+        the center of the circle is positioned directly on the mouse
+        """
         self.OrigPos = QCursor.pos()
         self.move(self.OrigPos.x() - (self.width() * .5), self.OrigPos.y() - (self.height() * 0.5))
         self.show()
@@ -239,7 +356,9 @@ class radialMenu(QMainWindow):
 
 
 class testWidget(QMainWindow):
-    # simple widget to install the eventfilter on to test the markingmenu
+    """simple widget to install the eventfilter on to test the markingmenu
+    this will not use the dcc application but a seperate window, where debug is forced so it will always draw the popup window
+    """
     def __init__(self, parent=None):
         super(testWidget, self).__init__(parent)
         mainWidget = QWidget()
@@ -251,6 +370,8 @@ class testWidget(QMainWindow):
 
 
 def showTest():
+    """ convenience function to display and build the testing application
+    """
     window_name = 'testWidget'
     from SkinningTools.Maya import api
     mainWindow = api.get_maya_window()

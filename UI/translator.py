@@ -36,6 +36,13 @@ print txt.text
 
 print LANGUAGES.values()
 
+
+===============================================================
+
+1. get a list of all current text in the ui
+2. convert text to dictionary
+3. use dictionary here to figure out what needs to be created
+
 """
 import json
 from SkinningTools.UI.qt_util import *
