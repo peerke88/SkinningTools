@@ -1,0 +1,161 @@
+# language dictionary
+
+# title
+
+SkinningTools
+# header
+
+Extra
+hold model
+fetch model
+skeleton -> obj
+API documentation
+UI documentation
+enhanced tooltip
+
+# maya tools
+Skin
+Vtx
+Save
+Load
+
+# fallof curveUI
+undo
+redo
+store
+delete
+snap
+
+# vnbf
+
+Vertex & Bone functions
+average Vtx
+copy vtx
+switch vtx
+label joints
+unify shells
+skin to skin
+skin to pose
+neighbors
+weight hammer
+convert to joint
+recalc bind
+create proxy
+add Surface pin
+move bone infl.
+swap bone infl.
+influenced vtx
+remove joint
+add joint
+unify bind map
+attached joints
+extract skinned mesh
+prune excluded infl.
+influenced meshes
+fix bind mesh
+del bindPose
+sel infl. > max
+BP
+smooth
+force max infl.
+freeze joints
+store internal
+
+use distance
+smooth
+uvSpace
+smooth
+uvSpace
+growing
+full
+specify name
+internal
+use opm
+use parent
+delete
+fast
+query
+invert
+model only
+in Pose
+relax
+volume
+
+#copy functions
+copy functions
+
+# copy closest weight
+copy closest weight
+
+look closest Vtx amount
+no source given
+no target given
+source 
+target
+transfer components
+reset
+
+# transfer weights
+transfer weights
+
+no source given
+no target given
+source 
+target
+copy selected vertices
+additive
+store selection
+clear list
+
+# transfer UV's
+transfer UV's
+source 
+target
+no source given
+no target given
+transfer UV's
+reset
+
+# assign soft selection
+
+assign soft selection
+search 
+type part of joint name to search
+analyze
+add
+build info
+
+# simple maya tools
+simple maya tools
+
+smooth bind
+rigid bind
+detach skin
+paint skin weights
+mirror skin weights
+copy skin weights
+prune skin weights
+combine skinned mesh
+remove unused influences
+goto bind-pose
+
+# skin slider
+skin slider
+search 
+type part of joint name to search
+
+# component editor
+component editor
+search 
+type part of joint name to search
+
+# weight manager
+weight manager
+store meshes
+local
+specify
+info
+import external
+load single
+load all
+

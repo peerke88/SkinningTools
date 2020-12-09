@@ -15,18 +15,18 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.dirname(os.path.abspath('.')))
 
 # -- Project information -----------------------------------------------------
 
 project = u'SkinningTools'
-copyright = u'2020, Rodolphe Vaillant Trevor v Hoof, Jan Pijpers, Perry Leijten'
-author = u'Rodolphe Vaillant Trevor v Hoof, Jan Pijpers, Perry Leijten'
+copyright = u'2020, Mio Zwickl, Rodolphe Vaillant, Trevor v Hoof, Jan Pijpers, Perry Leijten'
+author = u'Mio Zwickl, Rodolphe Vaillant, Trevor v Hoof, Jan Pijpers, Perry Leijten'
 
 # The short X.Y version
 version = u'5.0'
 # The full version, including alpha/beta/rc tags
-release = u'5.0.20200822'
+release = u'5.0.20201209'
 
 # -- General configuration ---------------------------------------------------
 
@@ -45,7 +45,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['_autoapi_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -87,7 +87,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -149,7 +149,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'SkinningTools', u'SkinningTools Documentation',
-     author, 'SkinningTools', 'One line description of project.',
+     author, 'SkinningTools', 'full api information on the skinningtools',
      'Miscellaneous'),
 ]
 
@@ -171,10 +171,13 @@ epub_title = project
 epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
-
 autoapi_type = 'python'
 autoapi_dirs = ['../Maya', "../UI"]
 autoapi_template_dir = '_autoapi_templates'
-autoapi_add_toctree_entry =True
-autoapi_options = ['members','undoc-members','private-members','show-inheritance','show-inheritance-diagram','show-module-summary','special-members','imported-members', ]
+autoapi_add_toctree_entry = True
+autoapi_options = ['members','undoc-members','private-members','show-module-summary','special-members','imported-members', ]
 autoapi_ignore = ['*smoothBrushRodCpp*', '*averageWeightPerryCpp*']
+extensions = ['sphinx.ext.autodoc', 'autoapi.extension']
+autodoc_typehints = 'description'
+autoapi_member_order = 'groupwise'
+autoapi_keep_files = False

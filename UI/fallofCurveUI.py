@@ -44,7 +44,7 @@ class BezierFunctions(object):
 
         :param t: parameter on the curve to get the positional information (range is from 0 to 1)
         :type t: float
-        :param points:control points that are used to generate the curve
+        :param points: control points that are used to generate the curve
         :type points: list
         :return: 2d point in space
         :rtype: list

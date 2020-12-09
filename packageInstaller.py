@@ -66,13 +66,13 @@ def checkSkinningToolsFolderExists(inScriptDir):
 
     if myWindow.result() == 0:
         shutil.rmtree(skinFile)
-        print "removed original folder: %s"%skinFile
+        print("removed original folder: %s"%skinFile)
     else:
         now = datetime.datetime.now( )
         versionDate = "%s%02d%02d" % (now.year, now.month, now.day)
         backup = os.path.join(inScriptDir, "Backup_%s"%versionDate)
         shutil.move(skinFile, backup)
-        print "backed up folder to: %s"%backup
+        print("backed up folder to: %s"%backup)
 
 
 def moveFolder( source = '', dest = ''):
@@ -92,8 +92,8 @@ def downloadExtraFiles(currentSkinningFolder):
     toFolder = os.path.join(currentSkinningFolder, "Maya/toolTips/toolTips.7z")  #< lets make sure this is placed correctly when the time comes
     if not os.path.exists(toFolder):
         with open(toFolder, 'w'): pass
-    print "gdrive install to folder: %s"%toFolder
-    # change id based on what needs to be downlaoded
+    print("gdrive install to folder: %s"%toFolder)
+    # changed id based on what needs to be downlaoded, we can now acces elements based on what file they need to represent
     files = {
             "testFile.7z" : "https://drive.google.com/file/d/1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx/view?usp=sharing"
     }
@@ -108,7 +108,8 @@ def doFunction(testing = True):
         scriptDir =  cmds.internalVar(userScriptDir=1) #< move to a local path in maya for testing purposes
     else:
         scriptDir =  cmds.internalVar(userScriptDir=1).replace("%s/"%currentMaya, "/")
-    print "trying to place the file in: %s"%scriptDir
+    print("trying to place the file in: %s"%scriptDir)
     checkSkinningToolsFolderExists(scriptDir)
-    downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
+    """ removed the following as its not working yet and not necessary for the first few builds"""
+    # downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
     moveFolder(os.path.join(CURRENTFOLDER, "SkinningTools"), os.path.join(scriptDir, "SkinningTools"))

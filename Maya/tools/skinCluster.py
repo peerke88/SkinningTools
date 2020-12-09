@@ -153,7 +153,7 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
 
     :param TargetSkinCluster: the skincluster to gather information from
     :type TargetSkinCluster: string
-    :param SourceSkinCluster:the skincluster to send information to
+    :param SourceSkinCluster: the skincluster to send information to
     :type SourceSkinCluster: string
     :param TargetSelection: the vertex selection to copy from
     :type TargetSelection: list

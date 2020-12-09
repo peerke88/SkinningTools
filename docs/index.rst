@@ -6,9 +6,18 @@
 Welcome to SkinningTools's documentation!
 =========================================
 
+Contents:
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. toctree::
+   :maxdepth: 2
+   
+   autoapi/index
+   autoapi/SkinningTools/Maya/index
+   autoapi/SkinningTools/UI/index
 
 
 Notes
@@ -76,7 +85,6 @@ Acknowledgments
 
 ``requests``
   * Author: `Kenneth Reitz`_
-  Licences: Apache 2.0 http://python-requests.org
 
 .. _Daniele Niero: https://github.com/daniele-niero
 .. _Ryan Porter: https://yantor3d.wordpress.com/

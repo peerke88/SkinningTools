@@ -44,6 +44,15 @@ def setVersionDate( ):
 				line.replace(old, new)
 			print(line, end = '')
 
+	docPath = os.path.join(curFolder, "docs/conf.py")
+	with fileinput.input(docPath, inplace=True) as f:
+		for line in f:
+			if "release" in line and "'" in line:
+				start, __, end = line.split("'")
+				line = "%s'5.0.%s'%s"%(start, versionDate, end)
+
+			print(line, end = '')
+
 	print( "Updated Version <%s> to <%s>!" % (old, new), True )
 	return new
 _vers = setVersionDate()

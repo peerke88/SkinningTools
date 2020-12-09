@@ -72,7 +72,7 @@ def cleanupFetch(topLevelDagObjects, remainingTopDagNodes):
     :param topLevelDagObjects: all objects that are part of the root of the scene before fetch
     :type topLevelDagObjects: list
     :param remainingTopDagNodes: all objects that are part of the root of the scene after fetch
-    :type remainingTopDagNodes:list
+    :type remainingTopDagNodes: list
     :return: newly added top level nodes
     :rtype: list
     """

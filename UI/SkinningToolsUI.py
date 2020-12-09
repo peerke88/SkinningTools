@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20201208"
+__VERSION__ = "5.0.20201209"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -117,13 +117,14 @@ class SkinningToolsUI(interface.DockWidget):
         self.holdAction = QAction("hold Model", self)
         self.fetchAction = QAction("fetch Model", self)
         self.objSkeletonAction = QAction("skeleton -> obj", self)
-        docAction = QAction("Docs", self)
+        apiAction = QAction("API documentation", self)
+        docAction = QAction("UI documentation", self)
         self.tooltipAction = QAction("Enhanced ToolTip", self)
         self.tooltipAction.setCheckable(True)
 
         for act in [self.holdAction, self.fetchAction, self.objSkeletonAction]:
             self.extraMenu.addAction(act)
-        for act in [docAction, self.tooltipAction]:
+        for act in [apiAction, docAction, self.tooltipAction]:
             helpAction.addAction(act)
 
         self.changeLN = QMenu("[EN]", self)
@@ -136,7 +137,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.holdAction.triggered.connect(interface.hold)
         self.fetchAction.triggered.connect(interface.fetch)
         self.objSkeletonAction.triggered.connect(interface.createPolySkeleton)
-        docAction.triggered.connect(self._openHelp)
+        apiAction.triggered.connect(self._openApiHelp)
 
         #@todo: add the functionality later
         self.tooltipAction.setEnabled(False)
@@ -146,7 +147,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.menuBar.addMenu(self.changeLN)
         self.layout().setMenuBar(self.menuBar)
 
-    def _openHelp(self):
+    def _openApiHelp(self):
         """ open the web page with the help documentation and api information
         """
         webUrl = r"https://www.perryleijten.com/skinningtool/html/"
