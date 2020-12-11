@@ -53,7 +53,7 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 * pyprof2calltree
 ```
   Author: David Allouche
-  Licences: Copyright https://github.com/pwaller/pyprof2calltree/blob/master/LICENSE
+  Licences: Freeware(MIT) https://github.com/pwaller/pyprof2calltree/blob/master/LICENSE
 ```
 
 * qcahcegrind

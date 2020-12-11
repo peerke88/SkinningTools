@@ -55,7 +55,7 @@ Prerequisites
 
  - Maya 2017+
  - Python 2.7 (3.7)
- - sphinx
+ - sphinx (extensions: sphinx-autoapi,  groundwork-sphinx-theme)
 
 
 Acknowledgments
@@ -76,15 +76,22 @@ Acknowledgments
 
 ``pyprof2calltree``
   * Author: `David Allouche`_
+  * License: MIT license
 
 ``qcahcegrind``
   * Author: `Josef Weidendorfer`_
+  * Licences:
+    - kcachegrind: GPLv2 
+    - Qt: LGPL 2.1 
+    - dot: EPL
 
 ``googletrans``
   * Author: `Su Hun Han`_
+  * License: Freeware(MIT)
 
 ``requests``
   * Author: `Kenneth Reitz`_
+  * License: Apache 2.0
 
 .. _Daniele Niero: https://github.com/daniele-niero
 .. _Ryan Porter: https://yantor3d.wordpress.com/
