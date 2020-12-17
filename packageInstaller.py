@@ -24,10 +24,15 @@ what this should do:
 |                                          |
 |         extras:                          |
 |                                          |
+|  []keep old settings                     | # < copy the settings ini from previous setup to new (only use this(/make visible) when there is an older version)
 |                                          |   # V  following functions are examples, need to be added based on necessity
 |  []tooltip gifs                          | # <these functions should be added when necessary
 |  []videos                                | # <these functions should be added when necessary
 |  []help documentation                    | # <these functions should be added when necessary
+|                                          |
+|  [       create shelf button          ]  |
+|                                          |
+|                                          |
 |                                          |
 |                                          |
 |  [##########% progress bar            ]  |
@@ -42,27 +47,20 @@ from SkinningTools.UI import utils
 from SkinningTools.Maya import api
 from maya import cmds
 
-def checkSkinningToolsFolderExists(inScriptDir):
+def checkSkinningToolsFolderExists(inScriptDir, copyOldSettings = True):
     '''check if the folder already exists, so we can ask the user what to do'''
     skinFile = os.path.join(inScriptDir, "SkinningTools")
     if not os.path.exists(skinFile):
         return
-
-    myWindow = QDialog(api.get_maya_window())
-    myWindow.setWindowTitle("install conflict")
-    myWindow.setLayout(QVBoxLayout())
-    myWindow.layout().addWidget(QLabel("skinningtools folder already exists"))
-    myWindow.layout().addWidget(QLabel("'Accept' if you want to backup the original"))
-    myWindow.layout().addWidget(QLabel("'Reject' if you want to delete"))
-    h = QHBoxLayout()
-    myWindow.layout().addLayout(h)
-    btn = QPushButton("Accept")
-    btn.clicked.connect(myWindow.accept)
-    h.addWidget(btn)
-    btn = QPushButton("Reject")
-    btn.clicked.connect(myWindow.reject)
-    h.addWidget(btn)
+    
+    myWindow = utils.QuickDialog("install conflict")
+    myWindow.layout().instertWidget(0, QLabel("'Reject' if you want to delete"))
+    myWindow.layout().instertWidget(0, QLabel("'Accept' if you want to backup the original"))
+    myWindow.layout().instertWidget(0, QLabel("skinningtools folder already exists"))
     myWindow.exec_()
+
+    if copyOldSettings:
+        shutil.copy2(os.path.join(skinFile, "UI/settings.ini"), os.path.join(CURRENTFOLDER, "SkinningTools/UI/settings.ini"))
 
     if myWindow.result() == 0:
         shutil.rmtree(skinFile)

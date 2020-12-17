@@ -37,6 +37,10 @@ print txt.text
 print LANGUAGES.values()
 
 
+# these are the current windows locales (check these on osx and linux as well)
+import locale
+print locale.windows_locale.values()
+
 ===============================================================
 
 1. get a list of all current text in the ui

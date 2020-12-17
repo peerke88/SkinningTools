@@ -470,7 +470,7 @@ def addChecks(cls, button, checks=None):
 
     functions, popup = addContextToMenu(cls, checks, button)
     button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
-
+    return checks
 
 def addContextToMenu(cls, actionNames, btn):
     """ add context menu to button based on the checkboxes
@@ -642,3 +642,18 @@ def saveResponseContent(response, destination):
                 f.write(chunk)
 
 # ------------------ google drive end -------------------------------
+
+def QuickDialog(title):
+    from SkinningTools.Maya import api
+    myWindow = QDialog(api.get_maya_window())
+    myWindow.setWindowTitle(title)
+    myWindow.setLayout(nullVBoxLayout())
+    h = nullHBoxLayout()
+    myWindow.layout().addLayout(h)
+    btn = pushButton("Accept")
+    btn.clicked.connect(myWindow.accept)
+    h.addWidget(btn)
+    btn = pushButton("Reject")
+    btn.clicked.connect(myWindow.reject)
+    h.addWidget(btn)
+    return myWindow
