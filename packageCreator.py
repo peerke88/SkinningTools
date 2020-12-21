@@ -20,7 +20,6 @@ currently we glob all necessary files together and place them accordingly
 import sys, os, errno, datetime, runpy, fileinput, subprocess
 from shutil import copytree, copy2, rmtree, make_archive
 
-
 relPath = os.path.normpath(os.path.dirname(os.path.dirname(__file__)))
 curFolder = os.path.normpath(os.path.dirname(__file__))
 baseFolder =os.path.normpath(os.path.join(curFolder, "package"))
@@ -53,8 +52,18 @@ def setVersionDate( ):
 
 			print(line, end = '')
 
+	installer = os.path.join(curFolder, "packageInstaller.py")
+	with fileinput.input(installer, inplace=True) as f:
+		for line in f:
+			if "__VERSION__ = " in line:
+				start, __, end = line.split('"')
+				line = '%s"5.0.%s"%s'%(start, versionDate, end)
+
+			print(line, end = '')
+
 	print( "Updated Version <%s> to <%s>!" % (old, new), True )
 	return new
+
 _vers = setVersionDate()
 
 if os.path.isdir(baseFolder):
@@ -63,7 +72,7 @@ os.mkdir(baseFolder)
 
 
 toMove = []
-_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel"]
+_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel", "png"]
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:

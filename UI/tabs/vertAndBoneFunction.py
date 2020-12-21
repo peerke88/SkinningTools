@@ -46,12 +46,9 @@ class VertAndBoneFunction(QWidget):
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     # --------------------------------- translation ----------------------------------
-    def translate(self, locale = "en_US"):
-        """
-        figure out a way to set up the translation of the different buttons in the current file
-        currently all buttons with text are part of self._Btn, maybe this needs to add everything that can hold text or labels 
-        (also the checkbuttons? or does that need to be added in the utils functions)
-        """
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            self._Btn[key].setText(value)
         pass
 
     def getButtonText(self):
@@ -184,6 +181,27 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, self._Btn["BindFix_Btn"], ["model only", "in Pose"])
         addChecks(self, self._Btn["smthBrs_Btn"], ["relax", "volume"])
         
+        self._Btn["dist"] = self._Btn["AvgWght_Btn"].checks["use distance"]
+        self._Btn["smooth"] = self._Btn["trsfrSK_Btn"].checks["smooth"]
+        self._Btn["uvSpace"] = self._Btn["trsfrSK_Btn"].checks["uvSpace"]
+        self._Btn["smooth1"] = self._Btn["trsfrPS_Btn"].checks["smooth"]
+        self._Btn["uvSpace1"] = self._Btn["trsfrPS_Btn"].checks["uvSpace"]
+        self._Btn["growing"] = self._Btn["nghbors_Btn"].checks["growing"]
+        self._Btn["full"] = self._Btn["nghbors_Btn"].checks["full"]
+        self._Btn["specify name"] = self._Btn["toJoint_Btn"].checks["specify name"]
+        self._Btn["internal"] = self._Btn["cutMesh_Btn"].checks["internal"]
+        self._Btn["use opm"] = self._Btn["cutMesh_Btn"].checks["use opm"]
+        self._Btn["use parent"] = self._Btn["delBone_Btn"].checks["use parent"]
+        self._Btn["delete"] = self._Btn["delBone_Btn"].checks["delete"]
+        self._Btn["fast"] = self._Btn["delBone_Btn"].checks["fast"]
+        self._Btn["query"] = self._Btn["unifyBn_Btn"].checks["query"]
+        self._Btn["invert"] = self._Btn["onlySel_Btn"].checks["invert"]
+        self._Btn["model only"] = self._Btn["BindFix_Btn"].checks["model only"]
+        self._Btn["in Pose"] = self._Btn["BindFix_Btn"].checks["in Pose"]
+        self._Btn["relax"] = self._Btn["smthBrs_Btn"].checks["relax"]
+        self._Btn["volume"] = self._Btn["smthBrs_Btn"].checks["volume"]
+
+
         self.checkedButtons = [self._Btn["AvgWght_Btn"], self._Btn["trsfrSK_Btn"], self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], self._Btn["toJoint_Btn"], 
                                self._Btn["cutMesh_Btn"], self._Btn["delBone_Btn"], self._Btn["unifyBn_Btn"], self._Btn["onlySel_Btn"], self._Btn["BindFix_Btn"], self._Btn["smthBrs_Btn"]]
 

@@ -4,7 +4,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.ThirdParty import requests
 
-import re, difflib, math
+import re, difflib, math, tempfile, base64, os
 from functools import partial
 
 def getDebugState():
@@ -147,8 +147,12 @@ def toolButton(pixmap='', orientation=0, size=None):
     btn.setFocusPolicy(Qt.NoFocus)
     btn.setStyleSheet('border: 0px;')
     if size is not None:
-        btn.setFixedSize(QSize(size, size))
-        btn.setIconSize(QSize(size, size))
+        if type(size) == int:
+            btn.setFixedSize(QSize(size, size))
+            btn.setIconSize(QSize(size, size))
+        else:
+            btn.setFixedSize(size)
+            btn.setIconSize(size)
     return btn
 
 def arrowButton(arrowType, sizePolicy ):
@@ -470,7 +474,7 @@ def addChecks(cls, button, checks=None):
 
     functions, popup = addContextToMenu(cls, checks, button)
     button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
-    return checks
+    
 
 def addContextToMenu(cls, actionNames, btn):
     """ add context menu to button based on the checkboxes
@@ -604,6 +608,31 @@ def incrementName(name):
         return "%s%s"%( name[:-len(i)], int(i) + 1)
     return name + '1'
 
+def convertImageToString(inPath):
+    """ convenience function to save an image as a string format so the image does not have to be placed with the file
+
+    :param inPath: the path the the image
+    :type inPath: string
+    :return: encoded string and extension type
+    :rtype: list
+    """
+    with open(inPath, "rb") as imageFile:
+        _str = base64.b64encode(imageFile.read())
+    return [_str, os.path.splitext(inPath)[-1]]
+
+def convertStringToImage(inString):
+    """ convenience function to restore an image from an encoded string
+
+    :param inString: encoded string and extension type
+    :type inString: list
+    :return: the path the the image
+    :rtype: string
+    """
+    filePath = os.path.join(tempfile.gettempdir(), "img%s"%inString[-1])
+    with open(filePath, "wb") as fh:
+        fh.write(inString[0].decode('base64'))
+    return filePath
+
 # ----------- google drive functionality --------
 
 def gDriveDownload(urlinfo, destination, progressBar = None):
@@ -644,6 +673,13 @@ def saveResponseContent(response, destination):
 # ------------------ google drive end -------------------------------
 
 def QuickDialog(title):
+    """ convenience Quick dialog for simple accept and reject functions
+    
+    :param title: title for the dialog
+    :type title: string
+    :return: the window to be created
+    :rtype: QDialog
+    """
     from SkinningTools.Maya import api
     myWindow = QDialog(api.get_maya_window())
     myWindow.setWindowTitle(title)
