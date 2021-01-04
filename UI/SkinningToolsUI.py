@@ -236,7 +236,8 @@ class SkinningToolsUI(interface.DockWidget):
         _dict["Copy closest weigth"] = [ClosestVertexWeightWidget(self), ":/arcLengthDimension.svg"]
         _dict["Transfer weigths"] = [TransferWeightsWidget(self), ":/alignSurface.svg"]
         _dict["Transfer Uv's"] = [TransferUvsWidget(self), ":/UVEditorBakeTexture.png"]
-        _dict["Assign soft selection"] = [AssignWeightsWidget(self), ":/Grab.png"]
+        # this feature is to be added later; needs to be thuroughly tested!
+        # _dict["Assign soft selection"] = [AssignWeightsWidget(self), ":/Grab.png"]
         
         for key, value in _dict.iteritems():
             _tab = self.copyToolsTab.addGraphicsTab(key, useIcon = value[1])

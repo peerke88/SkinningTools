@@ -743,3 +743,14 @@ class WeightEditorWindow(QWidget):
     def closeEvent(self, e):
         self.setClose()
 
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    mwd  = QMainWindow(mainWindow)
+    mwd.setWindowTitle("WeightEditor Test window")
+    wdw = WeightEditorWindow(parent = mainWindow)
+    wdw.isInView = True
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw

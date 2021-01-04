@@ -6,7 +6,7 @@ from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningTools
 from SkinningTools.UI.hoverIconButton import HoverIconButton
 
 class SkinSliderSetup(QWidget):
-    def __init__(self, inGraph=None, inProgressBar=None, parent=None):
+    def __init__(self, parent=None):
         super(SkinSliderSetup, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.isInView = True
@@ -69,3 +69,17 @@ class SkinSliderSetup(QWidget):
         if self._doSelectCB is not None:
             api.disconnectCallback(self._doSelectCB)
             self._doSelectCB = None
+
+
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    mwd  = QMainWindow(mainWindow)
+    mwd.setWindowTitle("SkinSliderSetup Test window")
+    wdw = SkinSliderSetup(parent = mainWindow)
+    wdw.isInView = True
+    wdw.createCallback()
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw

@@ -11,7 +11,17 @@ _DEBUG = getDebugState()
 # @todo: maybe convert the favourite functionality to a tag system instead of a list based function
 # this could make code easier to read and adjust + more simple to find the objects necessary
 
+
+'''
+language settings:
+ - use this widget as a base
+ - we could create language systems for each widget that shows ui 
+ - allanguages could be added in a seperate folder
+ - use the utils function to load language files and change the settings
+ - use the language widget to create new language formats?
+'''
 class VertAndBoneFunction(QWidget):
+
     def __init__(self, local = "en_US", inGraph=None, inProgressBar=None, parent=None):
         super(VertAndBoneFunction, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
@@ -48,16 +58,26 @@ class VertAndBoneFunction(QWidget):
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
         for key, value in localeDict.iteritems():
-            self._Btn[key].setText(value)
-        pass
-
+            if isinstance(self._Btn[key], QCheckBox):
+                self._Btn[key].setToolTip(value)
+            else:
+                self._Btn[key].setText(value)
+        
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
         for key, value in self._Btn.iteritems():
-            _ret[key] = value.text()
+            if isinstance(self._Btn[key], QCheckBox):
+                _ret[key] = value.toolTip()
+            else:
+                _ret[key] = value.text()
         return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        pass
           
     # ------------------------------- visibility tools ------------------------------- 
     def showTools(self):
@@ -386,7 +406,7 @@ class VertAndBoneFunction(QWidget):
             QApplication.restoreOverrideCursor()
 
     def eventFilter(self, obj, event):
-        if event is None:
+        if event is None or self is None:
             return
         if event.type() == QEvent.MouseButtonPress:
             obj = QApplication.widgetAt(QCursor.pos())
@@ -471,3 +491,15 @@ class VertAndBoneFunction(QWidget):
         sc = api.skinClusterForObject(selection[0])
         if sc:
             updateBrushCommand(_CTX, sc, _radius, int(sender.checks["relax"].isChecked()))
+
+
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    mwd  = QMainWindow(mainWindow)
+    mwd.setWindowTitle("VertAndBoneFunction Test window")
+    wdw = VertAndBoneFunction(parent = mainWindow)
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw
