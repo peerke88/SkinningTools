@@ -85,8 +85,8 @@ Acknowledgments
     - Qt: LGPL 2.1 
     - dot: EPL
 
-``googletrans``
-  * Author: `Su Hun Han`_
+``google_trans_new``
+  * Author: `LuShan`_
   * License: Freeware(MIT)
 
 ``requests``
@@ -97,5 +97,5 @@ Acknowledgments
 .. _Ryan Porter: https://yantor3d.wordpress.com/
 .. _David Allouche: https://github.com/pwaller/pyprof2calltree/blob/master/LICENSE
 .. _Josef Weidendorfer: http://kcachegrind.sourceforge.net/html/Home.html
-.. _Su Hun Han: https://pypi.org/project/googletrans/
+.. _LuShan: https://github.com/lushan88a/google_trans_new
 .. _Kenneth Reitz: http://python-requests.org

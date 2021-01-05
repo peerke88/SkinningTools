@@ -51,43 +51,137 @@ print locale.windows_locale.values()
 import json
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
-from SkinningTools.ThirdParty.google_trans import Translator, LANGUAGES
+from SkinningTools.ThirdParty.google_trans_new import google_translator, LANGUAGES
+from SkinningTools.Maya import interface
+
+class SearchableComboBox(QComboBox):
+    def __init__(self, parent=None):
+        QComboBox.__init__(self, parent)
+        self.setInsertPolicy(QComboBox.NoInsert)
+        self.setFocusPolicy(Qt.ClickFocus)
+        self.setEditable(True)
+
+        self.completer = QCompleter(self)
+        self.completer.setModel(self.model())
+        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.setCompleter(self.completer)
+
+        self.lineEdit().editingFinished.connect(self._sync)
+
+    def _sync(self):
+        text = self.currentText()
+        opt = self.itemText(self.currentIndex())
+        if opt != text:
+            self.setCurrentText(opt)
+
+class TranslatorDialog(QDialog):
+    def __init__(self, inDict, defaultLanguage = "japanese", parent = None):
+        super(TranslatorDialog, self).__init__(parent)
+        self.setWindowTitle("translator")
+        self.setLayout(nullVBoxLayout())
+
+        h = nullHBoxLayout()
+        label = QLabel("translate to:")
+        self.combo = SearchableComboBox()
+        for language in LANGUAGES.values():
+            self.combo.addItem(language)
+
+        for w in [label, self.combo]:
+            h.addWidget(w)
+
+        self.layout().addLayout(h)
+
+        self.progressBar = QProgressBar()
+        self.layout().addWidget(self.progressBar)
+
+        self._translator = google_translator()#['translate.googleapis.com'])
+        _id = 0
+        if defaultLanguage in LANGUAGES.values():
+            _id = LANGUAGES.values().index(defaultLanguage)
+
+        self.combo.setCurrentIndex(_id)
+        self.__inDict = inDict
+        self._layouts = []
+
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(1)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        _frame = QFrame()
+        scrollArea.setWidget(_frame)
+        self.frameLayout = nullVBoxLayout()
+        _frame.setLayout(self.frameLayout)
+        self.layout().addWidget(scrollArea)
+        self._populateDialog()
+
+        self.combo.currentIndexChanged.connect(self._doTranslate)
+
+        btn = pushButton("save translation")
+        btn.clicked.connect(self.storeTranslation)
+        self.layout().addWidget(btn)
+
+    def getLangValue(self):
+        _txt = self.combo.currentText()
+        _keyList = LANGUAGES.keys()
+        _valList = LANGUAGES.values()
+        _id = _valList.index(_txt)
+        return _keyList[_id]
+
+    def translateConnection(self, key, inText):
+        h = nullHBoxLayout()
+        label = QLabel(inText)
+        txt = self._translator.translate(inText,lang_tgt=self.getLangValue())
+        if type(txt) in [list, tuple]:
+            txt = txt[0]
+        line = QLineEdit(txt)
+        for w in [label, line]:
+            h.addWidget(w)
+        h._info = [key, inText, line]    
+        return h
+
+    def _populateDialog(self):
+        perc = 99.0 / len(self.__inDict.values())
+
+        for index, (key, value) in enumerate(self.__inDict.iteritems()):
+            setProgress(index * perc, None, "getting translation info on : %s"%value)
+            h = self.translateConnection(key, value)
+            self._layouts.append(h)
+            self.frameLayout.addLayout(h)
+
+        setProgress(100, None, "grabbed all info")
+    
+    def _doTranslate(self):
+        perc = 99.0 / len(self.__inDict.values())
+
+        for index, h in enumerate(self._layouts):
+            key, base, lineEdit = h._info
+            setProgress(index * perc, self.progressBar, "getting translation info on : %s"%base)
+            txt = self._translator.translate(base ,lang_tgt=self.getLangValue())
+            if type(txt) in [list, tuple]:
+                txt = txt[0]
+            lineEdit.setText(txt)
+            self.update()
+        
+        setProgress(100, self.progressBar, "grabbed all info")
+
+    def _createDict(self):
+        outDict = {}
+        for h in self._layouts:
+            key, base, lineEdit = h._info
+            outDict[key] = lineEdit.text()
+        return outDict
+
+    def storeTranslation(self):
+        outDict = self._createDict()
+        language = self.getLangValue()
+
+        print language
+        print outDict
 
 
-class DictionaryCreator(QWidget):
-	def __init__(self, inLanguage, inDict, parent = None):
-		super(DictionaryCreator, self).__init__(parent)
-		self.setLayout(nullVBoxLayout())
-		self.currentLanguage =''
-		
-		_res = self.setCurrentLanguage(inLanguage)
-		if not _res:
-			return
-
-
-
-	def setCurrentLanguage(inLanguage):
-		#@Note this might not be necessary if we force the user to take the languages from google api
-		if inLanguage in LANGUAGES.keys():
-			self.currentLanguage = inLanguage
-			return True
-		if inLanguage in LANGUAGES.values():
-			for key, value in LANGUAGES.iteritems():
-				if inLanguage != value:
-					continue
-				self.currentLanguage = key
-				return True
-		if self.currentLanguage == '':
-			return False
-
-
-
-
-class Translator(object):
-	def __init__(self):
-
-		self.languageFiles = [] #glob the json files from somwhere, english should exist by default
-		self.__defaultLanguage = "EN"
-		self.__currentLanguage = ''
-
-
+def testUI(inDict):
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    wdw = TranslatorDialog(inDict, parent = mainWindow)
+    wdw.show()
+    return wdw
