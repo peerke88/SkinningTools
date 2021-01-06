@@ -6,6 +6,8 @@ from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningTools
 from SkinningTools.UI.hoverIconButton import HoverIconButton
 
 class SkinSliderSetup(QWidget):
+    toolName = "SkinSliderSetup"
+
     def __init__(self, parent=None):
         super(SkinSliderSetup, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
@@ -14,17 +16,46 @@ class SkinSliderSetup(QWidget):
 
         self.jointSearch = []
         self._doSelectCB = None
+        self.textInfo = {}
         self.__setUI()
 
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui setup ----------------------------------    
     def __setUI(self):
         searchLay = nullHBoxLayout()
         searchLay.setSpacing(0)
-        searchLay.addWidget(QLabel('Search: '))
-        self.jointSearchLE = LineEdit()
-        self.jointSearchLE.setPlaceholderText("Type part of joint name to search...")
-        self.jointSearchLE.editingFinished.connect(self.searchJointName)
-        self.jointSearchLE.textChanged.connect(self.searchJointName)
-        searchLay.addWidget(self.jointSearchLE)
+        self.textInfo["label"]=QLabel('Search: ')
+        searchLay.addWidget(self.textInfo["label"])
+        self.textInfo["jointSearchLE"] = LineEdit()
+        self.textInfo["jointSearchLE"].setPlaceholderText("Type part of joint name to search...")
+        self.textInfo["jointSearchLE"].editingFinished.connect(self.searchJointName)
+        self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
+        searchLay.addWidget(self.textInfo["jointSearchLE"])
         self.showButton = HoverIconButton()
         self.showButton.setCustomIcon(":/RS_visible.png", ":/RS_visible.png", ":/hotkeyFieldClear.png")
         self.showButton.setCheckable(True)
@@ -43,8 +74,8 @@ class SkinSliderSetup(QWidget):
     def searchJointName(self):
         _allJoints = self.inflEdit.getJointData()
         self.jointSearch = _allJoints
-        if str(self.jointSearchLE.text()) != '':
-            _text = self.jointSearchLE.text().split(' ')
+        if str(self.textInfo["jointSearchLE"].text()) != '':
+            _text = self.textInfo["jointSearchLE"].text().split(' ')
             _text = [name for name in _text if name != '']
             self.jointSearch = [inf for inf in _allJoints if any([True if s.upper() in inf.split('|')[-1].upper() else False for s in _text])]
         self.inflEdit.showOnlyJoints(self.jointSearch)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 QT_VERSION = "none"
 ERROR_LIST = {}
+
 try:
     from PySide.QtGui import *
     from PySide.QtCore import *
@@ -45,34 +46,8 @@ if QT_VERSION == "none":
     for version in ERROR_LIST.keys():
         print(version, ERROR_LIST[version])
 
-import os
-
-QT_STYLESHEET = os.path.normpath(os.path.join(__file__, "../qOrange.stylesheet"))
-
-try:
-    from PyQt4 import uic
-
-    uic.uiparser.logger.setLevel(logging.CRITICAL)
-    uic.properties.logger.setLevel(logging.CRITICAL)
-except:
-    pass
-try:
-    import pysideuic
-
-    pysideuic.uiparser.logger.setLevel(logging.CRITICAL)
-    pysideuic.properties.logger.setLevel(logging.CRITICAL)
-except:
-    pass
-try:
-    import pyside2uic as pysideuic
-
-    pysideuic.uiparser.logger.setLevel(logging.CRITICAL)
-    pysideuic.properties.logger.setLevel(logging.CRITICAL)
-except:
-    pass
 
 nameRegExp = QRegExp('\\w+')
-
 
 def wrapinstance(ptr, base=None):
     '''workaround to be able to wrap objects with both PySide and PyQt4'''

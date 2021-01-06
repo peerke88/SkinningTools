@@ -7,6 +7,8 @@ from SkinningTools.UI.dialogs.remapDialog import RemapDialog
 
 
 class MayaToolsHeader(QWidget):
+    toolName = "MayaToolsHeader"
+    
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(MayaToolsHeader, self).__init__(parent)
         self.setLayout(nullVBoxLayout())

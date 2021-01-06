@@ -27,7 +27,7 @@ from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-import webbrowser
+import webbrowser, os
 
 class SkinningToolsUI(interface.DockWidget):
     """ main skinningtools UI class
@@ -91,6 +91,7 @@ class SkinningToolsUI(interface.DockWidget):
     def __defaults(self):
         """ some default local variables for the current UI    
         """
+        self.languageWidgets = []
         interface.showToolTip(True)
         self._timer = QTimer()
         self._timer.timeout.connect(self._displayToolTip)
@@ -127,9 +128,10 @@ class SkinningToolsUI(interface.DockWidget):
         for act in [apiAction, docAction, self.tooltipAction]:
             helpAction.addAction(act)
 
-        self.changeLN = QMenu("[EN]", self)
-        
-        for language in ["[EN]", "[日本]"]:
+
+        self.changeLN = QMenu("en", self)
+        languageFiles = os.listdir(os.path.join(_DIR, "languages"))
+        for language in languageFiles:
             ac = QAction(language, self)
             self.changeLN.addAction(ac)
             ac.triggered.connect(self._changeLanguage)
@@ -157,6 +159,10 @@ class SkinningToolsUI(interface.DockWidget):
         """ change the ui language
         """
         self.changeLN.setTitle(self.sender().text())
+
+        for widget in self.languageWidgets:
+            _dict = loadLanguageFile(self.sender().text(), widget.toolName)
+            widget.translate(_dict)
 
     def __tabsSetup(self):
         """ main tab widget which will hold all other widget information
@@ -208,6 +214,7 @@ class SkinningToolsUI(interface.DockWidget):
         tab = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions", useIcon = ":/create.png")
         vLayout = nullVBoxLayout()
         self.vnbfWidget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
+        self.languageWidgets.append(self.vnbfWidget)
         vLayout.addWidget(self.vnbfWidget)
         tab.view.frame.setLayout(vLayout)
 
@@ -252,6 +259,7 @@ class SkinningToolsUI(interface.DockWidget):
         vLayout = nullVBoxLayout()
 
         self.skinSlider = SkinSliderSetup(self)
+        self.languageWidgets.append(self.skinSlider)
         self.skinSlider.isInView = False
         self.skinSlider.createCallback()
 

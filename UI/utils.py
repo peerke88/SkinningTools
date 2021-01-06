@@ -4,8 +4,10 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.ThirdParty import requests
 
-import re, difflib, math, tempfile, base64, os
+import re, difflib, math, tempfile, base64, os, json
 from functools import partial
+
+UIDIRECTORY = os.path.dirname(__file__)
 
 def getDebugState():
     """ convenience function to work with debug mode 
@@ -262,6 +264,31 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
         return False
     return True
 
+def storeLanguageFile(inDict, language, widgetName):
+    languagesDir = os.path.join(UIDIRECTORY, "languages")
+    curLangDir = os.path.join(languagesDir, language)
+    if not os.path.exists(curLangDir):
+        os.makedirs(curLangDir)
+    
+    widgetLanguageFile = os.path.join(curLangDir, "%s.LAN"%widgetName)
+    with open(widgetLanguageFile, 'w+') as f:
+        json.dump(inDict, f, indent=2)
+
+def loadLanguageFile(language, widgetName):
+    languagesDir = os.path.join(UIDIRECTORY, "languages")
+    curLangDir = os.path.join(languagesDir, language)
+    if not os.path.exists(curLangDir):
+        print "no language (%s) folder found for widget <%s>!"%(language, widgetName)
+        return
+
+    widgetLanguageFile = os.path.join(curLangDir, "%s.LAN"%widgetName)
+    if not os.path.exists(widgetLanguageFile):
+        print "no language (%s) file found for widget <%s>!"%(language, widgetName)
+        return
+
+    with open(widgetLanguageFile) as f:
+        _data = json.load(f)
+    return _data
 
 def setProgress(inValue, progressBar=None, inText=''):
     """ convenience function to set the progress bar value even when a qProgressbar does not exist

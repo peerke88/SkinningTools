@@ -12,6 +12,8 @@ from maya import cmds
 
 
 class TransferWeightsWidget(QWidget):
+    toolName = "TransferWeightsWidget"
+
     def __init__(self, parent=None):
         super(TransferWeightsWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
@@ -205,6 +207,8 @@ class TransferWeightsWidget(QWidget):
                 cmds.warning('%s does not exist in currentScene' % (selectionItem[0].split('.')[0]))
 
 class ClosestVertexWeightWidget(QWidget):
+    toolName = "ClosestVertexWeightWidget"
+
     def __init__(self, parent=None):
         super(ClosestVertexWeightWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
@@ -311,6 +315,8 @@ class ClosestVertexWeightWidget(QWidget):
         self.clearUI()
 
 class TransferUvsWidget(QWidget):
+    toolName = "TransferUvsWidget"
+
     def __init__(self, parent=None):
         super(TransferUvsWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
@@ -411,6 +417,8 @@ class TransferUvsWidget(QWidget):
         self.clearUI()
 
 class AssignWeightsWidget(QWidget):
+    toolName = "AssignWeightsWidget"
+
     '''
     #@note: untested!
     
@@ -548,3 +556,18 @@ class AssignWeightsWidget(QWidget):
             h.deleteLater()
 
 
+def testUI(widgetIndex = 0):
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    widgets = {0: TransferWeightsWidget,
+               1: ClosestVertexWeightWidget,
+               2: TransferUvsWidget,
+               3: AssignWeightsWidget}
+
+    mwd  = QMainWindow(mainWindow)
+    mwd.setWindowTitle("%s Test window"%widgets[widgetIndex].toolName)
+    wdw = widgets[widgetIndex](parent = mainWindow)
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw

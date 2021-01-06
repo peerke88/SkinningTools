@@ -21,8 +21,9 @@ language settings:
  - use the language widget to create new language formats?
 '''
 class VertAndBoneFunction(QWidget):
+    toolName = "VertAndBoneFunction"
 
-    def __init__(self, local = "en_US", inGraph=None, inProgressBar=None, parent=None):
+    def __init__(self, local = "en", inGraph=None, inProgressBar=None, parent=None):
         super(VertAndBoneFunction, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
@@ -77,7 +78,9 @@ class VertAndBoneFunction(QWidget):
     def doTranslate(self):
         """ seperate function that calls upon the translate widget to help create a new language
         """
-        pass
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
           
     # ------------------------------- visibility tools ------------------------------- 
     def showTools(self):

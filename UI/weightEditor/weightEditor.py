@@ -18,6 +18,8 @@ from SkinningTools.UI.weightEditor.popupSpinBox import PopupSpinBox
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
 
 class WeightEditorWindow(QWidget):
+    toolName = "WeightEditorWindow"
+
     def __init__(self, parent = None):
         super(WeightEditorWindow, self).__init__(parent)
         self.isInView = True
