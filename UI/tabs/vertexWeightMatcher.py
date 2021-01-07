@@ -19,6 +19,8 @@ class TransferWeightsWidget(QWidget):
         self.setLayout(nullVBoxLayout())
         self.__defaults()
 
+        self.textInfo = {}
+
         v1 = self.__vertexFunc()
         v2 = self.__skinClusterFunc()
 
@@ -27,7 +29,34 @@ class TransferWeightsWidget(QWidget):
 
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.__restoreSettings()
+    
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
+        return _ret
 
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui setup ---------------------------------- 
     def __defaults(self):
         self.settings = QSettings('TransferWeightsWidget', 'storedSelection')
 
@@ -40,10 +69,10 @@ class TransferWeightsWidget(QWidget):
         self.list.itemSelectionChanged.connect(self.__applySelectionCB)
         self.list.itemDoubleClicked.connect(self.__deleteItemCB)
 
-        btn = buttonsToAttach('StoreSelection', self.__storeSelectionCB)
-        btn1 = buttonsToAttach('ClearList', self.__clearSelectionCB)
-        h.addWidget(btn)
-        h.addWidget(btn1)
+        self.textInfo["btn"] = buttonsToAttach('StoreSelection', self.__storeSelectionCB)
+        self.textInfo["btn1"] = buttonsToAttach('ClearList', self.__clearSelectionCB)
+        h.addWidget(self.textInfo["btn"])
+        h.addWidget(self.textInfo["btn1"])
 
         v1.addWidget(self.list)
         v1.addLayout(h)
@@ -52,27 +81,27 @@ class TransferWeightsWidget(QWidget):
     def __skinClusterFunc(self):
         v2 = nullVBoxLayout()
         grid = nullGridLayout()
-        self.source = QLineEdit('No source')
-        self.source.setPlaceholderText("No source given...")
-        self.target = QLineEdit('No target')
-        self.target.setPlaceholderText("No target given...")
-        btn = buttonsToAttach("Grab Source", partial(self.__grabSkinCl, self.source))
-        btn1 = buttonsToAttach("Grab Target", partial(self.__grabSkinCl, self.target))
+        self.textInfo["source"] = QLineEdit()
+        self.textInfo["source"].setPlaceholderText("No source given...")
+        self.textInfo["target"] = QLineEdit()
+        self.textInfo["target"].setPlaceholderText("No target given...")
+        self.textInfo["btn2"] = buttonsToAttach("Grab Source", partial(self.__grabSkinCl, self.textInfo["source"]))
+        self.textInfo["btn3"] = buttonsToAttach("Grab Target", partial(self.__grabSkinCl, self.textInfo["target"]))
 
-        for l in [self.source, self.target]:
+        for l in [self.textInfo["source"], self.textInfo["target"]]:
             l.setText('')
             l.setStyleSheet('color:#000; background-color: #ad4c4c;')
             l.setEnabled(False)
 
-        for i, w in enumerate([self.source, self.target, btn, btn1]):
+        for i, w in enumerate([self.textInfo["source"], self.textInfo["target"], self.textInfo["btn2"], self.textInfo["btn3"]]):
             row = i / 2
             grid.addWidget(w, i - (row * 2), row)
 
-        btn2 = buttonsToAttach('Copy selected vertices', self.__copySkinDataCB)
-        self.additive = QCheckBox('Additive')
+        self.textInfo["btn4"] = buttonsToAttach('Copy selected vertices', self.__copySkinDataCB)
+        self.textInfo["additive"] = QCheckBox('Additive')
         v2.addLayout(grid)
-        v2.addWidget(btn2)
-        v2.addWidget(self.additive)
+        v2.addWidget(self.textInfo["btn4"])
+        v2.addWidget(self.textInfo["additive"])
         v2.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding))
 
         self.__loadBar = None
@@ -107,15 +136,15 @@ class TransferWeightsWidget(QWidget):
         self.__loadBar = loadingBar
 
     def __copySkinDataCB(self):
-        source = str(self.source.text())
-        target = str(self.target.text())
+        source = str(self.textInfo["source"].text())
+        target = str(self.textInfo["target"].text())
         if not cmds.objExists(source) or not cmds.objExists(target):
-            cmds.error('Must load an existing source and target skin cluster to copy between')
+            print('Must load an existing source and target skin cluster to copy between')
             return
         expandedVertices = convertToVertexList(cmds.ls(sl=1, fl=1))
         if not expandedVertices:
-            cmds.error('Must select vertices to copy weights for')
-
+            print('Must select vertices to copy weights for')
+            return
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
         inInfluences = cmds.skinCluster(source, q=True, influence=True)
 
@@ -216,8 +245,35 @@ class ClosestVertexWeightWidget(QWidget):
         self.__setButtons()
         self.clearUI()
 
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui setup ---------------------------------- 
     def __setButtons(self):
-        label = QLabel("look closest Vtx amount:")
+        self.textInfo["label"] = QLabel("look closest Vtx amount:")
         self.spinBox = QSpinBox()
         self.spinBox.setSingleStep(1)
         self.spinBox.setMinimum(1)
@@ -230,38 +286,39 @@ class ClosestVertexWeightWidget(QWidget):
         for h in [h0, h1, h2]:
             self.layout().addLayout(h)
 
-        for w in [label, self.spinBox]:
+        for w in [self.textInfo["label"], self.spinBox]:
             h0.addWidget(w)
 
-        self.line1 = QLineEdit()
-        self.line1.setPlaceholderText("No Source given...")
-        self.line2 = QLineEdit()
-        self.line2.setPlaceholderText("No Target given...")
-        for l in [self.line1, self.line2]:
+        self.textInfo["line1"] = QLineEdit()
+        self.textInfo["line1"].setPlaceholderText("No Source given...")
+        self.textInfo["line2"] = QLineEdit()
+        self.textInfo["line2"].setPlaceholderText("No Target given...")
+        for l in [self.textInfo["line1"], self.textInfo["line2"]]:
             l.userData = []
             l.setEnabled(0)
 
-        btn1 = buttonsToAttach("<< Source", partial(self.__setValue, self.line1))
-        btn2 = buttonsToAttach("<< Target", partial(self.__setValue, self.line2))
+        self.textInfo["btn1"] = buttonsToAttach("<< Source", partial(self.__setValue, self.textInfo["line1"]))
+        self.textInfo["btn2"] = buttonsToAttach("<< Target", partial(self.__setValue, self.textInfo["line2"]))
 
-        for w in [self.line1, btn1]:
+        for w in [self.textInfo["line1"], self.textInfo["btn1"]]:
             h1.addWidget(w)
-        for w in [self.line2, btn2]:
+        for w in [self.textInfo["line2"], self.textInfo["btn2"]]:
             h2.addWidget(w)
 
-        self.trnsComp = buttonsToAttach("Transfer Components", self._transferComp)
+        self.textInfo["trnsComp"] = buttonsToAttach("Transfer Components", self._transferComp)
 
-        self.rst = buttonsToAttach("reset", self.clearUI)
-        for btn in [self.trnsComp, self.rst]:
+        self.textInfo["rst"] = buttonsToAttach("reset", self.clearUI)
+        for btn in [self.textInfo["trnsComp"], self.textInfo["rst"]]:
             self.layout().addWidget(btn)
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __defaults(self):
+        self.textInfo = {}
         self.compSetting = [0, 0]
         self.__loadBar = None
 
     def clearUI(self):
-        for l in [self.line1, self.line2]:
+        for l in [self.textInfo["line1"], self.textInfo["line2"]]:
             l.setText('')
             l.setStyleSheet('color:#000; background-color: #ad4c4c;')
         self.compSetting = [0, 0]
@@ -273,12 +330,12 @@ class ClosestVertexWeightWidget(QWidget):
         inLineEdit.userData = [selection, skinCluster]
         inLineEdit.setText(mesh)
         inLineEdit.setStyleSheet('background-color: #17D206;')
-        self.compSetting[[self.line1, self.line2].index(inLineEdit)] = 1
+        self.compSetting[[self.textInfo["line1"], self.textInfo["line2"]].index(inLineEdit)] = 1
         self.__checkEnabled()
 
     def __checkEnabled(self):
-        self.trnsComp.setEnabled(self.compSetting == [1, 1])
-        self.rst.setEnabled(self.compSetting != [0, 0])
+        self.textInfo["trnsComp"].setEnabled(self.compSetting == [1, 1])
+        self.textInfo["rst"].setEnabled(self.compSetting != [0, 0])
 
     def __storeVerts(self, inputVerts):
         Mesh = inputVerts[0].split('.')[0]
@@ -297,12 +354,12 @@ class ClosestVertexWeightWidget(QWidget):
         self.__loadBar = loadingBar
 
     def _transferComp(self):
-        if '' in [self.line1.text(), self.line2.text()]:
+        if '' in [self.textInfo["line1"].text(), self.textInfo["line2"].text()]:
             cmds.warning('source or target selection is not defined!')
             return
 
-        TargetSelection, TargetSkinCluster = self.line1.userData
-        SourceSelection, SourceSkinCluster = self.line2.userData
+        TargetSelection, TargetSkinCluster = self.textInfo["line1"].userData
+        SourceSelection, SourceSkinCluster = self.textInfo["line2"].userData
 
         execCopySourceTarget(
             TargetSkinCluster=TargetSkinCluster,
@@ -324,21 +381,48 @@ class TransferUvsWidget(QWidget):
         self.__setButtons()
         self.clearUI()
 
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui setup ---------------------------------- 
     def __setButtons(self):
         label = QLabel("transfer Uv from static to skinned:")
         h0 = nullHBoxLayout()
 
-        self.line1 = QLineEdit()
-        self.line1.setPlaceholderText("No Source given...")
-        self.line2 = QLineEdit()
-        self.line2.setPlaceholderText("No Target given...")
-        for l in [self.line1, self.line2]:
+        self.textInfo["line1"] = QLineEdit()
+        self.textInfo["line1"].setPlaceholderText("No Source given...")
+        self.textInfo["line2"] = QLineEdit()
+        self.textInfo["line2"].setPlaceholderText("No Target given...")
+        for l in [self.textInfo["line1"], self.textInfo["line2"]]:
             l.setEnabled(0)
         
         self.combo1 = QComboBox()
         self.combo2 = QComboBox()
-        self.sourceBtn = buttonsToAttach( "Source", partial(self.__setValue, self.line1, self.combo1))
-        self.targetBtn = buttonsToAttach( "Target", partial(self.__setValue, self.line2, self.combo2))
+        self.textInfo["sourceBtn"] = buttonsToAttach( "Source", partial(self.__setValue, self.textInfo["line1"], self.combo1))
+        self.textInfo["targetBtn"] = buttonsToAttach( "Target", partial(self.__setValue, self.textInfo["line2"], self.combo2))
 
         h1 = nullHBoxLayout()
         h2 = nullHBoxLayout()
@@ -348,33 +432,34 @@ class TransferUvsWidget(QWidget):
         for h in [h0, h1]:
             self.layout().addLayout(h)
         
-        for w in [self.sourceBtn, self.targetBtn]:
+        for w in [self.textInfo["sourceBtn"], self.textInfo["targetBtn"]]:
             h0.addWidget(w)
 
         for h in [h2, h3]:
             h1.addLayout(h)
 
-        for w in [self.line1, self.combo1]:
+        for w in [self.textInfo["line1"], self.combo1]:
             h2.addWidget(w)
 
-        for w in [self.line2, self.combo2]:
+        for w in [self.textInfo["line2"], self.combo2]:
             h3.addWidget(w)
 
-        self.trnsComp = buttonsToAttach("Transfer uvs", self._transferUV)
+        self.textInfo["trnsComp"] = buttonsToAttach("Transfer uvs", self._transferUV)
 
-        self.rst = buttonsToAttach("reset", self.clearUI)
-        for btn in [self.trnsComp, self.rst]:
+        self.textInfo["rst"] = buttonsToAttach("reset", self.clearUI)
+        for btn in [self.textInfo["trnsComp"], self.textInfo["rst"]]:
             self.layout().addWidget(btn)
 
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def __defaults(self):
+        self.textInfo = {}
         self.compSetting = [0, 0]
         self.__loadBar = None
 
     
     def clearUI(self):
-        for l in [self.line1, self.line2]:
+        for l in [self.textInfo["line1"], self.textInfo["line2"]]:
             l.setText('')
             l.setStyleSheet('color:#000; background-color: #ad4c4c;')
         self.compSetting = [0, 0]
@@ -394,23 +479,23 @@ class TransferUvsWidget(QWidget):
         inCombo.clear()
         inCombo.addItems(uvSets)
 
-        self.compSetting[[self.line1, self.line2].index(inLineEdit)] = 1
+        self.compSetting[[self.textInfo["line1"], self.textInfo["line2"]].index(inLineEdit)] = 1
 
         self.__checkEnabled()
 
     def __checkEnabled(self):
-        self.trnsComp.setEnabled(self.compSetting == [1, 1])
-        self.rst.setEnabled(self.compSetting != [0, 0])
+        self.textInfo["trnsComp"].setEnabled(self.compSetting == [1, 1])
+        self.textInfo["rst"].setEnabled(self.compSetting != [0, 0])
 
     def addLoadingBar(self, loadingBar):
         self.__loadBar = loadingBar
 
     def _transferUV(self):
-        if '' in [self.line1.text(), self.line2.text()]:
+        if '' in [self.textInfo["line1"].text(), self.textInfo["line2"].text()]:
             cmds.warning('source or target selection is not defined!')
             return
 
-        interface.transferUV(self.line1.text(), self.line2.text(), 
+        interface.transferUV(self.textInfo["line1"].text(), self.textInfo["line2"].text(), 
                              sMap = self.combo1.currentText(), tMap = self.combo2.currentText(), 
                              progressBar = self.__loadBar)
 
@@ -448,9 +533,36 @@ class AssignWeightsWidget(QWidget):
         self.__setButtons()
         self.clearUI()
 
-    def __defaults(self):
-        pass
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
+        return _ret
 
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui setup ----------------------------------
+    def __defaults(self):
+        self.textInfo = {}
+        
     def _JointSoftGroup(self, joint):
         # todo: do we need more info in this setup?
         if joint in self.__widgets.keys():
@@ -458,13 +570,13 @@ class AssignWeightsWidget(QWidget):
         h = nullHBoxLayout()
         lbl = QLabel(joint)
 
-        _view = toolButton(":/hotkeyFieldSearch.png")
-        _assign = toolButton(":/aselect.png")
-        _clear = toolButton(":/noAccess.png")
-        _view.clicked.connect( partial(self._viewData, joint)) 
-        _assign.clicked.connect(partial(self._addData, joint))
-        _clear.clicked.connect(partial(self._cleardData, joint))
-        for w in [lbl, _view, _assign, _clear]:
+        self.textInfo["view"] = toolButton(":/hotkeyFieldSearch.png")
+        self.textInfo["assign"] = toolButton(":/aselect.png")
+        self.textInfo["clear"] = toolButton(":/noAccess.png")
+        self.textInfo["view"].clicked.connect( partial(self._viewData, joint)) 
+        self.textInfo["assign"].clicked.connect(partial(self._addData, joint))
+        self.textInfo["clear"].clicked.connect(partial(self._cleardData, joint))
+        for w in [lbl, self.textInfo["view"], self.textInfo["assign"], self.textInfo["clear"]]:
             w.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
             h.addWidget(w)
 
@@ -495,14 +607,16 @@ class AssignWeightsWidget(QWidget):
 
     def __setButtons(self):
         h = nullHBoxLayout()
-        self.searchLine = QLineEdit()
-        self.searchLine.setPlaceholderText("Type part of joint name to search...")
-        self.searchLine.editingFinished.connect(self.searchJointName)
-        self.searchLine.textChanged.connect(self.searchJointName)
+        self.textInfo["searchLine"] = QLineEdit()
+        self.textInfo["searchLine"].setPlaceholderText("Type part of joint name to search...")
+        self.textInfo["searchLine"].editingFinished.connect(self.searchJointName)
+        self.textInfo["searchLine"].textChanged.connect(self.searchJointName)
         
-        self.analyzeBtn = buttonsToAttach("analyze", self.addBones)
-        self.addBtn = buttonsToAttach("add", self.addBone)
-        for w in [QLabel("Search:"), self.searchLine, self.analyzeBtn, self.addBtn]:
+
+        self.textInfo["lbl"] = QLabel("Search:")
+        self.textInfo["analyzeBtn"] = buttonsToAttach("analyze", self.addBones)
+        self.textInfo["addBtn"] = buttonsToAttach("add", self.addBone)
+        for w in [self.textInfo["lbl"], self.textInfo["searchLine"], self.textInfo["analyzeBtn"], self.textInfo["addBtn"]]:
             h.addWidget(w)
 
         scrollArea = QScrollArea()
@@ -514,8 +628,8 @@ class AssignWeightsWidget(QWidget):
         _frame.setLayout(self.frameLayout)
         self.mainLayout.addLayout(h)
         self.mainLayout.addWidget(scrollArea)
-        _build = buttonsToAttach("build info", self.build)
-        self.mainLayout.addWidget(_build)
+        self.textInfo["build"] = buttonsToAttach("build info", self.build)
+        self.mainLayout.addWidget(self.textInfo["build"])
 
     def addBone(self):
         # get the joint to add to the current setup

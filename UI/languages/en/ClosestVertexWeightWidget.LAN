@@ -1,0 +1,9 @@
+{
+  "line2": "No Target given...", 
+  "line1": "No Source given...", 
+  "label": "look closest Vtx amount:", 
+  "trnsComp": "Transfer Components", 
+  "rst": "reset", 
+  "btn1": "<< Source", 
+  "btn2": "<< Target"
+}

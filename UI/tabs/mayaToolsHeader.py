@@ -16,6 +16,7 @@ class MayaToolsHeader(QWidget):
         self.BezierGraph = inGraph
 
         self.__graphSize = 60
+        self.textInfo = {}
 
         self._skSaveLoad = interface.skinWeight()
         self._vtSaveLoad = interface.vertexWeight()
@@ -23,25 +24,49 @@ class MayaToolsHeader(QWidget):
         self.__mayaToolsSetup()
         self.__connections()
 
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui setup ----------------------------------  
+
     def __mayaToolsSetup(self):
         h = nullHBoxLayout()
         g = nullGridLayout()
 
-        self.skSave = pushButton("Save >>")
-        self.vtSave = pushButton("Save >>")
+        self.textInfo["skSave"] = pushButton("Save >>")
+        self.textInfo["vtSave"] = pushButton("Save >>")
         self.skLine = QLineEdit()
         self.vtLine = QLineEdit()
-        self.skLoad = pushButton("<< Load")
-        self.vtLoad = pushButton("<< Load")
+        self.textInfo["skLoad"] = pushButton("<< Load")
+        self.textInfo["vtLoad"] = pushButton("<< Load")
 
-        g.addWidget(QLabel("  skin:"), 0, 0)
-        g.addWidget(QLabel("  Vtx :"), 1, 0)
-        g.addWidget(self.skSave, 0, 1)
-        g.addWidget(self.vtSave, 1, 1)
+        self.textInfo["lbl0"] = QLabel("  skin:")
+        self.textInfo["lbl1"] = QLabel("  Vtx :")
+        g.addWidget(self.textInfo["lbl0"], 0, 0)
+        g.addWidget(self.textInfo["lbl1"], 1, 0)
+        g.addWidget(self.textInfo["skSave"], 0, 1)
+        g.addWidget(self.textInfo["vtSave"], 1, 1)
         g.addWidget(self.skLine, 0, 2)
         g.addWidget(self.vtLine, 1, 2)
-        g.addWidget(self.skLoad, 0, 3)
-        g.addWidget(self.vtLoad, 1, 3)
+        g.addWidget(self.textInfo["skLoad"], 0, 3)
+        g.addWidget(self.textInfo["vtLoad"], 1, 3)
 
         filePath = self._updateGraph()
         self.graph = toolButton(filePath, size=self.__graphSize)
@@ -54,10 +79,10 @@ class MayaToolsHeader(QWidget):
         self.layout().addLayout(h)
 
     def __connections(self):
-        self.skSave.clicked.connect(self._storeSkin)
-        self.vtSave.clicked.connect(self._storeVtx)
-        self.skLoad.clicked.connect(self._loadSkin)
-        self.vtLoad.clicked.connect(self._loadVtx)
+        self.textInfo["skSave"].clicked.connect(self._storeSkin)
+        self.textInfo["vtSave"].clicked.connect(self._storeVtx)
+        self.textInfo["skLoad"].clicked.connect(self._loadSkin)
+        self.textInfo["vtLoad"].clicked.connect(self._loadVtx)
 
     def _showGraph(self):
         self.BezierGraph.show()
@@ -95,3 +120,16 @@ class MayaToolsHeader(QWidget):
             # maybe this doesnt work as intended and we need to remap by index
             self._skSaveLoad.boneInfo = rmpDialog.getConnectionInfo().values()
         self._skSaveLoad.setSkinWeigth()
+
+
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    mwd  = QMainWindow(mainWindow)
+    from SkinningTools.UI.fallofCurveUI import BezierGraph
+    mwd.setWindowTitle("MayaToolsHeader Test window")
+    wdw = MayaToolsHeader(inGraph = BezierGraph() , parent = mainWindow)
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw

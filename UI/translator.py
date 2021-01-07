@@ -200,6 +200,7 @@ class TranslatorDialog(QDialog):
         language = self.getLangValue()
 
         storeLanguageFile(outDict, language, self.widgetName)
+        self.close()
 
 def testUI(inDict, widgetName):
     mainWindow = interface.get_maya_window()

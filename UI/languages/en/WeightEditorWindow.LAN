@@ -1,0 +1,9 @@
+{
+  "clear": "clear value", 
+  "label": "Search: ", 
+  "ptVtx": "Paste Vtx Weight", 
+  "cpVtx": "Copy Vtx Weigh\"self\"s", 
+  "cpCll": "Copy Cell Value", 
+  "jointSearchLE": "Type part of joint name to search...", 
+  "ptCll": "Paste Cell Value"
+}

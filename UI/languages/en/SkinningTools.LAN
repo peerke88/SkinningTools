@@ -1,0 +1,20 @@
+{
+  "apiAction": "API documentation", 
+  "holdAction": "hold Model", 
+  "copyTab_0": "Copy closest weigth", 
+  "copyTab_1": "Transfer weigths", 
+  "copyTab_2": "Transfer Uv's", 
+  "copyTab": "copy functions", 
+  "fetchAction": "fetch Model", 
+  "vnbTab": "Vertex && bone functions", 
+  "wmTab": "Weight Manager", 
+  "mayaTab": "Maya Tools", 
+  "extraMenu": "Extra", 
+  "objSkeletonAction": "skeleton -> obj", 
+  "docAction": "UI documentation", 
+  "brushTab": "Brushes", 
+  "editorTab": "Component Editor", 
+  "simpleTab": "Simple Maya Tools", 
+  "sliderTab": "Skin Slider", 
+  "tooltipAction": "Enhanced ToolTip"
+}

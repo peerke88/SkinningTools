@@ -28,6 +28,7 @@ class TabWidget(QTabWidget):
         text = getNumericName(text, names)
         tab = QWidget()
         tab.prefix = ''
+        tab.tearOffTabName = text
         tab.usePrefix = False
         layout = QHBoxLayout(tab)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -38,6 +39,7 @@ class TabWidget(QTabWidget):
         else:
             index = self.count()
             index = self.insertTab(index, tab, text)
+        tab.cIndex = index
         view = QScrollArea()
         view.setWidgetResizable(1)
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)

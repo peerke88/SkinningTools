@@ -496,6 +496,7 @@ def addChecks(cls, button, checks=None):
         chk = QCheckBox()
         chk.setEnabled(False)
         chk.setToolTip(check)
+        chk.displayText = check
         v.addWidget(chk)
         button.checks[check] = chk
 
@@ -518,7 +519,8 @@ def addContextToMenu(cls, actionNames, btn):
     popMenu = QMenu(cls)
     allFunctions = {}
     for actionName in actionNames:
-        check = QAction(actionName, cls)
+        _name = btn.checks[actionName].displayText
+        check = QAction(_name, cls)
         check.setCheckable(True)
         check.toggled.connect(btn.checks[actionName].setChecked)
         popMenu.addAction(check)

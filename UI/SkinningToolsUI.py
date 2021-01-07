@@ -91,6 +91,7 @@ class SkinningToolsUI(interface.DockWidget):
     def __defaults(self):
         """ some default local variables for the current UI    
         """
+        self.textInfo = {}
         self.languageWidgets = []
         interface.showToolTip(True)
         self._timer = QTimer()
@@ -111,21 +112,21 @@ class SkinningToolsUI(interface.DockWidget):
         """
         self.menuBar = QMenuBar(self)
         self.menuBar.setLayoutDirection(Qt.RightToLeft)
-        self.extraMenu = QMenu('Extra', self)
+        self.textInfo["extraMenu"] = QMenu('Extra', self)
         helpAction = QMenu('', self)
         helpAction.setIcon(QIcon(":/QR_help.png"))
 
-        self.holdAction = QAction("hold Model", self)
-        self.fetchAction = QAction("fetch Model", self)
-        self.objSkeletonAction = QAction("skeleton -> obj", self)
-        apiAction = QAction("API documentation", self)
-        docAction = QAction("UI documentation", self)
-        self.tooltipAction = QAction("Enhanced ToolTip", self)
-        self.tooltipAction.setCheckable(True)
+        self.textInfo["holdAction"] = QAction("hold Model", self)
+        self.textInfo["fetchAction"] = QAction("fetch Model", self)
+        self.textInfo["objSkeletonAction"] = QAction("skeleton -> obj", self)
+        self.textInfo["apiAction"] = QAction("API documentation", self)
+        self.textInfo["docAction"] = QAction("UI documentation", self)
+        self.textInfo["tooltipAction"] = QAction("Enhanced ToolTip", self)
+        self.textInfo["tooltipAction"].setCheckable(True)
 
-        for act in [self.holdAction, self.fetchAction, self.objSkeletonAction]:
-            self.extraMenu.addAction(act)
-        for act in [apiAction, docAction, self.tooltipAction]:
+        for act in [self.textInfo["holdAction"], self.textInfo["fetchAction"], self.textInfo["objSkeletonAction"]]:
+            self.textInfo["extraMenu"].addAction(act)
+        for act in [self.textInfo["apiAction"], self.textInfo["docAction"], self.textInfo["tooltipAction"]]:
             helpAction.addAction(act)
 
 
@@ -136,16 +137,16 @@ class SkinningToolsUI(interface.DockWidget):
             self.changeLN.addAction(ac)
             ac.triggered.connect(self._changeLanguage)
 
-        self.holdAction.triggered.connect(interface.hold)
-        self.fetchAction.triggered.connect(interface.fetch)
-        self.objSkeletonAction.triggered.connect(interface.createPolySkeleton)
-        apiAction.triggered.connect(self._openApiHelp)
+        self.textInfo["holdAction"].triggered.connect(interface.hold)
+        self.textInfo["fetchAction"].triggered.connect(interface.fetch)
+        self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
+        self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
 
         #@todo: add the functionality later
-        self.tooltipAction.setEnabled(False)
+        self.textInfo["tooltipAction"].setEnabled(False)
 
         self.menuBar.addMenu(helpAction)
-        self.menuBar.addMenu(self.extraMenu)
+        self.menuBar.addMenu(self.textInfo["extraMenu"])
         self.menuBar.addMenu(self.changeLN)
         self.layout().setMenuBar(self.menuBar)
 
@@ -155,6 +156,36 @@ class SkinningToolsUI(interface.DockWidget):
         webUrl = r"https://www.perryleijten.com/skinningtool/html/"
         webbrowser.open(webUrl)
 
+     # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if hasattr(self.textInfo[key], "tearOffTabName"):
+                self.textInfo[key].tabParent.setTabText(self.textInfo[key].cIndex, value)
+            elif isinstance(self.textInfo[key], QMenu):
+                self.textInfo[key].setTitle(value)
+            else:
+                self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if hasattr(self.textInfo[key], "tearOffTabName"):
+                _ret[key] = self.textInfo[key].tearOffTabName
+            elif isinstance(self.textInfo[key], QMenu):
+                _ret[key] = value.title()
+            else:
+                _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName.split(":")[0])
+
     def _changeLanguage(self):
         """ change the ui language
         """
@@ -163,6 +194,11 @@ class SkinningToolsUI(interface.DockWidget):
         for widget in self.languageWidgets:
             _dict = loadLanguageFile(self.sender().text(), widget.toolName)
             widget.translate(_dict)
+
+        _dict =loadLanguageFile(self.sender().text(), self.toolName.split(":")[0])
+        self.translate(_dict)
+
+    # --------------------------------------------------------------------------------
 
     def __tabsSetup(self):
         """ main tab widget which will hold all other widget information
@@ -178,8 +214,8 @@ class SkinningToolsUI(interface.DockWidget):
 
         :note: this needs to change when we move over to different dcc
         """
-        tab = self.tabs.addGraphicsTab("Maya Tools", useIcon = ":/menuIconSkinning.png")
-
+        self.textInfo["mayaTab"] = self.tabs.addGraphicsTab("Maya Tools", useIcon = ":/menuIconSkinning.png")
+        self.textInfo["mayaTab"].tabParent = self.tabs
         self.mayaToolsTab = EditableTabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
 
@@ -187,7 +223,8 @@ class SkinningToolsUI(interface.DockWidget):
         widget = MayaToolsHeader(self.BezierGraph, self.progressBar, self)
         vLayout.addWidget(widget)
         vLayout.addWidget(self.mayaToolsTab)
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["mayaTab"].view.frame.setLayout(vLayout)
+        self.languageWidgets.append(widget)
 
         self.__addVertNBoneFunc()
         #@todo: add a tab here that allows you to grab tools you use frequently (store this in qsettings)
@@ -200,9 +237,10 @@ class SkinningToolsUI(interface.DockWidget):
         """ this part of the ui will gather the information from dcc directly, 
         most of the settings attached to these buttons and windows are set to a default that would work wel in most cases
         """
-        tab = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools", useIcon = ":/SP_FileDialogListView.png")
+        self.textInfo["simpleTab"] = self.mayaToolsTab.addGraphicsTab("Simple Maya Tools", useIcon = ":/SP_FileDialogListView.png")
+        self.textInfo["simpleTab"].tabParent = self.mayaToolsTab
         vLayout = nullVBoxLayout()
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["simpleTab"].view.frame.setLayout(vLayout)
         buttons = interface.dccToolButtons(self.progressBar)
         for btn in buttons:
             vLayout.addWidget(btn)
@@ -211,29 +249,32 @@ class SkinningToolsUI(interface.DockWidget):
     def __addVertNBoneFunc(self):
         """ button layout gahtering lots of different tools that make editting weights 
         """
-        tab = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions", useIcon = ":/create.png")
+        self.textInfo["vnbTab"] = self.mayaToolsTab.addGraphicsTab("Vertex && bone functions", useIcon = ":/create.png")
+        self.textInfo["vnbTab"].tabParent = self.mayaToolsTab
         vLayout = nullVBoxLayout()
         self.vnbfWidget = VertAndBoneFunction(self.BezierGraph, self.progressBar, self)
         self.languageWidgets.append(self.vnbfWidget)
         vLayout.addWidget(self.vnbfWidget)
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["vnbTab"].view.frame.setLayout(vLayout)
 
     def __addBrushTools(self):
         """ simple brush tools that enable Rodolphes relax weight tools
         :note: only for debug as this has been converted into a single button
         """
-        tab = self.mayaToolsTab.addGraphicsTab("Brushes", useIcon = ":/menuIconPaintEffects.png")
+        self.textInfo["brushTab"] = self.mayaToolsTab.addGraphicsTab("Brushes", useIcon = ":/menuIconPaintEffects.png")
+        self.textInfo["brushTab"].tabParent = self.mayaToolsTab
         vLayout = nullVBoxLayout()
         widget = SkinBrushes(parent=self)
         vLayout.addWidget(widget)
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["brushTab"].view.frame.setLayout(vLayout)
 
     def __addCopyRangeFunc(self):
         """ mutliple tools that require more inpute, mostly to remap certain elements in the scene
         """
-        tab = self.mayaToolsTab.addGraphicsTab("copy functions", useIcon = ":/lassoSelect.png")
+        self.textInfo["copyTab"] = self.mayaToolsTab.addGraphicsTab("copy functions", useIcon = ":/lassoSelect.png")
+        self.textInfo["copyTab"].tabParent = self.mayaToolsTab
         vLayout = nullVBoxLayout()
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["copyTab"].view.frame.setLayout(vLayout)
 
         self.copyToolsTab = EditableTabWidget()
         self.copyToolsTab.tearOff.connect(self.tearOff)
@@ -246,16 +287,19 @@ class SkinningToolsUI(interface.DockWidget):
         # this feature is to be added later; needs to be thuroughly tested!
         # _dict["Assign soft selection"] = [AssignWeightsWidget(self), ":/Grab.png"]
         
-        for key, value in _dict.iteritems():
-            _tab = self.copyToolsTab.addGraphicsTab(key, useIcon = value[1])
+        for index, (key, value) in enumerate(_dict.iteritems()):
+            self.textInfo["copyTab_%s"%(index)] = self.copyToolsTab.addGraphicsTab(key, useIcon = value[1])
+            self.textInfo["copyTab_%s"%(index)].tabParent = self.copyToolsTab
             _vLay = nullVBoxLayout()
-            _tab.view.frame.setLayout(_vLay)
+            self.textInfo["copyTab_%s"%(index)].view.frame.setLayout(_vLay)
+            self.languageWidgets.append(value[0])
             _vLay.addWidget(value[0])
 
     def __skinSliderSetup(self):
         """ skinslider tab, the functionality of tweaking the weights on the selected components by changing the corresponding bone values
         """
-        tab = self.tabs.addGraphicsTab("Skin Slider", useIcon = ":/nodeGrapherModeConnectedLarge.png")
+        self.textInfo["sliderTab"] = self.tabs.addGraphicsTab("Skin Slider", useIcon = ":/nodeGrapherModeConnectedLarge.png")
+        self.textInfo["sliderTab"].tabParent = self.tabs
         vLayout = nullVBoxLayout()
 
         self.skinSlider = SkinSliderSetup(self)
@@ -264,29 +308,32 @@ class SkinningToolsUI(interface.DockWidget):
         self.skinSlider.createCallback()
 
         vLayout.addWidget(self.skinSlider)
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["sliderTab"].view.frame.setLayout(vLayout)
 
     def __componentEditSetup(self):
         """ revamped component editor with a lot of extra functionalities, based on the Maya component editor but build from scratch to make it more powerfull
         """
         interface.forceLoadPlugin("SkinEditPlugin")
-        tab = self.tabs.addGraphicsTab("Component Editor", useIcon = ":/list.svg")
+        self.textInfo["editorTab"] = self.tabs.addGraphicsTab("Component Editor", useIcon = ":/list.svg")
+        self.textInfo["editorTab"].tabParent = self.tabs
         vLayout = nullVBoxLayout()
         
         self.editor = weightEditor.WeightEditorWindow(self)
+        self.languageWidgets.append(self.editor)
         self.editor.isInView = False
         vLayout.addWidget(self.editor)
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["editorTab"].view.frame.setLayout(vLayout)
 
     def __weightManagerSetup(self):
         """ weight manager function, save and load skinweights to seperate files
         """
         interface.forceLoadPlugin("SkinEditPlugin")
-        tab = self.tabs.addGraphicsTab("Weight Manager", useIcon = ":/menuIconEdit.png")
+        self.textInfo["wmTab"] = self.tabs.addGraphicsTab("Weight Manager", useIcon = ":/menuIconEdit.png")
+        self.textInfo["wmTab"].tabParent = self.tabs
         vLayout = nullVBoxLayout()
         self.__weightUI = WeightsUI(self.settings, self.progressBar, self)
         vLayout.addWidget(self.__weightUI)
-        tab.view.frame.setLayout(vLayout)
+        self.textInfo["wmTab"].view.frame.setLayout(vLayout)
 
     # ------------------------- utilities ---------------------------------
 
@@ -430,7 +477,7 @@ class SkinningToolsUI(interface.DockWidget):
         :note: tooltips are currently disabled as there are no images to show or text to display
         """
         self._timer.stop()
-        if (self.currentWidgetAtMouse is None) or (self.tooltipAction.isChecked() == False):
+        if (self.currentWidgetAtMouse is None) or (self.textInfo["tooltipAction"].isChecked() == False):
             return
         tip = self.currentWidgetAtMouse.whatsThis()
 
@@ -527,3 +574,4 @@ def showUI(newPlacement=False):
     mainWindow = interface.get_maya_window()
     dock = SkinningToolsUI(newPlacement, mainWindow)
     dock.run()
+    return dock

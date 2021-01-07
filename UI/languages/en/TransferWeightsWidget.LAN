@@ -1,0 +1,10 @@
+{
+  "additive": "Additive", 
+  "target": "No target given...", 
+  "source": "No source given...", 
+  "btn4": "Copy selected vertices", 
+  "btn": "StoreSelection", 
+  "btn1": "ClearList", 
+  "btn2": "Grab Source", 
+  "btn3": "Grab Target"
+}

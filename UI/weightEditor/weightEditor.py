@@ -54,7 +54,14 @@ class WeightEditorWindow(QWidget):
         self.copyCellPos = []
         self.allInfJoints = []
 
+        self.textInfo = {}
         self.cellDict = {}
+
+        self.actionLabels = {"cpVtx" : 'Copy Vtx Weigh"self"s',
+                             "ptVtx" : 'Paste Vtx Weight',
+                             "cpCll" : 'Copy Cell Value',
+                             "ptCll" : 'Paste Cell Value',
+                             "clear" : 'clear value'}
 
         self.weightTable = None
         self.weightSelectModel = None
@@ -65,12 +72,13 @@ class WeightEditorWindow(QWidget):
         self.isClosed = False
         self.selectMode = False
 
-        searchLay.addWidget(QLabel('Search: '))
-        self.jointSearchLE = LineEdit()
-        self.jointSearchLE.setPlaceholderText("Type part of joint name to search...")
-        self.jointSearchLE.editingFinished.connect(self.searchJointName)
-        self.jointSearchLE.textChanged.connect(self.searchJointName)
-        searchLay.addWidget(self.jointSearchLE)
+        self.textInfo["label"] = QLabel('Search: ')
+        searchLay.addWidget(self.textInfo["label"])
+        self.textInfo["jointSearchLE"] = LineEdit()
+        self.textInfo["jointSearchLE"].setPlaceholderText("Type part of joint name to search...")
+        self.textInfo["jointSearchLE"].editingFinished.connect(self.searchJointName)
+        self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
+        searchLay.addWidget(self.textInfo["jointSearchLE"])
         
         headerView = VertHeaderView(self)
         headerView.sectionDoubleClicked.connect(self.lockJointWeight)
@@ -87,7 +95,39 @@ class WeightEditorWindow(QWidget):
         self.createCallback()
         self.getSkinWeights()
         self.setStyleSheet("border 0px;")
+    
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if key in self.actionLabels.keys():
+                self.actionLabels[key] = value
+                continue
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
         
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
+        for key, value in self.actionLabels.iteritems():
+            _ret[key] = value
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        """
+        from SkinningTools.UI import translator
+        _dict = self.getButtonText()
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+          
+    # --------------------------------- ui math ----------------------------------  
     def getIgnoreList(self, row, column, rowLen, colLen):
         toIgnore = []
         for _row, _col in itertools.product(range(rowLen), range(colLen)):
@@ -255,8 +295,8 @@ class WeightEditorWindow(QWidget):
         
     def searchJointName(self):
         self.jointSearch = []
-        if str(self.jointSearchLE.text()) != '':
-            self.jointSearch = self.jointSearchLE.text().split(' ')
+        if str(self.textInfo["jointSearchLE"].text()) != '':
+            self.jointSearch = self.textInfo["jointSearchLE"].text().split(' ')
             self.jointSearch  = [name for name in self.jointSearch if name != '']
         self.getSkinWeights()
 
@@ -325,11 +365,12 @@ class WeightEditorWindow(QWidget):
 
     def copyMenu(self):
         popMenu = QMenu()
-        cpVtx = popMenu.addAction( 'Copy Vtx Weights' )
-        ptVtx = popMenu.addAction( 'Paste Vtx Weights' )
-        cpCll = popMenu.addAction( 'Copy Cell Values' )
-        ptCll = popMenu.addAction( 'Paste Cell Values' )
-        clear = popMenu.addAction( 'clear values' )
+
+        cpVtx = popMenu.addAction( self.actionLabels["cpVtx"] )
+        ptVtx = popMenu.addAction( self.actionLabels["ptVtx"] )
+        cpCll = popMenu.addAction( self.actionLabels["cpCll"] )
+        ptCll = popMenu.addAction( self.actionLabels["ptCll"] )
+        clear = popMenu.addAction( self.actionLabels["clear"] )
         
         cpVtx.triggered.connect(self.vxtCopy)
         ptVtx.triggered.connect(self.vtxPaste)

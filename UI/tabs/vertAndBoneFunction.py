@@ -10,16 +10,8 @@ _DEBUG = getDebugState()
 
 # @todo: maybe convert the favourite functionality to a tag system instead of a list based function
 # this could make code easier to read and adjust + more simple to find the objects necessary
+#  ^^^ this now needs to change as language settings broke the favourite functionality
 
-
-'''
-language settings:
- - use this widget as a base
- - we could create language systems for each widget that shows ui 
- - allanguages could be added in a seperate folder
- - use the utils function to load language files and change the settings
- - use the language widget to create new language formats?
-'''
 class VertAndBoneFunction(QWidget):
     toolName = "VertAndBoneFunction"
 
@@ -60,7 +52,7 @@ class VertAndBoneFunction(QWidget):
     def translate(self, localeDict = {}):
         for key, value in localeDict.iteritems():
             if isinstance(self._Btn[key], QCheckBox):
-                self._Btn[key].setToolTip(value)
+                self._Btn[key].displayText = value
             else:
                 self._Btn[key].setText(value)
         
@@ -70,7 +62,7 @@ class VertAndBoneFunction(QWidget):
         _ret = {}
         for key, value in self._Btn.iteritems():
             if isinstance(self._Btn[key], QCheckBox):
-                _ret[key] = value.toolTip()
+                _ret[key] = value.displayText
             else:
                 _ret[key] = value.text()
         return _ret
