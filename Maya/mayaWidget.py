@@ -37,6 +37,8 @@ class DockWidget(MayaQWidgetDockableMixin, QDialog):
         currentClass = "%sWorkspaceControl"%self.__class__.toolName
         if cmds.window(currentClass, exists=1):
             cmds.deleteUI(currentClass)
+        if cmds.window(self.__class__.toolName, exists=1):
+            cmds.deleteUI(self.__class__.toolName)
 
     def run(self):
         """show the current ui and attach to a dockwidget
