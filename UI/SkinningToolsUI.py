@@ -156,7 +156,7 @@ class SkinningToolsUI(interface.DockWidget):
         webUrl = r"https://www.perryleijten.com/skinningtool/html/"
         webbrowser.open(webUrl)
 
-     # --------------------------------- translation ----------------------------------
+    # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
         for key, value in localeDict.iteritems():
             if hasattr(self.textInfo[key], "tearOffTabName"):
@@ -181,21 +181,25 @@ class SkinningToolsUI(interface.DockWidget):
 
     def doTranslate(self):
         """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
-        _dict = self.getButtonText()
+        _dict = loadLanguageFile("en", self.toolName.split(":")[0])
         _trs = translator.showUI(_dict, widgetName = self.toolName.split(":")[0])
 
-    def _changeLanguage(self):
+    def _changeLanguage(self, lang = None):
         """ change the ui language
         """
-        self.changeLN.setTitle(self.sender().text())
+        if lang is None:
+            lang = self.sender().text()
+        
+        self.changeLN.setTitle(lang)
 
         for widget in self.languageWidgets:
-            _dict = loadLanguageFile(self.sender().text(), widget.toolName)
+            _dict = loadLanguageFile(lang, widget.toolName)
             widget.translate(_dict)
 
-        _dict =loadLanguageFile(self.sender().text(), self.toolName.split(":")[0])
+        _dict =loadLanguageFile(lang, self.toolName.split(":")[0])
         self.translate(_dict)
 
     # --------------------------------------------------------------------------------
@@ -243,6 +247,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["simpleTab"].view.frame.setLayout(vLayout)
         buttons = interface.dccToolButtons(self.progressBar)
         for btn in buttons:
+            self.textInfo["%s_BTN"%btn.text()] = btn
             vLayout.addWidget(btn)
         vLayout.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
@@ -512,12 +517,13 @@ class SkinningToolsUI(interface.DockWidget):
         self.settings.setValue("favs", self.vnbfWidget.getFavSettings())
         self.settings.setValue("useFav", self.vnbfWidget.setFavcheck.isChecked())
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
-
+        self.settings.setValue("language", self.changeLN.title())
+        
     def loadUIState(self):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
         """
         getGeo = self.settings.value("geometry", None)
-        if getGeo is None:
+        if getGeo in [None, "None"]:
             return
 
         self.restoreGeometry(getGeo)
@@ -527,14 +533,19 @@ class SkinningToolsUI(interface.DockWidget):
                 }
         for key, comp in tools.iteritems():
             index = self.settings.value(key, 0)
-            if index is None:
+            if index in [None, "None", "0"]:
                 index = 0
-            elif index > comp.count()-1:
+            elif int(index) > comp.count()-1:
                 index = -1
-            comp.setCurrentIndex(index)
+            comp.setCurrentIndex(int(index))
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
         self.vnbfWidget.setFavSettings(self.settings.value("favs",[]))
-        self.vnbfWidget.setFavcheck.setChecked(bool(self.settings.value("useFav",False)))
+        useFav = self.settings.value("useFav",False)
+        if useFav in [False, "False"]:
+            useFav = 0
+        self.vnbfWidget.setFavcheck.setChecked(bool(useFav))
+        self._changeLanguage(self.settings.value("language","en"))
+
 
     def hideEvent(self, event):
         """ the hide event is something that is triggered at the same time as close,

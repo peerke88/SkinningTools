@@ -352,7 +352,10 @@ def selectJoints(progressBar=None):
 @shared.dec_repeat
 def seperateSkinned(progressBar=None):
     selection = getSelection()
-    result = skinCluster.extractSkinnedShells(selection, progressBar)
+    if "." in selection[0]:
+        result = skinCluster.extractSkinnedShells(selection, progressBar)
+    else:
+        result = skinCluster.seperateSkinnedObject(selection[0], progressBar)
     return result
 
 

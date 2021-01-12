@@ -38,12 +38,15 @@ if not os.path.exists(_LOCALFOLDER):
     os.makedirs(_LOCALFOLDER)
 
 class WeightsUI(QWidget):
+    toolName = "weightUI"
     def __init__(self, settings = None, inProgressBar=None, parent=None):
         super(WeightsUI, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
         self.__IS = 30
 
+        self.textInfo = {}
+        self._infoTextOptions()
         self.__bbCube = ''
         self.__infoData = None
         self.__infoDetails = None
@@ -53,13 +56,25 @@ class WeightsUI(QWidget):
         self.__wm = weightsManager.WeightsManager(inProgressBar)
         self.__addButtons()
 
+
+    def _infoTextOptions(self):
+        self.infoLabels = {"name" : "name: ",
+                           "overwrite":"overwrite",
+                           "exists": "skinWeights file already exists, overwrite?",
+                           "verts": "verts:",
+                           "check": "check",
+                           "bbox": "bbox:",
+                           "joints": "joints:",
+                           "UVs": "UVs:",
+                           "cPos": "instead of pos",}
+
     def __addButtons(self):
         h = nullHBoxLayout()
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        lcl = buttonsToAttach("local", self._getData)
-        fld = buttonsToAttach("specify", self._savePath)
+        self.textInfo["lcl"] = buttonsToAttach("local", self._getData)
+        self.textInfo["fld"] = buttonsToAttach("specify", self._savePath)
 
-        for w in [QLabel("store meshes:"),  lcl, fld]:
+        for w in [QLabel("store meshes:"),  self.textInfo["lcl"], self.textInfo["fld"]]:
             if isinstance(w, QSpacerItem):
                 h.addItem(w)
             h.addWidget(w)
@@ -70,28 +85,54 @@ class WeightsUI(QWidget):
         self.fileList = QListWidget()        
         self.fileList.setIconSize(QSize(self.__IS, self.__IS))
         self.fileList.currentItemChanged.connect(self._updateInfo)
-        self.frm = QGroupBox("info")
-        self.frm.setLayout(nullVBoxLayout())
-        self.frm.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        for w in [self.fileList, self.frm]:
+        self.textInfo["frm"] = QGroupBox("info")
+        self.textInfo["frm"].setLayout(nullVBoxLayout())
+        self.textInfo["frm"].setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        for w in [self.fileList, self.textInfo["frm"]]:
             h.addWidget(w)
 
         self.layout().addLayout(h)
 
         h = nullHBoxLayout()
         # use this to load files that are not listed (ask user to add to list)
-        btn1 = pushButton("import external") 
-        btn2 = pushButton("load Info")
+        self.textInfo["btn1"] = pushButton("import external") 
+        self.textInfo["btn2"] = pushButton("load Info")
         
-        btn1.clicked.connect(self._loadExternalFiles)
-        for btn in [btn1, btn2]:
+        self.textInfo["btn1"].clicked.connect(self._loadExternalFiles)
+        for btn in [self.textInfo["btn1"], self.textInfo["btn2"]]:
             h.addWidget(btn)
 
         self.layout().addLayout(h)
 
         self._loadFiles()
 
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        for key, value in localeDict.iteritems():
+            if key in self.infoLabels.keys():
+                self.infoLabels[key] = value
+                continue
+            self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            _ret[key] = value.text()
+        for key, value in self.infoLabels.iteritems():
+            _ret[key] = value
+        return _ret
 
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
+        """
+        from SkinningTools.UI import translator
+        _dict = loadLanguageFile("en", self.toolName)
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+
+    # --------------------------------- ui setup ---------------------------------- 
     def _loadFiles(self, *args):
         self.fileList.clear()
         onlyfiles = [os.path.join(_LOCALFOLDER, f) for f in os.listdir(_LOCALFOLDER) if os.path.isfile(os.path.join(_LOCALFOLDER, f))]
@@ -107,7 +148,7 @@ class WeightsUI(QWidget):
         if len(_data["meshes"]) > 1:
             pkgNameDlg = QuickDialog("create package name")
             h = nullHBoxLayout()
-            lbl = QLabel("name: ")
+            lbl = QLabel(self.infoLabels["name"])
             lne = LineEdit()
             for w in [lbl, lne]:
                 h.addWidget(w)
@@ -120,8 +161,8 @@ class WeightsUI(QWidget):
         onlyfiles = [os.path.join(_LOCALFOLDER, f) for f in os.listdir(_LOCALFOLDER) if os.path.isfile(os.path.join(_LOCALFOLDER, f))]
         toSave =os.path.join(_LOCALFOLDER, "%s.skinWeights"%(name))
         if toSave in onlyFiles:
-            _overWriteDlg = QuickDialog("overwrite")
-            _overWriteDlg.layout().instertWidget(0, QLabel("skinWeights file already exists, overwrite?"))
+            _overWriteDlg = QuickDialog(self.infoLabels["overwrite"])
+            _overWriteDlg.layout().instertWidget(0, QLabel(self.infoLabels["exists"]))
             _overWriteDlg.exec_()
             if _overWriteDlg.result() == 0:
                 return
@@ -162,7 +203,7 @@ class WeightsUI(QWidget):
         
         self.__infoData = QWidget()
         self.__infoData.setLayout(nullVBoxLayout())
-        self.frm.layout().addWidget(self.__infoData)
+        self.textInfo["frm"].layout().addWidget(self.__infoData)
         
         h = nullHBoxLayout()
         h.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
@@ -196,32 +237,32 @@ class WeightsUI(QWidget):
         self.__infoDetails.setLayout(nullGridLayout())
         
         # --- verts
-        self.__infoDetails.layout().addWidget(QLabel("verts:"), 0,0)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["verts"]), 0,0)
         self.__infoDetails.layout().addWidget(lockLine(self.__cache[curFile]["vertIds"], currentText), 0,1)
-        btn = pushButton("check")
+        btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkVerts, self.__cache[curFile]["vertPos"], currentText, btn))
         self.__infoDetails.layout().addWidget(btn, 0,2)
 
         # --- bb
-        self.__infoDetails.layout().addWidget(QLabel("bbox:"), 1,0)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["bbox"]), 1,0)
         self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 1,1)
-        self.__infoDetails.layout().addWidget(buttonsToAttach("check", partial(self._makeBB, self.__cache[curFile]["bbox"], currentText)), 1,2)
+        self.__infoDetails.layout().addWidget(buttonsToAttach(self.infoLabels["check"], partial(self._makeBB, self.__cache[curFile]["bbox"], currentText)), 1,2)
 
         # --- joints
-        self.__infoDetails.layout().addWidget(QLabel("joints:"), 2,0)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["joints"]), 2,0)
         self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 2,1)
-        btn = pushButton("check")
+        btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkJoints, self.__cache[curFile]["allJnts"], btn))
         self.__infoDetails.layout().addWidget(btn, 2,2)
 
         # --- uvs
-        self.__infoDetails.layout().addWidget(QLabel("UVs:"), 3,0)
-        chk = QCheckBox("instead of pos")
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["UVs"]), 3,0)
+        chk = QCheckBox(self.infoLabels["cPos"])
         chk.setEnabled(False)
         self.__incoDetails.layout().addWidget(chk, 3, 1)
-        btn = pushButton("check")
+        btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkUvs, self.__cache[curFile]["uvs"][currentText], btn, chk))
         self.__infoDetails.layout().addWidget(btn, 2,3)
@@ -342,7 +383,16 @@ class WeightsUI(QWidget):
             cmds.delete(self.__bbCube)
 
                                  
-                                         
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    mainWindow = interface.get_maya_window()
+    mwd  = QMainWindow(mainWindow)
+    mwd.setWindowTitle("WeightsUI Test window")
+    wdw = WeightsUI(parent = mainWindow)
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw                                   
 
 
 

@@ -41,7 +41,7 @@ class MayaToolsHeader(QWidget):
         """ seperate function that calls upon the translate widget to help create a new language
         """
         from SkinningTools.UI import translator
-        _dict = self.getButtonText()
+        _dict = loadLanguageFile("en", self.toolName) 
         _trs = translator.showUI(_dict, widgetName = self.toolName)
           
     # --------------------------------- ui setup ----------------------------------  

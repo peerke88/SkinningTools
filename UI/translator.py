@@ -75,7 +75,7 @@ class SearchableComboBox(QComboBox):
             self.setCurrentText(opt)
 
 class TranslatorDialog(QDialog):
-    def __init__(self, inDict, defaultLanguage = "japanese", widgetName = None, parent = None):
+    def __init__(self, inDict = None, defaultLanguage = "japanese", widgetName = None, parent = None):
         if widgetName is None:
             print "widgetName cannot be None"
             return
@@ -96,17 +96,18 @@ class TranslatorDialog(QDialog):
 
         self.layout().addLayout(h)
 
-
         self.progressBar = QProgressBar()
         self.layout().addWidget(self.progressBar)
 
-        self._translator = google_translator()#['translate.googleapis.com'])
+        self._translator = google_translator()
         _id = 0
         if defaultLanguage in LANGUAGES.values():
             _id = LANGUAGES.values().index(defaultLanguage)
 
         self.combo.setCurrentIndex(_id)
         self.__inDict = inDict
+        if inDict is None:
+        	self.__inDict = loadLanguageFile("en", widgetName)
         self._layouts = []
 
         scrollArea = QScrollArea()
@@ -138,10 +139,13 @@ class TranslatorDialog(QDialog):
 
     def translateConnection(self, key, inText, doTranslate = True):
         h = nullHBoxLayout()
-        label = QLabel(inText)
+        if doTranslate:
+            label = QLabel(inText)
+        else:
+        	label = QLabel(self.__inDict[key])
         txt = inText
         if doTranslate:
-        	txt = self._translator.translate(inText,lang_tgt=self.getLangValue())
+            txt = self._translator.translate(inText,lang_tgt=self.getLangValue())
 
         if type(txt) in [list, tuple]:
             txt = txt[0]
@@ -180,7 +184,7 @@ class TranslatorDialog(QDialog):
         for index, h in enumerate(self._layouts):
             key, base, lineEdit = h._info
             setProgress(index * perc, self.progressBar, "getting translation info on : %s"%base)
-            txt = self._translator.translate(base ,lang_tgt=self.getLangValue())
+            txt = self._translator.translate(self.__inDict[key] ,lang_tgt=self.getLangValue())
             if type(txt) in [list, tuple]:
                 txt = txt[0]
             lineEdit.setText(txt)

@@ -71,7 +71,7 @@ class VertAndBoneFunction(QWidget):
         """ seperate function that calls upon the translate widget to help create a new language
         """
         from SkinningTools.UI import translator
-        _dict = self.getButtonText()
+        _dict = loadLanguageFile("en", self.toolName) 
         _trs = translator.showUI(_dict, widgetName = self.toolName)
           
     # ------------------------------- visibility tools ------------------------------- 
@@ -296,9 +296,10 @@ class VertAndBoneFunction(QWidget):
     def setFavSettings(self, inSettings):
         if inSettings is None:
             return
-        self.__favSettings = inSettings
-        for index in self.__favSettings:
+        self.__favSettings = []
+        for index in inSettings:
             btn = self.__buttons[int(index)]
+            self.__favSettings.append(int(index))
             for b in self.getGroupedLayout(btn):
                 self.favourited.append(b)
 
