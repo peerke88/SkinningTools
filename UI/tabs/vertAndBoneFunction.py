@@ -15,7 +15,7 @@ _DEBUG = getDebugState()
 class VertAndBoneFunction(QWidget):
     toolName = "VertAndBoneFunction"
 
-    def __init__(self, local = "en", inGraph=None, inProgressBar=None, parent=None):
+    def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         super(VertAndBoneFunction, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
@@ -28,7 +28,6 @@ class VertAndBoneFunction(QWidget):
         self.individualBtns = []
         self.__favSettings = []
         self._Btn = {}
-        self.__locale = local
 
         self.progressBar = inProgressBar
         self.BezierGraph = inGraph
@@ -53,8 +52,15 @@ class VertAndBoneFunction(QWidget):
         for key, value in localeDict.iteritems():
             if isinstance(self._Btn[key], QCheckBox):
                 self._Btn[key].displayText = value
+                self._Btn[key].setToolTip(value)
             else:
                 self._Btn[key].setText(value)
+
+        for key, value in localeDict.iteritems():
+            if hasattr(self._Btn[key], "getNameInfo"):
+                for k, v in self._Btn[key].getNameInfo.iteritems():
+                    v.setText(value)
+
         
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
@@ -318,9 +324,7 @@ class VertAndBoneFunction(QWidget):
         if values is None:
             return
         for index, btn in enumerate(self.checkedButtons):
-            print index, btn
             for key, value in values[index]:
-                print "A", key, value
                 btn.checks[key].setChecked(value)
 
     checkValues = property( getCheckValues, setCheckValues)
@@ -486,6 +490,8 @@ class VertAndBoneFunction(QWidget):
         if sender.checks["volume"].isChecked():
             _radius = self._smthSpin.value()
         selection = interface.getSelection()
+        if selection == []:
+            return
         sc = api.skinClusterForObject(selection[0])
         if sc:
             updateBrushCommand(_CTX, sc, _radius, int(sender.checks["relax"].isChecked()))

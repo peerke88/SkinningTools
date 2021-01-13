@@ -13,6 +13,10 @@ maya code should be seperated in the Maya folder hopefully we can make some part
  - create small videos/gifs to explain the tools as tooltips (use this for testing functionality)
 
 
+## documentation
+
+[API](https://www.perryleijten.com/skinningtool/html)
+
 ## Authors
 
 * [Mio Zwickl](https://www.artstation.com/ikitamonday)

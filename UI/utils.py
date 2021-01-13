@@ -494,7 +494,7 @@ def addChecks(cls, button, checks=None):
     checks = checks or []
     for check in checks:
         chk = QCheckBox()
-        chk.setEnabled(False)
+        # chk.setEnabled(False)
         chk.setToolTip(check)
         chk.displayText = check
         v.addWidget(chk)
@@ -503,6 +503,9 @@ def addChecks(cls, button, checks=None):
     functions, popup = addContextToMenu(cls, checks, button)
     button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
     
+    button.getNameInfo = {}
+    for check in checks:
+        button.getNameInfo[check] = functions[check]
 
 def addContextToMenu(cls, actionNames, btn):
     """ add context menu to button based on the checkboxes
