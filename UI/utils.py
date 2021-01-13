@@ -278,12 +278,12 @@ def loadLanguageFile(language, widgetName):
     languagesDir = os.path.join(UIDIRECTORY, "languages")
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
-        print "no language (%s) folder found for widget <%s>!"%(language, widgetName)
+        print("no language (%s) folder found for widget <%s>!"%(language, widgetName))
         return False
 
     widgetLanguageFile = os.path.join(curLangDir, "%s.LAN"%widgetName)
     if not os.path.exists(widgetLanguageFile):
-        print "no language (%s) file found for widget <%s>!"%(language, widgetName)
+        print("no language (%s) file found for widget <%s>!"%(language, widgetName))
         return False
 
     with open(widgetLanguageFile) as f:

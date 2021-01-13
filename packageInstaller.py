@@ -47,7 +47,7 @@ from SkinningTools.UI import utils
 from SkinningTools.Maya import api
 from maya import cmds
 
-__VERSION__ = "5.0.20201221"
+__VERSION__ = "5.0.20210113"
 
 class InstallWindow(QDialog):
     def __init__(self,scriptDir, parent = None):
@@ -111,7 +111,7 @@ class InstallWindow(QDialog):
                 versionDate = "%s%02d%02d" % (now.year, now.month, now.day)
                 backup = os.path.join(self.__scriptDir, "Backup_%s"%versionDate)
                 if os.path.exists(backup):
-                    print "backup already created: %s"%backup
+                    print("backup already created: %s"%backup)
                 else:
                     shutil.move(self.__skinFile, backup)
                     utils.setProgress(30, self.progress, "backed up folder as: Backup_%s"%versionDate)

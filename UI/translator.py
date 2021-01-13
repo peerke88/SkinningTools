@@ -77,7 +77,7 @@ class SearchableComboBox(QComboBox):
 class TranslatorDialog(QDialog):
     def __init__(self, inDict = None, defaultLanguage = "japanese", widgetName = None, parent = None):
         if widgetName is None:
-            print "widgetName cannot be None"
+            print("widgetName cannot be None")
             return
                 
         super(TranslatorDialog, self).__init__(parent)

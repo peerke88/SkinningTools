@@ -13,11 +13,11 @@ Contents:
 * :ref:`search`
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    autoapi/index
-   autoapi/SkinningTools/Maya/index
-   autoapi/SkinningTools/UI/index
+   autoapi/scripts/SkinningTools/Maya/index
+   autoapi/scripts/SkinningTools/UI/index
 
 
 Notes
