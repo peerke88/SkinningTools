@@ -318,7 +318,9 @@ class VertAndBoneFunction(QWidget):
         if values is None:
             return
         for index, btn in enumerate(self.checkedButtons):
+            print index, btn
             for key, value in values[index]:
+                print "A", key, value
                 btn.checks[key].setChecked(value)
 
     checkValues = property( getCheckValues, setCheckValues)
@@ -406,7 +408,7 @@ class VertAndBoneFunction(QWidget):
             return
         if event.type() == QEvent.MouseButtonPress:
             obj = QApplication.widgetAt(QCursor.pos())
-            if obj in self.individualBtns:
+            if obj in self.individualBtns and self.noAction:
                 if obj in self.favourited:
                     self.__favSettings.remove(self.__buttons.index(self.getGroup(obj)))
                     for btn in self.getGroupedLayout(obj):

@@ -8,8 +8,9 @@ import functools,os, sys, platform
 from SkinningTools.Maya.tools import shared, joints
 from SkinningTools.Maya.tools import weightPaintUtils
 from SkinningTools.UI.qt_util import QObject, QApplication
-from maya import cmds, mel
+from maya import cmds, mel, OpenMayaUI
 from maya.api import OpenMaya
+
 from SkinningTools.UI.utils import *
 
 _DEBUG = getDebugState()
@@ -20,13 +21,14 @@ def get_maya_window():
     :return: the widget or none
     :rtype: QWidget
     """
+    _widget = None
     for widget in QApplication.allWidgets():
-        try:
-            if widget.objectName() == "MayaWindow":
-                return widget
-        except:
-            pass
-    return None
+        if widget.objectName() == "MayaWindow":
+            _widget = widget
+    if _widget is None:
+        _widget = wrapinstance( long( OpenMayaUI.MQtUtil.mainWindow() ) )
+
+    return _widget
 
 
 def selectedObjectVertexList(includeObjects=False):

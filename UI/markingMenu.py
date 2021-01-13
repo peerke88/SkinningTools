@@ -369,7 +369,7 @@ class testWidget(QMainWindow):
         self.installEventFilter(_MMfilter)
 
 
-def showTest():
+def testUI():
     """ convenience function to display and build the testing application
     """
     window_name = 'testWidget'

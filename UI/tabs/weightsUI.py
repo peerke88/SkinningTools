@@ -7,28 +7,7 @@ from SkinningTools.UI.searchAbleComboBox import SearchableComboBox
 from functools import partial
 import os, json, random
 
-"""
-----------------------------------------
-|store meshes:      [local] [to folder]|
-----------------------------------------
-|local files       | info widget       |
-|global files      |  show info of     |
-|all listed here   |  selected file    |
-|   rightclickmenu |                   |
-|   delete file    | add options       |
-|                  |  for override     |
-|                  |  [single/multi]   |
-|                  |  [pos or uv]      |
-|                  |                   |
-| _____________________________________|
-|[              import                ]|
-----------------------------------------
-
-
-use checkakle combobox for selection of elements to be loaded into the scene
-"""
-        
-# temp
+# temp:
 from maya import cmds
 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,15 +45,22 @@ class WeightsUI(QWidget):
                            "bbox": "bbox:",
                            "joints": "joints:",
                            "UVs": "UVs:",
-                           "cPos": "instead of pos",}
+                           "cPos": "instead of pos",
+                           "noUvin": "no uvs in saved weights file",
+                           "selected": "no uvs on selected object in current scene",
+                           "matching": "no uvs on matching object in current scene",
+                           "vPos": "vertex positions on all objects do not match",
+                           "vCount": "vertex count on all objects does not match",
+                           "jntMatch": "joints in scene do not match",
+                           }
 
     def __addButtons(self):
         h = nullHBoxLayout()
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.textInfo["lcl"] = buttonsToAttach("local", self._getData)
         self.textInfo["fld"] = buttonsToAttach("specify", self._savePath)
-
-        for w in [QLabel("store meshes:"),  self.textInfo["lcl"], self.textInfo["fld"]]:
+        self.textInfo["lbl1"] = QLabel("store meshes:")
+        for w in [self.textInfo["lbl1"],  self.textInfo["lcl"], self.textInfo["fld"]]:
             if isinstance(w, QSpacerItem):
                 h.addItem(w)
             h.addWidget(w)
@@ -112,6 +98,9 @@ class WeightsUI(QWidget):
             if key in self.infoLabels.keys():
                 self.infoLabels[key] = value
                 continue
+            if isinstance(self.textInfo[key], QGroupBox):
+                self.textInfo[key].setTitle(value)
+                continue
             self.textInfo[key].setText(value)
         
     def getButtonText(self):
@@ -119,7 +108,10 @@ class WeightsUI(QWidget):
         """
         _ret = {}
         for key, value in self.textInfo.iteritems():
-            _ret[key] = value.text()
+            if isinstance(self.textInfo[key], QGroupBox):
+                _ret[key] = value.title()
+            else:    
+                _ret[key] = value.text()
         for key, value in self.infoLabels.iteritems():
             _ret[key] = value
         return _ret
@@ -282,7 +274,7 @@ class WeightsUI(QWidget):
         checkBox.setEnabled(False)
         if None in uvs:
             sender.setStyleSheet('background-color: #ad4c4c;')
-            sender.setToolTip("no uvs in saved weights file")
+            sender.setToolTip(self.infoLabels["noUvin"])
             return 
 
         uvCoords = []
@@ -298,7 +290,10 @@ class WeightsUI(QWidget):
         
         if None in uvCoords:
             sender.setStyleSheet('background-color: #ad4c4c;')
-            sender.setToolTip("no uvs on %s object in current scene"%["matching", "selected"][_selection])
+            if _selection:
+                sender.setToolTip(self.infoLabels["selected"])
+            else:
+                sender.setToolTip(self.infoLabels["matching"])
             return 
 
         sender.setStyleSheet('background-color: #17D206;')
@@ -331,18 +326,18 @@ class WeightsUI(QWidget):
 
         if not matches:
             sender.setStyleSheet('background-color: #ad4c4c;')
-            sender.setToolTip("vertex positions on all objects do not match")
+            sender.setToolTip(self.infoLabels["vPos"])
 
         if not positions:
             sender.setStyleSheet('background-color: #e85617;')
-            sender.setToolTip("vertex count on all objects does not match")
+            sender.setToolTip(self.infoLabels["vCount"])
 
     def _checkJoints(self, joints, sender):
         for jnt in joints:
             if cmds.objExists(jnt):
                 sender.setStyleSheet('background-color: #17D206;')
                 continue
-            sender.setToolTip("joints in scene do not match")
+            sender.setToolTip(self.infoLabels["jntMatch"])
             sender.setStyleSheet('background-color: #ad4c4c;')
 
 
@@ -389,7 +384,7 @@ def testUI():
     mainWindow = interface.get_maya_window()
     mwd  = QMainWindow(mainWindow)
     mwd.setWindowTitle("WeightsUI Test window")
-    wdw = WeightsUI(parent = mainWindow)
+    wdw = WeightsUI(settings = QSettings(os.path.join(_DIR, 'settings.ini'), QSettings.IniFormat), parent = mwd)
     mwd.setCentralWidget(wdw)
     mwd.show()
     return wdw                                   

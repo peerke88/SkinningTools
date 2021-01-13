@@ -1,0 +1,23 @@
+{
+  "matching": "no uvs on matching object in current scene", 
+  "selected": "no uvs on selected object in current scene", 
+  "noUvin": "no uvs in saved weights file", 
+  "vCount": "vertex count on all objects does not match", 
+  "exists": "skinWeights file already exists, overwrite?", 
+  "cPos": "instead of pos", 
+  "check": "check", 
+  "joints": "joints:", 
+  "UVs": "UVs:", 
+  "verts": "verts:", 
+  "name": "name: ", 
+  "frm": "info", 
+  "fld": "specify", 
+  "bbox": "bbox:", 
+  "overwrite": "overwrite", 
+  "lcl": "local", 
+  "lbl1": "store meshes:", 
+  "vPos": "vertex positions on all objects do not match", 
+  "btn1": "import external", 
+  "btn2": "load Info", 
+  "jntMatch": "joints in scene do not match"
+}

@@ -53,8 +53,8 @@ class SkinningToolsUI(interface.DockWidget):
 
         self.setWindowTitle(self.__class__.toolName)
         
-        self.__uiElements()
         self.__defaults()
+        self.__uiElements()
 
         mainLayout = nullVBoxLayout(None, 3)
         self.setLayout(mainLayout)
@@ -86,7 +86,8 @@ class SkinningToolsUI(interface.DockWidget):
         """
         self.settings = QSettings(os.path.join(_DIR,'settings.ini'), QSettings.IniFormat)
         self.progressBar = MessageProgressBar(self)
-        self.BezierGraph = BezierGraph()
+        self.BezierGraph = BezierGraph(settings = self.settings, parent = self)
+        self.languageWidgets.append(self.BezierGraph)
 
     def __defaults(self):
         """ some default local variables for the current UI    
@@ -337,6 +338,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["wmTab"].tabParent = self.tabs
         vLayout = nullVBoxLayout()
         self.__weightUI = WeightsUI(self.settings, self.progressBar, self)
+        self.languageWidgets.append(self.__weightUI)
         vLayout.addWidget(self.__weightUI)
         self.textInfo["wmTab"].view.frame.setLayout(vLayout)
 
@@ -541,7 +543,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.vnbfWidget.setCheckValues(self.settings.value("vnbf",None))
         self.vnbfWidget.setFavSettings(self.settings.value("favs",[]))
         useFav = self.settings.value("useFav",False)
-        if useFav in [False, "False"]:
+        if useFav in [False, "False", "false"]:
             useFav = 0
         self.vnbfWidget.setFavcheck.setChecked(bool(useFav))
         self._changeLanguage(self.settings.value("language","en"))

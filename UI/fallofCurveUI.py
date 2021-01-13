@@ -4,6 +4,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 import math, re
 
+_DIR = os.path.dirname(__file__)
 
 class BezierFunctions(object):
     """ collection object for all functions that help create bezier curves
@@ -555,21 +556,30 @@ class NodeView(QGraphicsView):
 class BezierGraph(QMainWindow):
     """ the bezier graph windo which allows us to manipulate the curve
     """
-    closed = pyqtSignal()
-    def __init__(self, parent =None):
-        """ the constructor
+    toolName = "BezierGraph"
 
+    closed = pyqtSignal()
+    def __init__(self, settings = None, parent =None):
+        """ the constructor
+        
+        :param settings: settings information to load data from
+        :type settings: QSettings
         :param parent: the parent widget
         :type parent: QWidget
         """
-        super(BezierGraph, self).__init__()
+        super(BezierGraph, self).__init__(parent = parent)
         self.widget = QWidget()
+        self.setWindowTitle(self.toolName)
         self.setCentralWidget(self.widget)
+
+        self.setWindowIcon(QIcon(":/curveAddPt.png"))
+
         layout = QVBoxLayout(self.widget)
         self.BezierDict = {'bezier': [QPoint(0, 0), QPoint(75, 0), QPoint(225, 300), QPoint(300, 300)],
                            'linear': [QPointF(0.000000, 0.000000), QPointF(75.000000, 75.000000), QPointF(225.000000, 225.000000), QPointF(300.000000, 300.000000)]}
 
-        self.settings = QSettings("bezierGraph", "graphPoints")
+        self.settings = settings
+        self.textInfo = {}
 
         self.baseSize = 300
         baseRect = QRect(0, 0, self.baseSize, self.baseSize)
@@ -582,8 +592,11 @@ class BezierGraph(QMainWindow):
         layout.addWidget(self.view)
 
         self.setMenuBar(QMenuBar())
-        undo = self.menuBar().addAction(self.scene.undoAction)
-        redo = self.menuBar().addAction(self.scene.redoAction)
+        undo = self.scene.undoAction
+        redo = self.scene.redoAction
+
+        for action in [undo, redo]:
+            self.menuBar().addAction(action)
 
         lay1 = QHBoxLayout()
         lay1.setContentsMargins(0, 0, 0, 0)
@@ -592,19 +605,19 @@ class BezierGraph(QMainWindow):
         self.cbox.currentIndexChanged.connect(self.changeCurve)
         self.line1 = QLineEdit()
         self.line1.textEdited[unicode].connect(self.__lineEdit_FieldEditted)
-        self.but1 = QPushButton("store")
-        self.but2 = QPushButton("del")
-        self.but1.clicked.connect(self.storeValues)
-        self.but2.clicked.connect(self.delValues)
+        self.textInfo['but1'] = QPushButton("store")
+        self.textInfo['but2'] = QPushButton("del")
+        self.textInfo['but1'].clicked.connect(self.storeValues)
+        self.textInfo['but2'].clicked.connect(self.delValues)
 
-        check = QCheckBox("snap")
-        check.toggled.connect(self.setSnap)
-        check.setChecked(True)
-        for qb in [self.cbox, self.line1, self.but1, self.but2]:
+        self.textInfo['check'] = QCheckBox("snap")
+        self.textInfo['check'].toggled.connect(self.setSnap)
+        self.textInfo['check'].setChecked(True)
+        for qb in [self.cbox, self.line1, self.textInfo['but1'], self.textInfo['but2']]:
             qb.setMinimumHeight(23)
             lay1.addWidget(qb)
 
-        lay1.addWidget(check)
+        lay1.addWidget(self.textInfo['check'])
         layout.addLayout(lay1)
 
         self.__qt_normal_color = QPalette(self.line1.palette()).color(QPalette.Base)
@@ -614,6 +627,31 @@ class BezierGraph(QMainWindow):
         self.updateView()
         self.__lineEdit_FieldEditted()
         self._loadCBox()
+
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict = {}):
+        """ translate the ui using the language dictionary given
+        """
+        for key, value in localeDict.iteritems():
+            self.textInfo[key].setText(value)
+        
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.iteritems():
+            _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
+        """
+        from SkinningTools.UI import translator
+        _dict = loadLanguageFile("en", self.toolName)
+        _trs = translator.showUI(_dict, widgetName = self.toolName)
+
+    # --------------------------------- ui setup ----------------------------------
 
     def updateView(self):
         """ always scale the objects to fit the window
@@ -645,12 +683,12 @@ class BezierGraph(QMainWindow):
         Controller_name_text = self.line1.displayText()
         if FalseFolderCharacters(Controller_name_text) != None:
             self.__lineEdit_Color(self.line1, 'red')
-            self.but1.setEnabled(False)
+            self.textInfo['but1'].setEnabled(False)
         elif Controller_name_text == "":
-            self.but1.setEnabled(False)
+            self.textInfo['but1'].setEnabled(False)
         else:
             self.__lineEdit_Color(self.line1, self.__qt_normal_color)
-            self.but1.setEnabled(True)
+            self.textInfo['but1'].setEnabled(True)
 
     def delValues(self):
         """ remove created curves form the settings when no longer necessary
@@ -687,7 +725,7 @@ class BezierGraph(QMainWindow):
         """
         if self.cbox.currentText() == '':
             return
-        self.but2.setEnabled(not (self.cbox.currentText() in ['bezier', 'linear']))
+        self.textInfo['but2'].setEnabled(not (self.cbox.currentText() in ['bezier', 'linear']))
 
         cp = self.BezierDict[self.cbox.currentText()]
         self.scene.getUndoStack().push(NodeSwitchCommand(self.scene, self.scene.getPoints(), cp))
@@ -757,3 +795,12 @@ class BezierGraph(QMainWindow):
         """
         self.closed.emit()
         super(BezierGraph, self).hideEvent(event)
+
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    from SkinningTools.Maya import interface
+    mainWindow = interface.get_maya_window()
+    wdw = BezierGraph(settings = QSettings(os.path.join(_DIR, 'settings.ini'), QSettings.IniFormat), parent = mainWindow)
+    wdw.show()
+    return wdw 
