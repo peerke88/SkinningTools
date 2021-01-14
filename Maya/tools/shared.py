@@ -302,6 +302,11 @@ def skinCluster(inObject=None, silent=False):
     if not inObject:
         return None
     
+    if type(inObject) in [list, tuple] and len(inObject) != 0:
+        inObject= inObject[0]
+    if '.' in inObject:
+        inObject = inObject.split('.')[0]
+    
     inObject = getParentShape(inObject)
     sc = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
     if not sc:
@@ -321,10 +326,13 @@ def getParentShape(inObject):
     """
     if isinstance(object, list):
         inObject = inObject[0]
+    print inObject
     objType = cmds.objectType(inObject)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
     if cmds.objectType(inObject) != "transform":
+        print inObject
+        print cmds.objectType(inObject)
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
     return inObject
 
@@ -700,9 +708,15 @@ def getWeights(inMesh):
     :return: list of all weights
     :rtype: list
     """
-    sc = skinCluster(inMesh)
+    if cmds.objectType(inMesh) == "skinCluster":
+        sc = inMesh
+        inMesh = cmds.listConnections(inMesh, s=0, d=1, type = "shape")
+    else:
+        sc = skinCluster(inMesh)
+    inMesh = getParentShape(inMesh)
+    
     shape = cmds.listRelatives(inMesh, s=1)[0]
-
+    
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
     meshPath = getDagpath(shape)
@@ -724,7 +738,7 @@ def getWeights(inMesh):
     return weightData
 
 
-def setWeigths(inMesh, weightData):
+def setWeights(inMesh, weightData):
     """ set the complete weight data of a given mesh 
     
     :param inMesh: the object to set the data to
@@ -732,9 +746,14 @@ def setWeigths(inMesh, weightData):
     :param weightData: full list of weight data [[value]* joints] * vertices
     :type weightData: list
     """
-    sc = skinCluster(inMesh)
+    if cmds.objectType(inMesh) == "skinCluster":
+        sc = inMesh
+        inMesh = cmds.listConnections(inMesh, s=0, d=1, type = "shape")
+    else:
+        sc = skinCluster(inMesh)
+    inMesh = getParentShape(inMesh)
     shape = cmds.listRelatives(inMesh, s=1)[0]
-
+    
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
     meshPath = getDagpath(shape)

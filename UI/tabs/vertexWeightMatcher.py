@@ -155,8 +155,8 @@ class TransferWeightsWidget(QWidget):
         if add:
             cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
 
-        inWeights = cmds.SkinWeights(cmds.skinCluster(source, q=True, g=True)[0], source, q=True)
-        outWeights = cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, q=True)
+        inWeights = getWeights(source)#cmds.SkinWeights(cmds.skinCluster(source, q=True, g=True)[0], source, q=True)
+        outWeights = getWeights(target)# cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, q=True)
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
 
         numInInf = len(inInfluences)
@@ -169,7 +169,7 @@ class TransferWeightsWidget(QWidget):
 
         for iteration, vertex in enumerate(expandedVertices):
             identifier = int(vertex.rsplit('[', 1)[-1].split(']', 1)[0])
-            if not self.additive.isChecked():
+            if not self.textInfo["additive"].isChecked():
                 outWeights[identifier * numOutInf: (identifier + 1) * numOutInf] = [0] * numOutInf
             for i in range(numInInf):
                 offset = outInfluences.index(inInfluences[i])
@@ -187,7 +187,9 @@ class TransferWeightsWidget(QWidget):
                 self.__loadBar.setValue(percentage * (iteration + 1))
                 qApp.processEvents()
 
-        cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, nwt=outWeights)
+
+        setWeights(target, outWeights)
+        # cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, nwt=outWeights)
         if self.__loadBar is not None:
             self.__loadBar.setValue(100)
             qApp.processEvents()
@@ -339,6 +341,8 @@ class ClosestVertexWeightWidget(QWidget):
 
     def __storeVerts(self, inputVerts):
         Mesh = inputVerts[0].split('.')[0]
+        if cmds.objectType(Mesh) != "transform":
+            Mesh = cmds.listRelatives(Mesh, parent=1, f=1)[0]
         SkinCluster = skinCluster(Mesh)
 
         Selection = []

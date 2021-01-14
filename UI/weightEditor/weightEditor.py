@@ -18,12 +18,21 @@ from SkinningTools.UI.weightEditor.popupSpinBox import PopupSpinBox
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
 
 class WeightEditorWindow(QWidget):
+    """ weight editor widget, 
+    allows for skincluster visualisation based on the vertex selection and the joints in the skincluster
+    """
     toolName = "WeightEditorWindow"
 
     def __init__(self, parent = None):
+        """ the constructor
+
+        :param parent: the parent widget for this object
+        :type parent: QWidget
+        """
         super(WeightEditorWindow, self).__init__(parent)
-        self.isInView = True
-        self.limit = 4
+        
+        self.__defaults()
+        
         self.apiWeights = ApiWeights()
         
         self.setLayout(nullVBoxLayout())
@@ -43,6 +52,35 @@ class WeightEditorWindow(QWidget):
 
         self.mainLay.addLayout(searchLay)
         
+        self.textInfo["label"] = QLabel('Search: ')
+        searchLay.addWidget(self.textInfo["label"])
+        self.textInfo["jointSearchLE"] = LineEdit()
+        self.textInfo["jointSearchLE"].setPlaceholderText("Type part of joint name to search...")
+        self.textInfo["jointSearchLE"].editingFinished.connect(self.searchJointName)
+        self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
+        searchLay.addWidget(self.textInfo["jointSearchLE"])
+        
+        headerView = VertHeaderView(self)
+        headerView.sectionDoubleClicked.connect(self.lockJointWeight)
+        headerView.rightClicked.connect(self.selectFromHeader)
+        
+        self.view = RightClickTableView(self)
+        self.view.setHorizontalHeader(headerView)
+        self.view.rightClicked.connect(self.getClickedItemVal)
+        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        self.view.keyPressed.connect(self.directInput)
+        self.mainLay.addWidget(self.view)
+    
+        self.createCallback()
+        self.getSkinWeights()
+        self.setStyleSheet("border 0px;")
+    
+    def __defaults(self):
+        """ conveninece function to gather all the default values to be used
+        """
+        self.isInView = True
+        self.limit = 4
         self._data = []
         self.jointSearch = []
         self.selectedCells = []
@@ -72,32 +110,13 @@ class WeightEditorWindow(QWidget):
         self.isClosed = False
         self.selectMode = False
 
-        self.textInfo["label"] = QLabel('Search: ')
-        searchLay.addWidget(self.textInfo["label"])
-        self.textInfo["jointSearchLE"] = LineEdit()
-        self.textInfo["jointSearchLE"].setPlaceholderText("Type part of joint name to search...")
-        self.textInfo["jointSearchLE"].editingFinished.connect(self.searchJointName)
-        self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
-        searchLay.addWidget(self.textInfo["jointSearchLE"])
-        
-        headerView = VertHeaderView(self)
-        headerView.sectionDoubleClicked.connect(self.lockJointWeight)
-        headerView.rightClicked.connect(self.selectFromHeader)
-        
-        self.view = RightClickTableView(self)
-        self.view.setHorizontalHeader(headerView)
-        self.view.rightClicked.connect(self.getClickedItemVal)
-        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        
-        self.view.keyPressed.connect(self.directInput)
-        self.mainLay.addWidget(self.view)
-    
-        self.createCallback()
-        self.getSkinWeights()
-        self.setStyleSheet("border 0px;")
-    
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
+        """ translate the ui based on given dictionary
+
+        :param localeDict: the dictionary holding information on how to translate the ui
+        :type localeDict: dict
+        """
         for key, value in localeDict.iteritems():
             if key in self.actionLabels.keys():
                 self.actionLabels[key] = value
@@ -122,6 +141,7 @@ class WeightEditorWindow(QWidget):
 
     def doTranslate(self):
         """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName) 
@@ -129,15 +149,35 @@ class WeightEditorWindow(QWidget):
           
     # --------------------------------- ui math ----------------------------------  
     def getIgnoreList(self, row, column, rowLen, colLen):
+        """ get the list of items to be ignored
+
+        :param row: the index of the row
+        :type row: int
+        :param column: the index of the column
+        :type column: int
+        :param rowLen: amoutn of rows
+        :type rowLen: int
+        :param colLen: amount of columns
+        :type colLen: int
+        :return: list of itmems to ignore
+        :rtype: list
+        """
         toIgnore = []
         for _row, _col in itertools.product(range(rowLen), range(colLen)):
             toIgnore.append([row + _row, column + _col])
         return toIgnore
 
     def getRows(self):
+        """ get the rows of selected cells
+
+        :return: list of selected rows
+        :rtype: list
+        """
         return list(set([item.row() for item in self.selectedCells]))
 
     def clearCopyPaste(self):
+        """ clear the copy paste data
+        """
         self.copyRows = []
         self.copyWeightList = []
         self.copyJointInfl = []
@@ -149,6 +189,8 @@ class WeightEditorWindow(QWidget):
         self.refreshTable()
 
     def vxtCopy(self):
+        """ copy the date of selected vertices
+        """
         self.copyRows = self.getRows()
         self.copyWeightList = []
         self.copyJointInfl = []
@@ -160,6 +202,8 @@ class WeightEditorWindow(QWidget):
         self.refreshTable()
         
     def vtxPaste(self):
+        """ paste the gathered date onto newly selected vertices
+        """
         self.rowsToUpdate = set()
         self.lockedCells = self.weightTable.lockedWeigths
         rows = self.getRows()
@@ -222,6 +266,8 @@ class WeightEditorWindow(QWidget):
         self.tryNormalizeWeights()
                    
     def copyCells(self):
+        """ copy cell information 
+        """
         self.cellToCopy = self.selectedCells
         self.weightTable.cellToCopy = self.cellToCopy
         self.weightSelectModel.clearSelection()
@@ -249,6 +295,8 @@ class WeightEditorWindow(QWidget):
         self.colLen = biggestCol - smallestCol + 1
         
     def pasteCells(self):
+        """ paste cell information
+        """
         pastedCells = self.selectedCells
        
         startCell = pastedCells[0]

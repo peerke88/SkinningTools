@@ -28,6 +28,7 @@ class VertAndBoneFunction(QWidget):
         self.individualBtns = []
         self.__favSettings = []
         self._Btn = {}
+        self._remp = {}
 
         self.progressBar = inProgressBar
         self.BezierGraph = inGraph
@@ -59,7 +60,7 @@ class VertAndBoneFunction(QWidget):
         for key, value in localeDict.iteritems():
             if hasattr(self._Btn[key], "getNameInfo"):
                 for k, v in self._Btn[key].getNameInfo.iteritems():
-                    v.setText(value)
+                    v.setText(localeDict[self._remp[k]])
 
         
     def getButtonText(self):
@@ -222,13 +223,18 @@ class VertAndBoneFunction(QWidget):
         self._Btn["relax"] = self._Btn["smthBrs_Btn"].checks["relax"]
         self._Btn["volume"] = self._Btn["smthBrs_Btn"].checks["volume"]
 
+        self._remp = {"use distance" : "dist", "smooth" : "smooth", "uvSpace" : "uvSpace", "smooth" : "smooth1",
+                      "uvSpace" : "uvSpace1", "growing" : "growing", "full" : "full", "specify name" : "specify name",
+                      "internal" : "internal", "use opm" : "use opm", "use parent" : "use parent", "delete" : "delete",
+                      "fast" : "fast", "query" : "query", "invert" : "invert", "model only" : "model only",
+                      "in Pose" : "in Pose", "relax" : "relax", "volume" : "volume"}
 
         self.checkedButtons = [self._Btn["AvgWght_Btn"], self._Btn["trsfrSK_Btn"], self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], self._Btn["toJoint_Btn"], 
                                self._Btn["cutMesh_Btn"], self._Btn["delBone_Btn"], self._Btn["unifyBn_Btn"], self._Btn["onlySel_Btn"], self._Btn["BindFix_Btn"], self._Btn["smthBrs_Btn"]]
 
         # -- singal connections                     
         self._Btn["smthBrs_Btn"].checks["relax"].stateChanged.connect( partial( self._updateBrush_func, self._Btn["smthBrs_Btn"] ) )
-        self._Btn["onlySel_Btn"].checks["invert"].stateChanged.connect( partial( self._pruneOption, self._Btn["onlySel_Btn"] ) )
+        # self._Btn["onlySel_Btn"].checks["invert"].stateChanged.connect( partial( self._pruneOption, self._Btn["onlySel_Btn"] ) )
         self._Btn["smthBrs_Btn"].checks["volume"].stateChanged.connect(self._smthSpin.setEnabled)
         
         self._Btn["trsfrSK_Btn"].clicked.connect( partial( self._trsfrSK_func, self._Btn["trsfrSK_Btn"], False ) )
@@ -430,6 +436,7 @@ class VertAndBoneFunction(QWidget):
 
     # -- checkbox modifiers    
     def _pruneOption(self, btn, value):
+        #@todo: check if we can get this to work
         btn.setText("prune %s infl."%["excluded, selected"][btn.checks["invert"].isChecked()])
 
     # -- buttons with extra functionality
@@ -472,8 +479,8 @@ class VertAndBoneFunction(QWidget):
         self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
 
     def _growsel_func(self, *args):
-        self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
         self.borderSelection.grow()
+        self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
 
     def _bindFix_func(self, sender,  *args):
         interface.prebindFixer(sender.checks["model only"].isChecked(), sender.checks["in Pose"].isChecked(), self.progressBar)

@@ -31,7 +31,7 @@ def checkBasePose(skinCluster):
     for key, val in jointMap.items():
         prebind = cmds.getAttr("%s.bindPreMatrix[%s]" % (skinCluster, val))[-4:-1]
         curInvMat = cmds.getAttr("%s.worldInverseMatrix" % key)[-4:-1]
-        if not utils.compare_vec3(prebind, curInvMat):
+        if not compare_vec3(prebind, curInvMat):
             return False
     return True
 
@@ -81,7 +81,7 @@ def getVertOverMaxInfluence(inObject, maxInfValue=8, progressBar=None):
     :return: vertices that have too much influences, dictionary on the specific vertex on how many influences are present
     :rtype: list
     """
-    utils.setProgress(0, progressBar, "get max info")
+    setProgress(0, progressBar, "get max info")
     sc = shared.skinCluster(inObject, True)
     vtxWeights = cmds.getAttr("%s.weightList[:]" % sc)
     vtxCount = len(vtxWeights)
@@ -94,8 +94,8 @@ def getVertOverMaxInfluence(inObject, maxInfValue=8, progressBar=None):
         if amount > maxInfValue:
             indexOverMap[i] = amount
             namedIndex.append("%s.vtx[%i]" % (inObject, i))
-        utils.setProgress(i * percentage, progressBar, "checking vertices")
-    utils.setProgress(100, progressBar, "vertices checked on %s" % inObject)
+        setProgress(i * percentage, progressBar, "checking vertices")
+    setProgress(100, progressBar, "vertices checked on %s" % inObject)
     return namedIndex, indexOverMap
 
 
@@ -112,7 +112,7 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
     :return: `True` if the function is completed, 
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "get max info")
+    setProgress(0, progressBar, "get max info")
     toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue)
     if toMuchinfls == []:
         return
@@ -135,14 +135,14 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
 
         pruneFix = max(nsmallest(toPrune, values)) + 0.001
         cmds.skinPercent(sc, vertex, pruneWeights=pruneFix)
-        utils.setProgress(index * percentage, progressBar, "removing influences")
+        setProgress(index * percentage, progressBar, "removing influences")
 
     cmds.skinCluster(sc, e=True, fnw=1)
 
     cmds.setAttr("%s.maxInfluences" % sc, maxInfValue)
     cmds.setAttr("%s.maintainMaxInfluences" % sc, 1)
 
-    utils.setProgress(100, progressBar, "set maximum influences")
+    setProgress(100, progressBar, "set maximum influences")
 
     return True
 
@@ -166,7 +166,7 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
     :return: `True` if the function is completed, vertices if requested
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "get source info")
+    setProgress(0, progressBar, "get source info")
 
     targetMesh = TargetSelection[0].split('.')[0]
     sourceMesh = SourceSelection[0].split('.')[0]
@@ -247,7 +247,7 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
                 weightsCreation.append((newWeights[count] / divider))
         weightlist.extend(weightsCreation)
 
-        utils.setProgress(tIndex * percentage, progressBar, "copy source > target vtx")
+        setProgress(tIndex * percentage, progressBar, "copy source > target vtx")
 
     index = 0
     for vertex in TargetSelection:
@@ -257,9 +257,9 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
             targetInflArray[weightindex] = weightlist[index]
             index += 1
 
-    shared.setWeigths(targetMesh, targetInflArray)
+    shared.setWeights(targetMesh, targetInflArray)
 
-    utils.setProgress(100, progressBar, "copy from Source to Target")
+    setProgress(100, progressBar, "copy from Source to Target")
 
     return True
 
@@ -277,7 +277,7 @@ def transferClosestSkinning(objects, smoothValue, progressBar=None):
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "get closest info")
+    setProgress(0, progressBar, "get closest info")
     baseObject = objects[0]
     origSkinCluster = shared.skinCluster(baseObject)
     origJoints = joints.getInfluencingJoints(origSkinCluster) 
@@ -294,8 +294,8 @@ def transferClosestSkinning(objects, smoothValue, progressBar=None):
             joints.comparejointInfluences([baseObject, currentObj])
 
         execCopySourceTarget(newSkinCluster, origSkinCluster, shared.convertToVertexList(object), shared.convertToVertexList(object1), smoothValue, progressBar)
-        utils.setProgress(iteration * percentage, progressBar, "copy closest skin")
-    utils.setProgress(100, progressBar, "transfered closest skin")
+        setProgress(iteration * percentage, progressBar, "copy closest skin")
+    setProgress(100, progressBar, "transfered closest skin")
     return True
 
 
@@ -318,7 +318,7 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "transfer skinning")
+    setProgress(0, progressBar, "transfer skinning")
     
     sc = shared.skinCluster(baseSkin, silent=False)
     if sc == None:
@@ -348,8 +348,8 @@ def transferSkinning(baseSkin, otherSkins, inPlace=True, sAs=True, uvSpace=False
         else:
             cmds.copySkinWeights(ss=sc, ds=newSkinCl[0], nm=True, surfaceAssociation=surfaceAssociation,
                                  influenceAssociation=["label", "oneToOne", "name"], normalize=True)
-        utils.setProgress(index * percentage, progressBar, "transfer skin info")
-    utils.setProgress(100, progressBar, "transfered skin")
+        setProgress(index * percentage, progressBar, "transfer skin info")
+    setProgress(100, progressBar, "transfered skin")
     return True
 
 
@@ -366,7 +366,7 @@ def Copy2MultVertex(selection, lastSelected, progressBar=None):
     :return: `True` if the function is completed, vertices if requested
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "start copy vertex")
+    setProgress(0, progressBar, "start copy vertex")
     index = int(lastSelected.split("[")[-1].split("]")[0])
     currentMesh = lastSelected.split('.')[0]
     sc = shared.skinCluster(currentMesh, True)
@@ -378,10 +378,10 @@ def Copy2MultVertex(selection, lastSelected, progressBar=None):
     transformValueList = []
     for i, jnt in enumerate(infJoints):
         transformValueList.append([jnt, currentValues[i]])
-        utils.setProgress(i * percentage, progressBar, "gather joint info")
+        setProgress(i * percentage, progressBar, "gather joint info")
 
     cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)
-    utils.setProgress(100, progressBar, "copied vertex")
+    setProgress(100, progressBar, "copied vertex")
     return True
 
 
@@ -398,14 +398,14 @@ def hammerVerts(inSelection, needsReturn=True, progressBar=None):
     :return: `True` if the function is completed, vertices if requested
     :rtype: bool, list
     """
-    utils.setProgress(0, progressBar, "start Hammer")
+    setProgress(0, progressBar, "start Hammer")
     currentMesh = inSelection[0].split('.')[0]
     sc = shared.skinCluster(currentMesh, True)
     maxInfls = cmds.skinCluster(sc, q=True, mi=True)
-    utils.setProgress(50, progressBar, "gather data")
+    setProgress(50, progressBar, "gather data")
 
     cmds.skinCluster(sc, e=1, sw=0.0, swi=5, omi=True, forceNormalizeWeights=True)
-    utils.setProgress(100, progressBar, "Hammered Weights")
+    setProgress(100, progressBar, "Hammered Weights")
     if needsReturn:
         return shared.convertToVertexList(inSelection)
     return True
@@ -424,7 +424,7 @@ def switchVertexWeight(vertex1, vertex2, progressBar=None):
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "start switch")
+    setProgress(0, progressBar, "start switch")
     currentMesh = vertex1.split('.')[0]
     sc = shared.skinCluster(currentMesh)
     cmds.skinCluster(currentMesh, e=True, nw=1)
@@ -439,11 +439,11 @@ def switchVertexWeight(vertex1, vertex2, progressBar=None):
     for i, bone in enumerate(infJoints):
         pointsWeightsList1.append([bone, pointWeights1[i]])
         pointsWeightsList2.append([bone, pointWeights2[i]])
-        utils.setProgress(i * percentage, progressBar, "gather joint info")
+        setProgress(i * percentage, progressBar, "gather joint info")
 
     cmds.skinPercent(sc, vertex1, transformValue=pointsWeightsList2)
     cmds.skinPercent(sc, vertex2, transformValue=pointsWeightsList1)
-    utils.setProgress(100, progressBar, "switched Weights")
+    setProgress(100, progressBar, "switched Weights")
     return True
 
 
@@ -464,7 +464,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "gather shape info")
+    setProgress(0, progressBar, "gather shape info")
     shapes = cmds.listRelatives(meshTarget, s=1)
     mesh_orig = None
     for shape in shapes:
@@ -476,7 +476,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
 
     conns = cmds.listConnections(mesh_orig, d=1, c=1, p=1)
 
-    utils.setProgress(22, progressBar, "transfer uv")
+    setProgress(22, progressBar, "transfer uv")
 
     cmds.setAttr("%s.intermediateObject" % mesh_orig, 0)
     transformAttrs = cmds.transferAttributes(meshSource, mesh_orig,
@@ -492,7 +492,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
                                              colorBorders=True)
     cmds.setAttr("%s.intermediateObject" % mesh_orig, 1)
 
-    utils.setProgress(35, progressBar, "cleanup history stack")
+    setProgress(35, progressBar, "cleanup history stack")
     conns = cmds.listConnections(transformAttrs, d=1, c=1, p=1)
     indices = []
     _connectDict = {}
@@ -507,7 +507,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
             pass
     cmds.delete(transformAttrs)
 
-    utils.setProgress(87, progressBar, "clean connections")
+    setProgress(87, progressBar, "clean connections")
 
     shapes = cmds.listRelatives(meshTarget, s=1)
     for shape in shapes:
@@ -515,7 +515,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
         if not connections:
             cmds.delete(shape)
 
-    utils.setProgress(100, progressBar, "transfered UV")
+    setProgress(100, progressBar, "transfered UV")
     return True
 
 
@@ -530,7 +530,7 @@ def seperateSkinnedObject(inMesh, progressBar=None):
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "start seperate")
+    setProgress(0, progressBar, "start seperate")
     shape = cmds.listRelatives(inMesh, ad=True, s=True)
     shells = mesh.getShellFaces(inMesh)
 
@@ -549,13 +549,13 @@ def seperateSkinnedObject(inMesh, progressBar=None):
         cmds.flushUndo()
         newMeshes.append(dup)
 
-        utils.setProgress(percentage * i, progressBar, "extracting shells")
+        setProgress(percentage * i, progressBar, "extracting shells")
 
     transferSkinning(inMesh, newMeshes, inPlace=True)
     cmds.delete(shape)
     cmds.parent(newMeshes, inMesh)
 
-    utils.setProgress(100, progressBar, "seperated object shells")
+    setProgress(100, progressBar, "seperated object shells")
     return True
 
 
@@ -574,7 +574,7 @@ def extractSkinnedShells(components, progressBar=None):
         convertedFaces = cmds.polyListComponentConversion(components, tf=True)
         return cmds.filterExpand(convertedFaces, sm=34)
 
-    utils.setProgress(0, progressBar, "get shell info")
+    setProgress(0, progressBar, "get shell info")
     faces = _convertToFaces(components)
     inMesh = faces[0].split(".")[0]
 
@@ -585,14 +585,14 @@ def extractSkinnedShells(components, progressBar=None):
     percentage = 80.0 / len(faces)
     for i, face in enumerate(faces):
         newSel.append("%s.%s" % (dup, face.split(".")[-1]))
-        utils.setProgress(i * percentage, progressBar, "construct shells")
+        setProgress(i * percentage, progressBar, "construct shells")
 
     cmds.delete(list(set(allFaces) ^ set(newSel)))
     cmds.delete(dup, ch=1)
     if shared.skinCluster(inMesh, True) == None:
         return
     transferSkinning(inMesh, [dup], inPlace=True)
-    utils.setProgress(100, progressBar, "extracted shells")
+    setProgress(100, progressBar, "extracted shells")
     return dup
 
 
@@ -607,9 +607,9 @@ def combineSkinnedMeshes(meshes, progressBar=None):
     :return: the mesh that is created
     :rtype: string
     """
-    utils.setProgress(0, progressBar, "start Merge")
+    setProgress(0, progressBar, "start Merge")
     cmds.polyUniteSkinned(meshes, ch=0, mergeUVSets=1)
-    utils.setProgress(100, progressBar, "merged skins")
+    setProgress(100, progressBar, "merged skins")
     return newMesh
 
 
@@ -628,7 +628,7 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse=False,
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "get joint influences")
+    setProgress(0, progressBar, "get joint influences")
     polySelection = list(set(fullSelection) ^ set(jointOnlySelection))
     vertices = shared.convertToVertexList(polySelection)
     inMesh = vertices[0].split(".")[0]
@@ -643,10 +643,10 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse=False,
     percentage = 99.0 / len(jointsToRemove)
     for index, jnt in enumerate(jointsToRemove):
         jointsToRemoveValues.append((jnt, 0))
-        utils.setProgress(index * percentage, progressBar, "get joints to remove")
+        setProgress(index * percentage, progressBar, "get joints to remove")
 
     cmds.skinPercent(skinCluster, vertices, tv=jointsToRemoveValues, normalize=True)
-    utils.setProgress(100, progressBar, "removed unselected influences")
+    setProgress(100, progressBar, "removed unselected influences")
     return True
 
 
@@ -667,7 +667,7 @@ def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progr
     :return: list of vertices in the new selection
     :rtype: list
     """
-    utils.setProgress(0, progressBar, "start smooth")
+    setProgress(0, progressBar, "start smooth")
     vertices = shared.convertToVertexList(input)
     inMesh = vertices[0].split('.')[0]
     meshNode = OpenMaya.MGlobal.getSelectionListByName(inMesh).getDependNode(0)
@@ -687,10 +687,10 @@ def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progr
         grown = shared.convertToCompList(indices, inMesh)
 
     fixedList = list(set(grown) ^ set(vertices))
-    utils.setProgress(67, progressBar, "gathered smooth data")
+    setProgress(67, progressBar, "gathered smooth data")
     cmds.skinCluster(sc, geometry=fixedList, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
 
-    utils.setProgress(100, progressBar, "smoothed neighbors")
+    setProgress(100, progressBar, "smoothed neighbors")
     if False in [growing, both]:
         cmds.select(vertices, r=1)
         return vertices
@@ -711,7 +711,7 @@ def avgVertex(vertices, lastSelected, progressBar=None):
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "get average data")
+    setProgress(0, progressBar, "get average data")
     pointList = [x for x in vertices if x != lastSelected]
     inMesh = lastSelected.split('.')[0]
     sc = shared.skinCluster(inMesh)
@@ -725,7 +725,7 @@ def avgVertex(vertices, lastSelected, progressBar=None):
             if pointWeights < 0.000001:
                 continue
             _weights[joint] += pointWeights
-        utils.setProgress(index * percentage, progressBar, "gather smooth data")
+        setProgress(index * percentage, progressBar, "gather smooth data")
 
     amountPts = len(pointList)
     transformValueList = []
@@ -733,7 +733,7 @@ def avgVertex(vertices, lastSelected, progressBar=None):
         transformValueList.append([key, value])
 
     cmds.skinPercent(sc, lastSelected, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)
-    utils.setProgress(100, progressBar, "set average weight")
+    setProgress(100, progressBar, "set average weight")
     return True
 
 
@@ -748,23 +748,23 @@ def freezeSkinnedMesh(inMesh, progressBar=None):
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "start freeze mesh")
+    setProgress(0, progressBar, "start freeze mesh")
     sc = shared.skinCluster(inMesh, True)
     attachedJoints = joints.getInfluencingJoints(sc)  # cmds.listConnections("%s.matrix"%sc, source=True)
 
-    utils.setProgress(25, progressBar, "gather current skindata")
+    setProgress(25, progressBar, "gather current skindata")
     shape = cmds.listRelatives(inMesh, s=True)[0]
     outInfluencesArray = shared.getWeights(inMesh)
 
-    utils.setProgress(50, progressBar, "clean mesh")
+    setProgress(50, progressBar, "clean mesh")
     cmds.skinCluster(shape, e=True, ub=True)
     cmds.delete(inMesh, ch=1)
     cmds.makeIdentity(inMesh, apply=True)
 
-    utils.setProgress(75, progressBar, "re-apply skin")
+    setProgress(75, progressBar, "re-apply skin")
     nsc = cmds.skinCluster(attachedJoints, inMesh, tsb=True, bm=0, nw=1)
-    shared.setWeigths(inMesh, outInfluencesArray)
-    utils.setProgress(100, progressBar, "freeze skinned mesh")
+    shared.setWeights(inMesh, outInfluencesArray)
+    setProgress(100, progressBar, "freeze skinned mesh")
     return True
 
 
@@ -779,7 +779,7 @@ def hardSkinSelectionShells(selection, progressBar=False):
     :return: the current selection
     :rtype: list
     """
-    utils.setProgress(0, progressBar, "converting to shells")
+    setProgress(0, progressBar, "converting to shells")
     expanded = shared.convertToVertexList(selection)
     inMesh = expanded[0].split('.')[0]
 
@@ -806,11 +806,11 @@ def hardSkinSelectionShells(selection, progressBar=False):
             jointValueList.append([jnt, newValue])
 
         cmds.skinPercent(sc, vertices, transformValue=jointValueList, normalize=1)
-        utils.setProgress(iteration * percentage, progressBar, "setting shell data")
+        setProgress(iteration * percentage, progressBar, "setting shell data")
         iteration += 1
         cmds.refresh()
 
-    utils.setProgress(100, progressBar, "hard skinned shells")
+    setProgress(100, progressBar, "hard skinned shells")
     return selection
 
 
@@ -829,7 +829,7 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
     :return: `True` if the function is completed
     :rtype: bool
     """
-    utils.setProgress(0, progressBar, "get selection data")
+    setProgress(0, progressBar, "get selection data")
     vertexAmount = len(selection)
     if vertexAmount < 2:
         cmds.error("not enough vertices selected! select a minimum of 2")
@@ -866,7 +866,7 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
                         value2 = startWGT[idx] * (1 - percentage)
                         newWeightsList.append((infJoints[idx], value1 + value2))
                     cmds.skinPercent(sc, vertex, transformValue=newWeightsList)
-                utils.setProgress(iteration * percentage, progressBar, "set path average data")
+                setProgress(iteration * percentage, progressBar, "set path average data")
         except Exception as e:
             if _DEBUG:
                 print(e)
@@ -876,12 +876,12 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
         finally:
             cmds.setAttr( "%s.envelope"%sc, 1)
 
-        utils.setProgress(1.0, progressBar, "average skin applied to path")
+        setProgress(1.0, progressBar, "average skin applied to path")
         return True
 
     lastSelected = selection[-1]
     avgVertex(selection, lastSelected, progressBar)
-    utils.setProgress(100, progressBar, "set average weight")
+    setProgress(100, progressBar, "set average weight")
     return True
 
 
@@ -906,15 +906,15 @@ def neighbourAverage(components, warningPopup=True, progressBar=None):
         if result == "No":
             return
 
-    utils.setProgress(100, progressBar, "get neighbor data")
+    setProgress(100, progressBar, "get neighbor data")
     inMesh = expandedVertices[0].split('.')[0]
     sc = shared.skinCluster(inMesh)
     percentage = 99.0 / len(expandedVertices)
     for index, vertex in enumerate(expandedVertices):
         cmds.AverageVtxWeight(vertex, sc=sc, wt=1)
-        utils.setProgress(index * percentage, progressBar, "set average weight")
+        setProgress(index * percentage, progressBar, "set average weight")
 
-    utils.setProgress(100, progressBar, "set neighbor average")
+    setProgress(100, progressBar, "set neighbor average")
     return True
 
 

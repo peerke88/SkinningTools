@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210113"
+__VERSION__ = "5.0.20210114"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -159,6 +159,11 @@ class SkinningToolsUI(interface.DockWidget):
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
+        """ translate the ui based on given dictionary
+
+        :param localeDict: the dictionary holding information on how to translate the ui
+        :type localeDict: dict
+        """
         for key, value in localeDict.iteritems():
             if hasattr(self.textInfo[key], "tearOffTabName"):
                 self.textInfo[key].tabParent.setTabText(self.textInfo[key].cIndex, value)
@@ -190,6 +195,9 @@ class SkinningToolsUI(interface.DockWidget):
 
     def _changeLanguage(self, lang = None):
         """ change the ui language
+
+        :param lang: the shortname of the language to change the ui to
+        :type lang: string
         """
         if lang is None:
             lang = self.sender().text()

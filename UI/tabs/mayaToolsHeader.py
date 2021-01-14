@@ -98,28 +98,28 @@ class MayaToolsHeader(QWidget):
         self.graph.setIconSize(QSize(self.__graphSize, self.__graphSize))
 
     def _storeVtx(self):
-        index = self._vtSaveLoad.getVtxWeigth()
-        self.vtLine.setText(index)
+        index = self._vtSaveLoad.getVtxWeight()
+        self.vtLine.setText(str(index))
 
     def _loadVtx(self):
         if self.vtLine.text == '':
             return
-        self._vtSaveLoad.setVtxWeigth()
+        self._vtSaveLoad.setVtxWeight()
 
     def _storeSkin(self):
-        index = self._skSaveLoad.getSkinWeigth()
-        self.skLine.setText(index)
+        index = self._skSaveLoad.getSkinWeight()
+        self.skLine.setText(str(index))
 
     def _loadSkin(self):
         if self.skLine.text == '':
             return
         if self._skSaveLoad.needsRemap():
-            rmpDialog = RemapDialog(self._skSaveLoad, interface.getAllJoints(), shelf)
+            rmpDialog = RemapDialog(self._skSaveLoad, interface.getAllJoints(), self)
             rmpDialog.exec_()
             # @todo: make sure that the order here is correct?
             # maybe this doesnt work as intended and we need to remap by index
             self._skSaveLoad.boneInfo = rmpDialog.getConnectionInfo().values()
-        self._skSaveLoad.setSkinWeigth()
+        self._skSaveLoad.setSkinWeights()
 
 
 def testUI():

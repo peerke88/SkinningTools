@@ -265,6 +265,15 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
     return True
 
 def storeLanguageFile(inDict, language, widgetName):
+    """ store the language file based on given inputs
+
+    :param inDict: the translation dictionary
+    :type inDict: dict
+    :param language: the language used in the dictionary
+    :type language: string
+    :param widgetName: name of the widget used to link the language file with
+    :type widgetName: string
+    """
     languagesDir = os.path.join(UIDIRECTORY, "languages")
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
@@ -275,6 +284,15 @@ def storeLanguageFile(inDict, language, widgetName):
         json.dump(inDict, f, indent=2)
 
 def loadLanguageFile(language, widgetName):
+    """ load the language file based on given inputs
+
+    :param language: the language used in the dictionary
+    :type language: string
+    :param widgetName: name of the widget used to link the language file with
+    :type widgetName: string
+    :return: the translation dictionary
+    :rtype: dict
+    """
     languagesDir = os.path.join(UIDIRECTORY, "languages")
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
