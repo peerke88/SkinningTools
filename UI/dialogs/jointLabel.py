@@ -37,10 +37,14 @@ class JointLabel(QDialog):
             self.accept()
             return
 
-        answer = QMessageBox.warning(self, "Incomplete Form",
-                                     "The form does not contain all the necessary information.\n"
-                                     "Continue with default settings?",
-                                     QMessageBox.Yes, QMessageBox.No)
 
-        if answer == QMessageBox.Yes:
+        answer = QuickDialog("Incomplete Form")
+        answer.layout(insertWidget(0, QLabel("Continue with default settings?")))
+        answer.layout(insertWidget(0, QLabel("The form does not contain all the necessary information.")))
+        # answer = QMessageBox.warning(self, "Incomplete Form",
+        #                              "The form does not contain all the necessary information.\n"
+        #                              "Continue with default settings?",
+        #                              QMessageBox.Yes, QMessageBox.No)
+
+        if answer.result() == 0:
             self.reject()

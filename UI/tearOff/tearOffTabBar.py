@@ -67,7 +67,7 @@ class TearoffTabBar(QTabBar):
         QTabBar.keyReleaseEvent(self, event)
 
     def event(self, event):
-        if event is None:
+        if event is None or QEvent is None:
             return
         if event.type() == QEvent.MouseButtonRelease:
             if self.__pressedIndex > -1:

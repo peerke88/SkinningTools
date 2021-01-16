@@ -326,13 +326,11 @@ def getParentShape(inObject):
     """
     if isinstance(object, list):
         inObject = inObject[0]
-    print inObject
+    
     objType = cmds.objectType(inObject)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
     if cmds.objectType(inObject) != "transform":
-        print inObject
-        print cmds.objectType(inObject)
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
     return inObject
 

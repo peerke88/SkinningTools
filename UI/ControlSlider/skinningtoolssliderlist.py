@@ -9,8 +9,9 @@ class SkinningToolsSliderList(QWidget):
         super(SkinningToolsSliderList, self).__init__(parent=None)
         self.setLayout(QVBoxLayout())
         self._infEditor = None
-        self._showUnused = True
+        self._showUnused = False
         self.__joints = []
+        self._inputJoints = []
         self.update()
 
     def clear(self):
@@ -48,6 +49,7 @@ class SkinningToolsSliderList(QWidget):
     def __addSliders(self, mesh, vertex):    
         if mesh in self.skinClusterCache:
             skinCluster, self.__joints = self.skinClusterCache[mesh]
+            self._inputJoints = self.__joints[::]
         else:
             # no popup to prevent feedbackloop
             skinCluster = api.skinClusterForObject(mesh, True)
@@ -56,6 +58,7 @@ class SkinningToolsSliderList(QWidget):
                 return
             self.__joints = api.skinClusterInfluences(skinCluster)
             self.skinClusterCache[mesh] = skinCluster, self.__joints
+            self._inputJoints = self.__joints[::]
 
         if type(vertex) in [list, tuple]:
             weights = api.getSingleVertexWeights(skinCluster, vertex[0])
@@ -66,21 +69,21 @@ class SkinningToolsSliderList(QWidget):
         else:
             weights = api.getSingleVertexWeights(skinCluster, vertex)
         self._infEditor =  VertexInfluenceEditor(skinCluster, vertex, self.__joints, weights, self)
-        self._infEditor._toggleGroupBox(self._showUnused)
         self.layout().addWidget(self._infEditor)
 
     def showUnused(self, state):
         self._showUnused = state
         if self._infEditor is not None:
-            self._infEditor._toggleGroupBox(state)
-
+            self._infEditor.hideZero(state)
+            self._infEditor.showBones(self._inputJoints)  
+        
     def getJointData(self):
         return self.__joints
 
     def showOnlyJoints(self, inputList):
+        self._inputJoints = inputList
         if self._infEditor is not None:
             self._infEditor.showBones(inputList)  
-        self.showUnused(self._showUnused)      
-
+        
     def showEvent(self, event):
         super(SkinningToolsSliderList, self).showEvent(event)

@@ -61,6 +61,7 @@ class SkinSliderSetup(QWidget):
         self.showButton.setCheckable(True)
         self.showButton.clicked.connect(self._showUnused)
         self.showButton.setChecked(True)
+        self.inflEdit.showUnused(False)
         
         searchLay.addWidget(self.showButton)
         _frm = QWidget()
@@ -81,7 +82,7 @@ class SkinSliderSetup(QWidget):
         self.inflEdit.showOnlyJoints(self.jointSearch)
         
     def _showUnused(self, *args):
-        self.inflEdit.showUnused(not self.showButton.isChecked())
+        self.inflEdit.showUnused(self.showButton.isChecked())
         if self.jointSearch != []:
             self.inflEdit.showOnlyJoints(self.jointSearch)
 

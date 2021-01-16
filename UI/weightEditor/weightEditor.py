@@ -15,6 +15,7 @@ from SkinningTools.UI.weightEditor.rightClickTableView import RightClickTableVie
 from SkinningTools.UI.weightEditor.weightsTableModel import WeightsTableModel
 from SkinningTools.UI.weightEditor.vertHeaderView import VertHeaderView
 from SkinningTools.UI.weightEditor.popupSpinBox import PopupSpinBox
+from SkinningTools.UI.hoverIconButton import HoverIconButton
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
 
 class WeightEditorWindow(QWidget):
@@ -60,6 +61,12 @@ class WeightEditorWindow(QWidget):
         self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
         searchLay.addWidget(self.textInfo["jointSearchLE"])
         
+        self.showButton = HoverIconButton()
+        self.showButton.setCustomIcon(":/RS_visible.png", ":/RS_visible.png", ":/hotkeyFieldClear.png")
+        self.showButton.setCheckable(True)
+        self.showButton.clicked.connect(self.getSkinWeights)
+        searchLay.addWidget(self.showButton)
+
         headerView = VertHeaderView(self)
         headerView.sectionDoubleClicked.connect(self.lockJointWeight)
         headerView.rightClicked.connect(self.selectFromHeader)
@@ -508,7 +515,8 @@ class WeightEditorWindow(QWidget):
         self.nodeVtxIndexList = {}
         self.lockedData = {}
         self.nodeInfIds = {}
-        
+        weightedJoints = []
+
         for nodeId, node in enumerate(self.nodesToHilite):
             if cmds.objectType(node) != "transform":
                 continue
@@ -517,6 +525,7 @@ class WeightEditorWindow(QWidget):
                 continue
 
             self.meshIDdict[node] = nodeId
+
             skinCluster = self.meshSkinClusters[node]
             influences = self.meshInfluences[node]
             
@@ -544,6 +553,7 @@ class WeightEditorWindow(QWidget):
             filter_vtx = self.meshVerts[node]
             targets = sorted(list(set(_current) & set(filter_vtx)))
             
+
             if targets:
                 meshWeightList = self.meshWeights[node]
                 
@@ -555,8 +565,16 @@ class WeightEditorWindow(QWidget):
                         self.lockedData[_allRows] = [vertex, locks]
                         
                     self.vertexSideBar.append(v)
-                    
                     weightList = meshWeightList[v][:]
+                    
+                    nonzero = [i for i, e in enumerate(weightList) if e != 0]
+                    for i in nonzero:
+                        _cur = influences[i].split("|")[-1]
+                        
+                        if _cur in weightedJoints:
+                            continue
+                        weightedJoints.append(_cur)
+
                     self.nodeVtxIndexList[vertex] = weightList
                     self._data.append(weightList)
                     
@@ -574,6 +592,8 @@ class WeightEditorWindow(QWidget):
         
         if self.jointSearch:
             self.allInfJoints = [inf for inf in self.allInfJoints if any([True if s.upper() in inf.split('|')[-1].upper() else False for s in self.jointSearch])]
+        if self.showButton.isChecked():
+            self.allInfJoints = [inf for inf in self.allInfJoints if any([True if s.upper() in inf.split('|')[-1].upper() else False for s in weightedJoints])]
         
         self.jointIndexList = {}
         for node in self.nodesToHilite:          

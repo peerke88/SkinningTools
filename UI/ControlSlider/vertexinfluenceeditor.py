@@ -10,33 +10,32 @@ class VertexInfluenceEditor(QGroupBox):
     lockIcon = QIcon(':/nodeGrapherUnlocked.png')
     unlockIcon = QIcon(':/lockGeneric.png')
 
-    def _toggleGroupBox(self, state):
-        layout = self.layout()
-        # counter = 0
-        for counter in xrange(layout.count()):
-        # while True:
-            item = layout.itemAt(counter)
-            if not item:
-                continue
-            # counter += 1
-            widget = item.widget()
-            if not widget:
-                continue
-            if not widget.isUsed:
-                widget.setVisible(state)
+    # def _toggleGroupBox(self, state):
+    #     layout = self.layout()
+    #     for counter in xrange(layout.count()):
+    #         item = layout.itemAt(counter)
+    #         if not item:
+    #             continue
+    #         widget = item.widget()
+    #         if not widget:
+    #             continue
+    #         if not widget.isUsed:
+    #             widget.setVisible(state)
 
     def __lineEdit_FieldEditted(self, *_):
         self.sender().setStyleSheet('')
         if set(self.sender().displayText()).difference(set(".0123456789")):
             self.sender().setStyleSheet('background-color: #f00;')
+      
 
     def __init__(self, skinCluster, vtxLName, skinBones, weights, parent=None):
         super(VertexInfluenceEditor, self).__init__(parent=None)
         self.setMinimumHeight(0)
 
         self.__info = {}
-        self.toggled.connect(self._toggleGroupBox)
-        
+        self._hideZero = True
+        self.__sliders = []
+
         if len(vtxLName) > 1:
             self.setTitle("Multi Slider")
             self.setToolTip(str(api.getIds(vtxLName)))
@@ -48,15 +47,14 @@ class VertexInfluenceEditor(QGroupBox):
 
         self.__target = (skinCluster, vtxLName)
         self.__influences = skinBones
-
-        self.__sliders = []
-
         self.__busyWithCallback = False
 
         for i, skBone in enumerate(skinBones):
             sliderLayout = nullHBoxLayout()
             sliderFrame = QWidget()
             sliderFrame.setLayout(sliderLayout)
+            sliderFrame.isUsed = True
+
             gripSlider = SliderControl(skBone, label=skBone.rsplit('|', 1)[-1], mn=0.0, mx=1.0, rigidRange=True, labelOnSlider=True)
             gripSlider.slider.setValue(weights[i])
             gripSlider.slider.valueChanged.connect(functools.partial(self.__updateWeights, i))
@@ -65,7 +63,6 @@ class VertexInfluenceEditor(QGroupBox):
             sliderLayout.addWidget(gripSlider)
             lbl = VertexInfluenceEditor.lockIcon
             parent = self.layout()
-            sliderFrame.isUsed = True
 
             if weights[i] <= 0.00001:
                 lbl = VertexInfluenceEditor.unlockIcon
@@ -83,12 +80,20 @@ class VertexInfluenceEditor(QGroupBox):
             parent.addWidget(sliderFrame)
 
             self.__info[skBone] = sliderFrame
-
             self.__sliders.append((gripSlider, lockButton))
+
+    def hideZero(self, state):
+        self._hideZero = state
 
     def showBones(self, inBones):
         for bone, frame in self.__info.iteritems():
-            frame.setVisible(bone in inBones)
+            if self._hideZero:
+                if frame.isUsed and bone in inBones:
+                    frame.setVisible(True)
+                else:
+                    frame.setVisible(False)
+            else:
+                frame.setVisible(bone in inBones)
 
     def getCurrentBones(self):
         return self.__info.keys()
@@ -102,7 +107,7 @@ class VertexInfluenceEditor(QGroupBox):
         else:
             button.setIcon(VertexInfluenceEditor.lockIcon)
             slider.setEnabled(True)
-            button.setStyleSheet("")#background-color: lightgreen")
+            button.setStyleSheet("")
 
     def __updateWeights(self, setId, newValue):
         """

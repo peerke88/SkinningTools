@@ -650,7 +650,7 @@ class AssignWeightsWidget(QWidget):
         self.clearUI()
 
         selection = interface.getSelection()
-        print(selection)
+        
         if len(selection) > 0:
             selection = selection[0]
         if "." in selection:

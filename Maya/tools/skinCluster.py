@@ -112,11 +112,12 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
     :return: `True` if the function is completed, 
     :rtype: bool
     """
-    setProgress(0, progressBar, "get max info")
-    toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue)
+    toMuchinfls, indexOverMap = getVertOverMaxInfluence(inObject=inObject, maxInfValue=maxInfValue, progressBar = progressBar)
     if toMuchinfls == []:
         return
+    setProgress(0, progressBar, "get max info")
 
+    inObject = shared.getParentShape(inObject)
     sc = shared.skinCluster(inObject, True)
     shape = cmds.listRelatives(inObject, s=True)[0]
 
@@ -129,7 +130,7 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
 
     percentage = 99.0 / len(toMuchinfls)
     for index, vertex in enumerate(toMuchinfls):
-        values = cmds.skinPercent(sc, vertex, q=1, v=1, ib=float(Decimal('1.0e-17')))
+        values = cmds.skinPercent(sc, vertex, q=1, v=1)
         curAmountValues = len(values)
         toPrune = curAmountValues - maxInfValue
 
