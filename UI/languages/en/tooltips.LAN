@@ -1,0 +1,4 @@
+{
+  "Averagevtx": "Average weights\n\nsmooth a vertex's skinning information based on order of selection\n\nmultiple vertices selected:\nlast selected vertex will get the average weight of all selected vertices in current selection\n\n2 vertices selected:\nwill create a path that travels from first to last vertex based on edge connection, the smoothing will be applied over that range\n\n2 edgeloops selected:\nif the edgeloops share the same mesh, it will smooth the vertices between the 2 edgeloops\n\nthe average vertex button uses the bezier graph to determine how to smooth the objects\n\nExtra:\n- use distance; if this option is selected it will use the distances between vertices to multiply with the smooth value, if its turned off it will be based on the range",
+  Copyvtx" : "test"
+}

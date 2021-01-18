@@ -97,7 +97,7 @@ def buttonsToAttach(name, command, *_):
     return button
 
 
-def svgButton(name='', pixmap='', size=None):
+def svgButton(name='', pixmap='', size=None, toolTipInfo = None):
     """ toolbutton function with image from svg file
     
     :param name: text to add to the button
@@ -121,6 +121,9 @@ def svgButton(name='', pixmap='', size=None):
         pixmap = QPixmap(pixmap)
     btn.setIcon(QIcon(pixmap))
     btn.setFocusPolicy(Qt.NoFocus)
+    if not toolTipInfo is None:
+        btn.setWhatsThis(toolTipInfo)
+
     if size is not None:
         _size = QSize(size, size)
         btn.setIconSize(_size)

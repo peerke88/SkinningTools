@@ -482,6 +482,7 @@ def pinToSurface():
 def prebindFixer( doModel, inPose ,progressBar = None):
     # @note:
     # this displays the originshape when moving joints, need to make sure both shapes are visibile maybe when using the inpose == False
+    # maybe double check if this could be changed, so that once an opject is in edit mode either way, the next click will always make sure the objects is set to a default state
     selection = getSelection()
     if len(selection) > 1:
         selection = selection[0]
@@ -490,8 +491,9 @@ def prebindFixer( doModel, inPose ,progressBar = None):
 
     if doModel or inPose:
         mesh.toggleDisplayOrigShape(selection, both = inPose)
-
-    joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
+    
+    else:
+        joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
 
 def getUVInfo(inMesh):
     allUvSets = cmds.polyUVSet(inMesh, q=1, auv =1 )

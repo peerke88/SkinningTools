@@ -3,7 +3,7 @@ import os
 from SkinningTools.UI.qt_util import *
 from SkinningTools.Maya import api, interface
 
-TOOLTIPDIRECTORY = os.path.join(interface.getInterfaceDir(), "helpFiles")
+TOOLTIPDIRECTORY = os.path.join(interface.getInterfaceDir(), "tooltips")
 
 
 class AdvancedToolTip(QWidget):
@@ -57,10 +57,10 @@ class AdvancedToolTip(QWidget):
         size = self.geometry().height()
         self.movie.setScaledSize(QSize(size, size))
         self.movie.setCacheMode(QMovie.CacheAll)
-        self.textLabel = QTextEdit(self.inText)
+        self.textLabel = QPlainTextEdit(self.inText)
         self.textLabel.setMinimumWidth(size)
         self.textLabel.setMaximumWidth(size)
-        self.textLabel.setEnabled(False)
+        # self.textLabel.setEnabled(False)
         self.gifLabel = QLabel()
         self.gifLabel.setMovie(self.movie)
         self.movie.start()

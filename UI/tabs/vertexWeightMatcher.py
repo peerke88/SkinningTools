@@ -155,8 +155,8 @@ class TransferWeightsWidget(QWidget):
         if add:
             cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
 
-        inWeights = getWeights(source)#cmds.SkinWeights(cmds.skinCluster(source, q=True, g=True)[0], source, q=True)
-        outWeights = getWeights(target)# cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, q=True)
+        inWeights = getWeights(source)
+        outWeights = getWeights(target)
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
 
         numInInf = len(inInfluences)
@@ -189,7 +189,6 @@ class TransferWeightsWidget(QWidget):
 
 
         setWeights(target, outWeights)
-        # cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, nwt=outWeights)
         if self.__loadBar is not None:
             self.__loadBar.setValue(100)
             qApp.processEvents()

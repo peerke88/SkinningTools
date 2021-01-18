@@ -1,17 +1,21 @@
 from SkinningTools.UI.utils import getNumericName
 from SkinningTools.UI.qt_util import *
-from SkinningTools.UI.tearOff.tearOffTabBar import TearoffTabBar, EditableTabBar
+from SkinningTools.UI.tearOff.tearOffTabBar import TearoffTabBar 
 from SkinningTools.py23 import *
 
 
 class TabWidget(QTabWidget):
+    """ the tab widget that allows the user to unparent tabs in seperate dialogs
+    """
     tabAdded = pyqtSignal(unicode)
-    undoOpen = pyqtSignal()
-    undoClose = pyqtSignal()
-    selectMapNode = pyqtSignal(int)
     tearOff = pyqtSignal(int, QPoint)
 
     def __init__(self, parent=None):
+        """ the constructor
+
+        :param parent: the object to attach this ui to
+        :type parent: QWidget
+        """
         super(TabWidget, self).__init__(parent)
         self.setTabsClosable(False)
         self.setMouseTracking(True)
@@ -19,11 +23,24 @@ class TabWidget(QTabWidget):
         self.setCustomTabBar()
 
     def setCustomTabBar(self):
+        """ set the custom tab bar that has correct orientations and tear off signals
+        """
         tabBar = TearoffTabBar(self)
         self.setTabBar(tabBar)
         tabBar.tearOff.connect(self.tearOff.emit)
 
     def addGraphicsTab(self, text="NewTAB", changeCurrent=True, useIcon = None):
+        """ add a new tab with the correcet name and items attached
+
+        :param text: the title used in the tab
+        :type text: string
+        :param changeCurrent: if `True` will override the current index, if `False` will append the tab
+        :type changeCurrent: bool
+        :param useIcon: if given will use an icon to display when the object is torn off
+        :type useIcon: string
+        :return: the widget that can be thrown around
+        :rtype: QWidget
+        """
         names = [self.tabText(i) for i in range(self.count())]
         text = getNumericName(text, names)
         tab = QWidget()
@@ -52,20 +69,36 @@ class TabWidget(QTabWidget):
             self.tabAdded.emit(text)
         return tab
 
-    def addView(self, text, index, listView):
+    def addView(self, text, index, inWidget):
+        """ add the new widget to the tab
+
+        :param text: the title used in the tab
+        :type text: string
+        :param index: the index onto which the view should be added
+        :type index: int
+        :param inWidget: the widget to attach
+        :type inWidget: QWidget
+        """
         tab = QWidget()
         index = self.insertTab(index, tab, text)
         self.setCurrentIndex(index)
         layout = QHBoxLayout(tab)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(listView)
+        layout.addWidget(inWidget)
 
     def viewAtIndex(self, index):
+        """ get the widget attached at current index
+
+        :return: the current tabs widget
+        :rtype: QWidget
+        """
         if self.widget(index):
             return self.widget(index).findChild(QScrollArea)
         return None
 
     def clear(self):
+        """ make sure that the entire widget is cleared
+        """
         allTabs = [self.widget(i) for i in range(self.count())]
         self.blockSignals(True)
         for tab in allTabs:
@@ -74,27 +107,3 @@ class TabWidget(QTabWidget):
         QTabWidget.clear(self)
         self.blockSignals(False)
 
-
-class EditableTabWidget(TabWidget):
-    tabSizeChange = pyqtSignal(QSize)
-    tabLabelRenamed = pyqtSignal(unicode, unicode)
-    tabRemovedText = pyqtSignal(unicode)
-    windowModified = pyqtSignal()
-    addItemOn = pyqtSignal(QPointF, QColor, int)
-    addItemWithSet = pyqtSignal(QPointF, QColor, unicode, dict)
-    addPreviewedItem = pyqtSignal(QPointF, QColor, unicode, dict)
-    copyItems = pyqtSignal(list)
-    selectedItemsChanged = pyqtSignal(list)
-
-    def __init__(self, parent=None):
-        TabWidget.__init__(self, parent)
-        self.setAcceptDrops(False)
-        self.setObjectName('EditableTabWidget')
-
-    def setCustomTabBar(self):
-        tabBar = EditableTabBar(self)
-        self.setTabBar(tabBar)
-        tabBar.tabMoved.connect(lambda: self.windowModified.emit())
-        tabBar.tabLabelRenamed.connect(lambda: self.windowModified.emit())
-        tabBar.tabLabelRenamed.connect(self.tabLabelRenamed.emit)
-        tabBar.tearOff.connect(self.tearOff.emit)

@@ -15,7 +15,7 @@ from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningTools
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
-from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
+from SkinningTools.UI.tearOff.editableTab import TabWidget
 from SkinningTools.UI.tearOff.tearOffDialog import *
 from SkinningTools.UI.weightEditor import weightEditor
 
@@ -78,6 +78,8 @@ class SkinningToolsUI(interface.DockWidget):
         interface.dccInstallEventFilter()
 
         self._callbackFilter()
+        self._tooltips = loadLanguageFile(self.changeLN.title(), "tooltips")
+
         interface.doSelect(__sel)
 
     def __uiElements(self):
@@ -143,9 +145,6 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
 
-        #@todo: add the functionality later
-        self.textInfo["tooltipAction"].setEnabled(False)
-
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
         self.menuBar.addMenu(self.changeLN)
@@ -210,13 +209,14 @@ class SkinningToolsUI(interface.DockWidget):
 
         _dict =loadLanguageFile(lang, self.toolName.split(":")[0])
         self.translate(_dict)
+        self._tooltips = loadLanguageFile(lang, "tooltips")
 
     # --------------------------------------------------------------------------------
 
     def __tabsSetup(self):
         """ main tab widget which will hold all other widget information
         """
-        self.tabs = EditableTabWidget()
+        self.tabs = TabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.tearOff.connect(self.tearOff)
         self.tabs.tabBar().setWest()
@@ -229,7 +229,7 @@ class SkinningToolsUI(interface.DockWidget):
         """
         self.textInfo["mayaTab"] = self.tabs.addGraphicsTab("Maya Tools", useIcon = ":/menuIconSkinning.png")
         self.textInfo["mayaTab"].tabParent = self.tabs
-        self.mayaToolsTab = EditableTabWidget()
+        self.mayaToolsTab = TabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
 
         vLayout = nullVBoxLayout()
@@ -290,7 +290,7 @@ class SkinningToolsUI(interface.DockWidget):
         vLayout = nullVBoxLayout()
         self.textInfo["copyTab"].view.frame.setLayout(vLayout)
 
-        self.copyToolsTab = EditableTabWidget()
+        self.copyToolsTab = TabWidget()
         self.copyToolsTab.tearOff.connect(self.tearOff)
 
         vLayout.addWidget(self.copyToolsTab)
@@ -495,6 +495,9 @@ class SkinningToolsUI(interface.DockWidget):
         if (self.currentWidgetAtMouse is None) or (self.textInfo["tooltipAction"].isChecked() == False):
             return
         tip = self.currentWidgetAtMouse.whatsThis()
+        print tip
+        if not str(tip) in self._tooltips.keys():
+            return
 
         size = 250
         if QDesktopWidget().screenGeometry().height() > 1080:
@@ -507,7 +510,7 @@ class SkinningToolsUI(interface.DockWidget):
         # @TODO: change this to only display text if gif does not exist
         # if not self.toolTipWindow.toolTipExists(tip):
         #     return 
-        self.toolTipWindow.setTip(str(tip))
+        self.toolTipWindow.setTip(self._tooltips[str(tip)].replace("^", "\n"))
         self.toolTipWindow.setGifImage(tip)
         self.toolTipWindow.show()
 

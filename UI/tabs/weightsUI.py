@@ -260,7 +260,7 @@ class WeightsUI(QWidget):
         self._changeMeshInfo(sender.info, c)
 
     def _changeMeshInfo(self, curFile, currentC, *_):
-        """ chagne the information based on the current wieght file selection
+        """ chagne the information based on the current weight file selection
 
         :param curFile: the weight file to gather data from
         :type curFile: string
@@ -269,6 +269,9 @@ class WeightsUI(QWidget):
         """
         if self.__infoDetails is not None:
             self.__infoDetails.deleteLater()
+            for cube in self.__bbCube:
+                if cmds.objExists(cube):
+                    cmds.delete(cube)
         currentText = currentC.getCheckedItems()
         def lockLine(inText, inList):
             info = 0
@@ -298,7 +301,9 @@ class WeightsUI(QWidget):
         self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["bbox"]), 1,0)
         spin = QDoubleSpinBox()
         spin.setValue(1.0)
+        spin.setSingleStep(.05)
         spin.valueChanged.connect(self._scaleBBox)
+        spin.setEnabled(False)
         self.__infoDetails.currentInfo['scale'] = spin
         self.__infoDetails.layout().addWidget(spin, 1,1)
         btn = buttonsToAttach(self.infoLabels["check"], partial(self._makeBB, self.__cache[curFile]["bbox"], currentText))
@@ -400,6 +405,7 @@ class WeightsUI(QWidget):
         amount = len(nVerts)
         matches = True
         positions = True
+        scl = self.__infoDetails.currentInfo['scale'].value()
         for currentMesh in currentMeshes:
             if len(verts[currentMesh]) != amount:
                 matches = False
@@ -408,7 +414,8 @@ class WeightsUI(QWidget):
             for i in xrange(5):
                 _id =  random.randint(0, amount)
                 pos = smart_roundVec(verts[currentMesh][_id], 3)
-                nPos = smart_roundVec(cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1), 3)
+                _fp = cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1)
+                nPos = smart_roundVec([_fp[0]*scl, _fp[1]*scl, _fp[2]*scl], 3)
                 if pos == nPos:
                     continue
                 positions = False
@@ -441,9 +448,11 @@ class WeightsUI(QWidget):
         """ create a cube that uses the infromation of the skinweights file bounding box, 
         to identify possible problems when loading the skincluster information
         """
-        if cmds.objExists(self.__bbCube):
-            cmds.delete(self.__bbCube)
+        for cube in self.__bbCube:
+            if cmds.objExists(cube):
+                cmds.delete(cube)
         self.__bbCube = []
+        self.__infoDetails.currentInfo['scale'].setEnabled(True)
         for mesh in meshList:
             _bb = cmds.polyCube(n = "bboxCube")[0]
             self.__bbCube.append(_bb)
@@ -480,20 +489,28 @@ class WeightsUI(QWidget):
 
     def _setSkinInfo(self):
         if self.__infoDetails is None:
-            print("no object selected")
+            print("no weight info selected")
             return
         print("setting the skinning info")
         for key, val in self.__infoDetails.currentInfo.iteritems():
             print key, val
 
 
+        """
+        check the settings in the self.__infoDetails to make sure how we want to handle all the information
+
+        base dont he infromation we remap all of the data to set the weights
+        we can use the plugin to set the weights necessary!
+        """
+
     def hideEvent(self, event):
         """ make sure we don't have any lingering data
         """
         if not self.__cache == {}:
             del self.__cache
-        if self.__bbCube != '':
-            cmds.delete(self.__bbCube)
+        for cube in self.__bbCube:
+            if cmds.objExists(cube):
+                cmds.delete(cube)
 
                                  
 def testUI():

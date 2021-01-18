@@ -5,10 +5,16 @@ from SkinningTools.UI.qt_util import *
 
 
 class TearoffTabBar(QTabBar):
-    selectMapNode = pyqtSignal(int)
-    tearOff = pyqtSignal(int, QPoint)
+    """ tab bar for the QTabwidget that allows the widget to be removed from the tab and parent to a new window
+    """
 
+    tearOff = pyqtSignal(int, QPoint)
     def __init__(self, parent=None):
+        """ the constructor
+
+        :param parent: the object to attach this ui to
+        :type parent: QWidget
+        """
         QTabBar.__init__(self, parent)
         self.setCursor(Qt.ArrowCursor)
         self.setMouseTracking(True)
@@ -20,6 +26,9 @@ class TearoffTabBar(QTabBar):
         self.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
 
     def mousePressEvent(self, event):
+        """ the mouse press event that checks if the conditions are met to detach the window
+        it will change the control cursors image to display the action
+        """
         button = event.button()
         modifier = event.modifiers()
         if not (button == Qt.LeftButton and (modifier == Qt.NoModifier or modifier == Qt.ControlModifier)):
@@ -39,6 +48,8 @@ class TearoffTabBar(QTabBar):
         QTabBar.mousePressEvent(self, event)
 
     def mouseMoveEvent(self, event):
+        """ make sure the image of the hand is still conveiying the correct action
+        """
         if self.__pressedIndex > -1:
             pass
         else:
@@ -49,24 +60,34 @@ class TearoffTabBar(QTabBar):
             QTabBar.mouseMoveEvent(self, event)
 
     def enterEvent(self, event):
+        """ use the correct keyboard focus when the arrow is in the tab
+        """
         self.grabKeyboard()
         QTabBar.enterEvent(self, event)
 
     def leaveEvent(self, event):
+        """ use the correct keyboard focus when the arrow is in the tab
+        """
         self.releaseKeyboard()
         QTabBar.leaveEvent(self, event)
 
     def keyPressEvent(self, event):
+        """ make sure the correct arrow cursor is present when inside the headerview
+        """
         if event.modifiers() == Qt.ControlModifier:
             self.setCursor(Qt.OpenHandCursor)
         QTabBar.keyPressEvent(self, event)
 
     def keyReleaseEvent(self, event):
+        """ make sure the correct arrow cursor is present when inside the headerview
+        """
         if self.cursor().shape() != Qt.ArrowCursor:
             self.setCursor(Qt.ArrowCursor)
         QTabBar.keyReleaseEvent(self, event)
 
     def event(self, event):
+        """ make sure that the tear off event is triggered when all conditions are met
+        """
         if event is None or QEvent is None:
             return
         if event.type() == QEvent.MouseButtonRelease:
@@ -77,9 +98,19 @@ class TearoffTabBar(QTabBar):
         return QTabBar.event(self, event)
 
     def setWest(self):
+        """ set the orientation of the tab widgets header
+        """
         self.__isWest = True
 
     def tabSizeHint(self, index=0):
+        """ get the size hint of the current tab
+        this way we can make sure that when we detach the widget we have a correct size to work with
+
+        :param index: index if the tab
+        :type index: int
+        :return: the size of the widget
+        :rtype: Qsize
+        """
         height = QTabBar.tabSizeHint(self, index).height()
         width = QTabBar.tabSizeHint(self, index).width()
         if index == self.count() - 1:
@@ -89,56 +120,3 @@ class TearoffTabBar(QTabBar):
                 return QSize(width, self.__size)
         else:
             return QTabBar.tabSizeHint(self, index)
-
-
-class EditableTabBar(TearoffTabBar):
-    tabLabelRenamed = pyqtSignal(str, str)
-    requestRemove = pyqtSignal(int)
-    tabChanged = pyqtSignal(int)
-
-    def __init__(self, parent=None):
-        TearoffTabBar.__init__(self, parent)
-        self.__editor = QLineEdit(self)
-        self.__editor.setWindowFlags(Qt.Popup)
-        self.__editor.setFocusProxy(self)
-        self.__editor.setFocusPolicy(Qt.StrongFocus)
-        self.__editor.editingFinished.connect(self.handleEditingFinished)
-        self.__editor.installEventFilter(self)
-        self.__editor.setValidator(QRegExpValidator(nameRegExp))
-        self.__editIndex = -1
-
-    def eventFilter(self, widget, event):
-        if event is None or QEvent is None:
-            return False
-        if event.type() == QEvent.MouseButtonPress and not self.__editor.geometry().contains(event.globalPos()) or event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape:
-            self.__editor.hide()
-            return False
-        return QTabBar.eventFilter(self, widget, event)
-
-    def mouseDoubleClickEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            index = self.tabAt(event.pos())
-            if index >= 0:
-                self.selectMapNode.emit(index)
-
-    def editTab(self, index):
-        rect = self.tabRect(index)
-        self.__editor.setFixedSize(rect.size())
-        self.__editor.move(self.parent().mapToGlobal(rect.topLeft()))
-        self.__editor.setText(self.tabText(index))
-        if not self.__editor.isVisible():
-            self.__editor.show()
-            self.__editIndex = index
-
-    def handleEditingFinished(self):
-        if self.__editIndex >= 0:
-            self.__editor.hide()
-            oldText = self.tabText(self.__editIndex)
-            newText = self.__editor.text()
-            if oldText != newText:
-                names = [self.tabText(i) for i in range(self.count())]
-                newText = getNumericName(newText, names)
-                self.setTabText(self.__editIndex, newText)
-                self.tabLabelRenamed.emit(oldText, newText)
-                self.__editIndex = -1
-            return oldText, newText
