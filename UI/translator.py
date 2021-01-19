@@ -189,7 +189,7 @@ class TranslatorDialog(QDialog):
 
         if type(txt) in [list, tuple]:
             txt = txt[0]
-        line = QLineEdit(txt)
+        line = QPlainTextEdit(txt)
         for w in [label, line]:
             h.addWidget(w)
         h._info = [key, inText, line]    
@@ -220,7 +220,7 @@ class TranslatorDialog(QDialog):
             self._layouts.append(h)
             self.frameLayout.addLayout(h)
 
-        setProgress(100, None, "grabbed all info")
+        setProgress(100, None, "translated info")
     
     def _doTranslate(self):
         """ seperate function to translate elements when the dialog is already build
@@ -233,10 +233,10 @@ class TranslatorDialog(QDialog):
             txt = self._translator.translate(self.__inDict[key] ,lang_tgt=self.getLangValue())
             if type(txt) in [list, tuple]:
                 txt = txt[0]
-            lineEdit.setText(txt)
+            lineEdit.setPlainText(txt)
             self.update()
         
-        setProgress(100, self.progressBar, "grabbed all info")
+        setProgress(100, self.progressBar, "translated info")
 
     def _createDict(self):
         """ create the dictionary using the information of the widget
@@ -247,7 +247,7 @@ class TranslatorDialog(QDialog):
         outDict = {}
         for h in self._layouts:
             key, base, lineEdit = h._info
-            outDict[key] = lineEdit.text()
+            outDict[key] = lineEdit.toPlainText()
         return outDict
 
     def storeTranslation(self):

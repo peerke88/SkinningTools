@@ -116,12 +116,12 @@ class VertAndBoneFunction(QWidget):
 
         # -- button creation
         self._Btn["AvgWght_Btn"] = svgButton("average vtx", _svgPath("AvarageVerts"), size=self.__IS, toolTipInfo = "Averagevtx")
-        self._Btn["cpyWght_Btn"] = svgButton("copy vtx", _svgPath("copy2Mult"), size=self.__IS)
-        self._Btn["swchVtx_Btn"] = svgButton("switch vtx", _svgPath("vert2vert"), size=self.__IS)
-        self._Btn["BoneLbl_Btn"] = svgButton("label joints", _svgPath("jointLabel"), size=self.__IS)
-        self._Btn["shellUn_btn"] = svgButton("unify shells", _svgPath("shellUnify"), size=self.__IS)
-        self._Btn["trsfrSK_Btn"] = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS)
-        self._Btn["trsfrPS_Btn"] = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS)
+        self._Btn["cpyWght_Btn"] = svgButton("copy vtx", _svgPath("copy2Mult"), size=self.__IS, toolTipInfo = "Copyvtx")
+        self._Btn["swchVtx_Btn"] = svgButton("switch vtx", _svgPath("vert2vert"), size=self.__IS, toolTipInfo = "Switchvtx")
+        self._Btn["BoneLbl_Btn"] = svgButton("label joints", _svgPath("jointLabel"), size=self.__IS, toolTipInfo = "Labeljoints")
+        self._Btn["shellUn_btn"] = svgButton("unify shells", _svgPath("shellUnify"), size=self.__IS, toolTipInfo = "Unifyshells")
+        self._Btn["trsfrSK_Btn"] = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS, toolTipInfo = "Skin2skin")
+        self._Btn["trsfrPS_Btn"] = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS, toolTipInfo = "Skin2Pose")
         self._Btn["nghbors_Btn"] = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS)
         self._Btn["hammerV_Btn"] = svgButton("weight hammer", _svgPath("hammer"), size=self.__IS)
         self._Btn["toJoint_Btn"] = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS)

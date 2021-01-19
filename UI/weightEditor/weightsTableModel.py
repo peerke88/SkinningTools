@@ -31,7 +31,6 @@ class WeightsTableModel(QAbstractTableModel):
         :type vtxSideBar: list
         :param jointColorList: list of all used joint colors
         :type jointColorList: list
-        
         """
         super(WeightsTableModel, self).__init__(parent)
         

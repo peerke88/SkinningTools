@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210114"
+__VERSION__ = "5.0.20210119"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -521,7 +521,6 @@ class SkinningToolsUI(interface.DockWidget):
 
         :todo: instead of only geometry also store torn of tabs for each posssible object
         :todo: save the geometries of torn of tabs as well
-        :todo: store the settings used in the vertex and bone functions tabs
         """
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("tools", self.mayaToolsTab.currentIndex())
@@ -531,6 +530,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.settings.setValue("useFav", self.vnbfWidget.setFavcheck.isChecked())
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
         self.settings.setValue("language", self.changeLN.title())
+        self.settings.setValue("toolTips", self.textInfo["tooltipAction"].isChecked())
         
     def loadUIState(self):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
@@ -559,6 +559,12 @@ class SkinningToolsUI(interface.DockWidget):
         self.vnbfWidget.setFavcheck.setChecked(bool(useFav))
         self._changeLanguage(self.settings.value("language","en"))
 
+        _toolTipSetting = self.settings.value("toolTips", False)
+
+        if _toolTipSetting in [False, "false", "False"]:
+            _toolTipSetting = False
+        self.textInfo["tooltipAction"].setChecked(bool(_toolTipSetting))
+        
 
     def hideEvent(self, event):
         """ the hide event is something that is triggered at the same time as close,
