@@ -145,13 +145,14 @@ class VertAndBoneFunction(QWidget):
         # -- complex button layout creation
         smthBrs_Lay = QWidget()
         smthBrs_Lay.setLayout(nullHBoxLayout())
-        self._Btn["initSmt_Btn"] = svgButton("BP", _svgPath("Empty"), size=self.__IS)
+        self._Btn["initSmt_Btn"] = svgButton("BP", _svgPath("Empty"), size=self.__IS, toolTipInfo = "smoothBrush")
         self._Btn["initSmt_Btn"].setMaximumWidth(35)
-        self._Btn["smthBrs_Btn"] = svgButton("smooth", _svgPath("brush"), size=self.__IS)
+        self._Btn["smthBrs_Btn"] = svgButton("smooth", _svgPath("brush"), size=self.__IS, toolTipInfo = "smoothBrush")
         self._smthSpin = QDoubleSpinBox()
         self._smthSpin.setFixedSize(self.__IS + 10, self.__IS + 10)
         self._smthSpin.setEnabled(False)
         self._smthSpin.setSingleStep(.05)
+        self._smthSpin.setWhatsThis("smoothBrush")
         smthBrs_Lay.attached = [self._Btn["initSmt_Btn"], self._Btn["smthBrs_Btn"], self._smthSpin]
         for w in smthBrs_Lay.attached:
             w.grp = smthBrs_Lay
@@ -447,7 +448,7 @@ class VertAndBoneFunction(QWidget):
         interface.copySkin(inPlace, sender.checks["smooth"].isChecked(), sender.checks["uvSpace"].isChecked(), self.progressBar)
 
     def _nghbors_func(self, sender):
-        interface.neighbors(sender.checks["growing"].isChecked(), sender.checks["full"].isChecked(), self.progressBar)
+        interface.neighbors(True, sender.checks["growing"].isChecked(), sender.checks["full"].isChecked(), self.progressBar)
 
     def _convertToJoint_func(self, sender):
         interface.convertToJoint(sender.checks["specify name"].isChecked(), self.progressBar)
