@@ -349,11 +349,11 @@ def BoneSwitch(joint1, joint2, skin, progressBar=None):
     addCleanJoint([joint1, joint2], skin)
 
     _connectDict = shared.getJointIndexMap(sc)
-    for key, val in _connectDict.items():
-        cmds.disconnectAttr('%s.worldMatrix' % key, '%s.matrix[%i]' % (sc, val))
-        cmds.disconnectAttr("%s.lockInfluenceWeights" % key, "%s.lockWeights[%s]" % (sc, val))
+    for jnt in [joint1, joint2]:
+        cmds.disconnectAttr('%s.worldMatrix' % jnt, '%s.matrix[%i]' % (sc, _connectDict[jnt]))
+        cmds.disconnectAttr("%s.lockInfluenceWeights" % jnt, "%s.lockWeights[%s]" % (sc, _connectDict[jnt]))
     utils.setProgress(33, progressBar, "get influence map")
-
+    
     cmds.connectAttr(joint1 + '.worldMatrix', '%s.matrix[%i]' % (sc, _connectDict[joint2]), f=1)
     cmds.connectAttr(joint2 + '.worldMatrix', '%s.matrix[%i]' % (sc, _connectDict[joint1]), f=1)
     cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights[%s]" % (sc, _connectDict[joint2]), f=1)
