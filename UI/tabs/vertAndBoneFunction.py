@@ -126,20 +126,20 @@ class VertAndBoneFunction(QWidget):
         self._Btn["hammerV_Btn"] = svgButton("weight hammer", _svgPath("hammer"), size=self.__IS, toolTipInfo = "weightHammer")
         self._Btn["toJoint_Btn"] = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS, toolTipInfo = "convert")
         self._Btn["rstPose_Btn"] = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS, toolTipInfo = "recalcBind")
-        self._Btn["cutMesh_Btn"] = svgButton("create proxy", _svgPath("proxy"), size=self.__IS)
-        self._Btn["SurfPin_Btn"] = svgButton("add Surface pin", _svgPath("meshPin"), size=self.__IS)
-        self._Btn["copy2bn_Btn"] = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS)
-        self._Btn["b2bSwch_Btn"] = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS)
-        self._Btn["showInf_Btn"] = svgButton("influenced vtx", _svgPath("selectinfl"), size=self.__IS)
-        self._Btn["delBone_Btn"] = svgButton("remove joint", _svgPath("jointDelete"), size=self.__IS)
-        self._Btn["addinfl_Btn"] = svgButton("add joint", _svgPath("addJoint"), size=self.__IS)
-        self._Btn["unifyBn_Btn"] = svgButton("unify bind map", _svgPath("unify"), size=self.__IS)
-        self._Btn["seltInf_Btn"] = svgButton("attached joints", _svgPath("selectJnts"), size=self.__IS)
-        self._Btn["sepMesh_Btn"] = svgButton("extract skinned mesh", _svgPath("seperate"), size=self.__IS)
+        self._Btn["cutMesh_Btn"] = svgButton("create proxy", _svgPath("proxy"), size=self.__IS, toolTipInfo = "proxy")
+        self._Btn["SurfPin_Btn"] = svgButton("add Surface pin", _svgPath("meshPin"), size=self.__IS, toolTipInfo = "surfacePin")
+        self._Btn["copy2bn_Btn"] = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS, toolTipInfo = "boneMove")
+        self._Btn["b2bSwch_Btn"] = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS, toolTipInfo = "boneMove")
+        self._Btn["showInf_Btn"] = svgButton("influenced vtx", _svgPath("selectinfl"), size=self.__IS, toolTipInfo = "selInfl")
+        self._Btn["delBone_Btn"] = svgButton("remove joint", _svgPath("jointDelete"), size=self.__IS, toolTipInfo = "delJoint")
+        self._Btn["addinfl_Btn"] = svgButton("add joint", _svgPath("addJoint"), size=self.__IS, toolTipInfo = "addJoint")
+        self._Btn["unifyBn_Btn"] = svgButton("unify bind map", _svgPath("unify"), size=self.__IS, toolTipInfo = "unifyJoint")
+        self._Btn["seltInf_Btn"] = svgButton("attached joints", _svgPath("selectJnts"), size=self.__IS, toolTipInfo = "selJoints")
+        self._Btn["sepMesh_Btn"] = svgButton("extract skinned mesh", _svgPath("seperate"), size=self.__IS, toolTipInfo = "seperate")
         self._Btn["onlySel_Btn"] = svgButton("prune excluded infl.", _svgPath("onlySel"), size=self.__IS)
         self._Btn["infMesh_Btn"] = svgButton("influenced meshes", _svgPath("infMesh"), size=self.__IS)
-        self._Btn["BindFix_Btn"] = svgButton("fix bind mesh", _svgPath("fixBind"), size=self.__IS)
-        self._Btn["delBind_Btn"] = svgButton("del bindPose", _svgPath("delbind"), size=self.__IS)
+        self._Btn["BindFix_Btn"] = svgButton("fix bind mesh", _svgPath("fixBind"), size=self.__IS, toolTipInfo = "fixBind")
+        self._Btn["delBind_Btn"] = svgButton("del bindPose", _svgPath("delbind"), size=self.__IS, toolTipInfo = "delBp")
         self._Btn["vtxOver_Btn"] = svgButton("sel infl. > max", _svgPath("vertOver"), size=self.__IS)
 
         # -- complex button layout creation
@@ -165,7 +165,7 @@ class VertAndBoneFunction(QWidget):
         self._maxSpin.setMinimum(1)
         self._maxSpin.setValue(4)
         self._Btn["vtexMax_Btn"] = svgButton("force max infl.", _svgPath("Empty"), size=self.__IS)
-        self._Btn["frzBone_Btn"] = svgButton("freeze joints", _svgPath("FreezeJoint"), size=self.__IS)
+        self._Btn["frzBone_Btn"] = svgButton("freeze joints", _svgPath("FreezeJoint"), size=self.__IS, toolTipInfo = "freezeJoint")
         max_Lay.attached = [self._Btn["vtexMax_Btn"]]
         self._Btn["vtexMax_Btn"].grp = max_Lay
         for w in [self._maxSpin, self._Btn["vtexMax_Btn"]]:
@@ -173,9 +173,9 @@ class VertAndBoneFunction(QWidget):
 
         grow_Lay = QWidget()
         grow_Lay.setLayout(nullHBoxLayout())
-        self._Btn["storsel_Btn"] = svgButton("store internal", _svgPath("Empty"), size=self.__IS)
-        self.shrinks_Btn = svgButton("", _svgPath("shrink"), size=self.__IS)
-        self.growsel_Btn = svgButton("", _svgPath("grow"), size=self.__IS)
+        self._Btn["storsel_Btn"] = svgButton("store internal", _svgPath("Empty"), size=self.__IS, toolTipInfo = "extend")
+        self.shrinks_Btn = svgButton("", _svgPath("shrink"), size=self.__IS, toolTipInfo = "extend")
+        self.growsel_Btn = svgButton("", _svgPath("grow"), size=self.__IS, toolTipInfo = "extend")
         grow_Lay.attached = [self.shrinks_Btn, self._Btn["storsel_Btn"], self.growsel_Btn]
         for i, w in enumerate(grow_Lay.attached):
             w.grp = grow_Lay

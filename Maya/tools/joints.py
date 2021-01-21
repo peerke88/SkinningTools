@@ -632,7 +632,7 @@ def getInfluencingJoints(inObject):
     :return: list of all the joints that are currently driving the given mesh
     :rtype:  list
     """
-    if cmds.objectType(inObject) == "mesh":
+    if cmds.objectType(inObject) != "skinCluster":
         inObject = shared.skinCluster(inObject, silent=True)
     if inObject != None:
         jointInfls = cmds.ls(cmds.listConnections("%s.matrix" % inObject, source=True), l=1)
