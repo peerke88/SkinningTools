@@ -245,6 +245,9 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
             for count, skinJoint in enumerate(sourceJoints):
                 if jnt != skinJoint:
                     continue
+                if divider == 0.0:
+                    weightsCreation.append(newWeights[count])
+                    continue
                 weightsCreation.append((newWeights[count] / divider))
         weightlist.extend(weightsCreation)
 

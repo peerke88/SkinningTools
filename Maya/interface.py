@@ -498,7 +498,7 @@ def prebindFixer( doModel, inPose ,progressBar = None):
 def getUVInfo(inMesh):
     allUvSets = cmds.polyUVSet(inMesh, q=1, auv =1 )
     currentUvSet = cmds.polyUVSet(inMesh, q=1, cuv =1 )
-    uvSets =[currentUvSet]
+    uvSets = currentUvSet
     for s in allUvSets:
         if s in uvSets:
             continue

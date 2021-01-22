@@ -70,6 +70,7 @@ class MayaToolsHeader(QWidget):
 
         filePath = self._updateGraph()
         self.graph = toolButton(filePath, size=self.__graphSize)
+        self.graph.setWhatsThis("Averagevtx")
         self.graph.clicked.connect(self._showGraph)
         self.BezierGraph.closed.connect(self._updateGraphButton)
         h.addLayout(g)

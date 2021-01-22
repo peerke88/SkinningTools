@@ -71,8 +71,9 @@ class TransferWeightsWidget(QWidget):
 
         self.textInfo["btn"] = buttonsToAttach('StoreSelection', self.__storeSelectionCB)
         self.textInfo["btn1"] = buttonsToAttach('ClearList', self.__clearSelectionCB)
-        h.addWidget(self.textInfo["btn"])
-        h.addWidget(self.textInfo["btn1"])
+        for w in ["btn", "btn1"]:
+            h.addWidget(self.textInfo[w])
+            self.textInfo[w].setWhatsThis("transfer")        
 
         v1.addWidget(self.list)
         v1.addLayout(h)
@@ -303,8 +304,10 @@ class ClosestVertexWeightWidget(QWidget):
 
         for w in [self.textInfo["line1"], self.textInfo["btn1"]]:
             h1.addWidget(w)
+            w.setWhatsThis("copyClosest")
         for w in [self.textInfo["line2"], self.textInfo["btn2"]]:
             h2.addWidget(w)
+            w.setWhatsThis("copyClosest")
 
         self.textInfo["trnsComp"] = buttonsToAttach("Transfer Components", self._transferComp)
 
@@ -361,8 +364,8 @@ class ClosestVertexWeightWidget(QWidget):
             cmds.warning('source or target selection is not defined!')
             return
 
-        TargetSelection, TargetSkinCluster = self.textInfo["line1"].userData
-        SourceSelection, SourceSkinCluster = self.textInfo["line2"].userData
+        SourceSelection, SourceSkinCluster = self.textInfo["line1"].userData
+        TargetSelection, TargetSkinCluster = self.textInfo["line2"].userData
 
         execCopySourceTarget(
             TargetSkinCluster=TargetSkinCluster,
@@ -437,6 +440,7 @@ class TransferUvsWidget(QWidget):
         
         for w in [self.textInfo["sourceBtn"], self.textInfo["targetBtn"]]:
             h0.addWidget(w)
+            w.setWhatsThis("uvTransfer")
 
         for h in [h2, h3]:
             h1.addLayout(h)
@@ -470,7 +474,8 @@ class TransferUvsWidget(QWidget):
 
     def __setValue(self, inLineEdit, inCombo):
         sel = interface.getSelection()
-        if len(sel) > 1:
+        
+        if type(sel) in (list, tuple) and sel != []:
             sel = sel[0]
         if "." in sel:
             sel = sel.split('.')[0]
@@ -481,7 +486,7 @@ class TransferUvsWidget(QWidget):
         uvSets = interface.getUVInfo(sel)
         inCombo.clear()
         inCombo.addItems(uvSets)
-
+        
         self.compSetting[[self.textInfo["line1"], self.textInfo["line2"]].index(inLineEdit)] = 1
 
         self.__checkEnabled()
