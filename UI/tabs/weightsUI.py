@@ -471,8 +471,7 @@ class WeightsUI(QWidget):
             if not cmds.objExists(cube):
                 continue
 
-            for ax in "XYZ":
-                cmds.setAttr("%s.scale%s"%(cube, ax), inValue)
+            [cmds.setAttr("%s.scale%s"%(cube, ax), inValue) for ax in "XYZ"]
 
     def _loadExternalFiles(self):
         """ load external weight files, 

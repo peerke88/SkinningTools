@@ -623,9 +623,11 @@ class skinWeight(object):
         if "." in mesh:
             mesh = mesh.split('.')[0]
 
-        sc = shared.skinCluster(mesh)
-
-        boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
+        sc = shared.skinCluster(mesh, True)
+        if sc is None:
+            sc = cmds.skinCluster(mesh, self.boneInfo, tsb=1)
+        else:
+            boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
 
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)

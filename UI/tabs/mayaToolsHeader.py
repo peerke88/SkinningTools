@@ -57,6 +57,11 @@ class MayaToolsHeader(QWidget):
         self.textInfo["skLoad"] = pushButton("<< Load")
         self.textInfo["vtLoad"] = pushButton("<< Load")
 
+        self.textInfo["skSave"].setWhatsThis("saveSkin")
+        self.textInfo["skLoad"].setWhatsThis("saveSkin")
+        self.textInfo["vtSave"].setWhatsThis("saveVtx")
+        self.textInfo["vtLoad"].setWhatsThis("saveVtx")
+
         self.textInfo["lbl0"] = QLabel("  skin:")
         self.textInfo["lbl1"] = QLabel("  Vtx :")
         g.addWidget(self.textInfo["lbl0"], 0, 0)
