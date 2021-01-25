@@ -445,7 +445,7 @@ class SkinningToolsUI(interface.DockWidget):
         else:
             point = QPoint(event.globalPos().x(), event.globalPos().y())
         curWidget = widgetsAt(point)
-
+        
         def _removeTT():
             if self.toolTipWindow is not None:
                 self.toolTipWindow.deleteLater()
@@ -458,7 +458,7 @@ class SkinningToolsUI(interface.DockWidget):
             if self.toolTipWindow != None:
                 _removeTT()
 
-            if not isinstance(curWidget, QPushButton):  # <- add multiple checks if more implemented then just buttons
+            if not isinstance(curWidget, QWidget):  # <- add multiple checks if more implemented then just buttons
                 _removeTT()
                 self.currentWidgetAtMouse = None
                 return
@@ -492,10 +492,13 @@ class SkinningToolsUI(interface.DockWidget):
         :note: tooltips are currently disabled as there are no images to show or text to display
         """
         self._timer.stop()
-        if (self.currentWidgetAtMouse is None) or (self.textInfo["tooltipAction"].isChecked() == False):
-            return
         tip = self.currentWidgetAtMouse.whatsThis()
-        print tip
+
+        if (self.currentWidgetAtMouse is None) or (self.textInfo["tooltipAction"].isChecked() == False):
+            if str(tip) in self._tooltips.keys():
+                self.currentWidgetAtMouse.setToolTip(self._tooltips[tip])
+            return
+        
         if not str(tip) in self._tooltips.keys():
             return
 
@@ -507,9 +510,6 @@ class SkinningToolsUI(interface.DockWidget):
             rect = QRect(QCursor.pos().x() + 20, QCursor.pos().y() + 20, size, size)
 
         self.toolTipWindow = AdvancedToolTip(rect)
-        # @TODO: change this to only display text if gif does not exist
-        # if not self.toolTipWindow.toolTipExists(tip):
-        #     return 
         self.toolTipWindow.setTip(self._tooltips[str(tip)].replace("^", "\n"))
         self.toolTipWindow.setGifImage(tip)
         self.toolTipWindow.show()
