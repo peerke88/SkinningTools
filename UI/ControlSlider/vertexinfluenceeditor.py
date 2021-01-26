@@ -10,18 +10,6 @@ class VertexInfluenceEditor(QGroupBox):
     lockIcon = QIcon(':/nodeGrapherUnlocked.png')
     unlockIcon = QIcon(':/lockGeneric.png')
 
-    # def _toggleGroupBox(self, state):
-    #     layout = self.layout()
-    #     for counter in xrange(layout.count()):
-    #         item = layout.itemAt(counter)
-    #         if not item:
-    #             continue
-    #         widget = item.widget()
-    #         if not widget:
-    #             continue
-    #         if not widget.isUsed:
-    #             widget.setVisible(state)
-
     def __lineEdit_FieldEditted(self, *_):
         self.sender().setStyleSheet('')
         if set(self.sender().displayText()).difference(set(".0123456789")):
@@ -72,7 +60,7 @@ class VertexInfluenceEditor(QGroupBox):
             lockButton = QPushButton(lbl, '')
             lockButton.clicked.connect(functools.partial(self.__toggleLock, i))
             
-            lockButton.setStyleSheet("")#background-color: lightgreen")
+            lockButton.setStyleSheet("")
             if lbl == VertexInfluenceEditor.unlockIcon:
                 lockButton.setStyleSheet("background-color: lightred")
 
