@@ -13,9 +13,20 @@ _DEBUG = getDebugState()
 #  ^^^ this now needs to change as language settings broke the favourite functionality
 
 class VertAndBoneFunction(QWidget):
+    """ the widget that holds all custom single button / buttongroup functions for authoring in the dcc tools
+    """
     toolName = "VertAndBoneFunction"
 
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
+        """ the constructor
+
+        :param inGraph: the graph function that allows change of the average weight function
+        :type inGraph: BezierGraph
+        :param inProgressBar: the progressbar to show progress on tools current state
+        :type inProgressBar: QProgressBar
+        :param parent: the object to attach this ui to
+        :type parent: QWidget
+        """
         super(VertAndBoneFunction, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
@@ -50,6 +61,11 @@ class VertAndBoneFunction(QWidget):
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
+        """ translate the ui based on given dictionary
+
+        :param localeDict: the dictionary holding information on how to translate the ui
+        :type localeDict: dict
+        """
         for key, value in localeDict.iteritems():
             if isinstance(self._Btn[key], QCheckBox):
                 self._Btn[key].displayText = value
@@ -76,6 +92,7 @@ class VertAndBoneFunction(QWidget):
 
     def doTranslate(self):
         """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName) 
@@ -83,6 +100,8 @@ class VertAndBoneFunction(QWidget):
           
     # ------------------------------- visibility tools ------------------------------- 
     def showTools(self):
+        """ switch function to show or hide elements
+        """
         self.__editMode = not self.__editMode
         if self.__editMode:
             self.toolFrame.hide()
@@ -92,6 +111,8 @@ class VertAndBoneFunction(QWidget):
             self.toggleBtn.setArrowType(Qt.UpArrow)
     
     def __favTools(self):
+        """ favourite tools button, this button will allow the user to choose their favourite tools and display them
+        """
         self.picker = toolButton(":/eyeDropper.png")
         self.setFavcheck = toolButton(":/SE_FavoriteStarDefault.png")
         self.setFavcheck.setCheckable(True)
@@ -103,11 +124,15 @@ class VertAndBoneFunction(QWidget):
         self.toolFrame.layout().addItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Minimum))
 
     def _connections(self):
+        """ signal connections
+        """
         self.picker.clicked.connect(self.active)
         self.setFavcheck.toggled.connect(self.changeLayout)
 
     # ------------------------------- button creation ------------------------------- 
     def __addVertNBoneFunc(self):
+        """ here we will create and modify all the seperate buttons that work with the dcc tool
+        """
         self.gridLayout = nullGridLayout()
         self.layout().addLayout(self.gridLayout)
 
@@ -286,17 +311,39 @@ class VertAndBoneFunction(QWidget):
 
     # -------------------------------  convenience functions for grouped layouts ------------------------------- 
     def getButtonSetup(self, btn):
+        """ convenience function to figure out which buttons are connected to the layout
+        this will check for layouts
+
+        :param btn: the widget with seperate attribute to check if its part of a group
+        :type btn: QWidget
+        :return: list of attached objects
+        :rtype: list
+        """
         if hasattr(btn, "attached"):
             return btn.attached
         return [btn]
 
     def getGroupedLayout(self, inBtn):
+        """ convenience function to figure out which buttons are connected to the layout
+
+        :param btn: the widget with seperate attribute to check if its part of a group
+        :type btn: QWidget
+        :return: list of attached objects
+        :rtype: list
+        """
         if hasattr(inBtn, "grp"):
             return inBtn.grp.attached
         else:
             return [inBtn]
 
     def getGroup(self, inBtn):
+        """convenience function to figure out which layouts the buttons are connected to
+
+        :param btn: the widget with seperate attribute to check if its part of a group
+        :type btn: QWidget
+        :return: the layout the objects are attached to
+        :rtype: QLayout
+        """
         if hasattr(inBtn, "grp"):
             return inBtn.grp
         else:
@@ -305,9 +352,19 @@ class VertAndBoneFunction(QWidget):
     # -------------------------------  functionality for adding buttons to layout normal/favourites ------------------------------- 
 
     def getFavSettings(self):
+        """ get the current settings on which elements are targeted as favourite
+
+        :return: list of all elements that are set as favourite
+        :rtype: list
+        """
         return self.__favSettings
 
     def setFavSettings(self, inSettings):
+        """ set the favourite objects from given settings
+
+        :param inSettings: list of elements that are set as favourite
+        :type inSettings: list
+        """
         if inSettings is None:
             return
         self.__favSettings = []
@@ -317,9 +374,15 @@ class VertAndBoneFunction(QWidget):
             for b in self.getGroupedLayout(btn):
                 self.favourited.append(b)
 
+    """favourite settings property"""
     favSettings = property( getFavSettings, setFavSettings)
 
     def getCheckValues(self):
+        """ get the values fo all checkable attributes in the current tool
+
+        :return: list of all checked values
+        :rtype: list
+        """
         fullList = []
         for btn in self.checkedButtons:
             checkList = []
@@ -329,15 +392,23 @@ class VertAndBoneFunction(QWidget):
         return fullList
 
     def setCheckValues(self, values):
+        """ set the values of the buttons to be checked based on the given settings
+
+        :param values: list of values from settings to set the checked state of button attributes
+        :type values: list
+        """
         if values is None:
             return
         for index, btn in enumerate(self.checkedButtons):
             for key, value in values[index]:
                 btn.checks[key].setChecked(value)
 
+    """ckecked attributes property"""
     checkValues = property( getCheckValues, setCheckValues)
 
     def changeLayout(self, *_):
+        """ change layout function based on the state of the favourit settings
+        """
         if self.setFavcheck.isChecked():
             self.setFavcheck.setIcon(QIcon(":/SE_FavoriteStar.png"))
             self._setFavLayout()
@@ -347,6 +418,8 @@ class VertAndBoneFunction(QWidget):
         self._setBtnLayout()
 
     def filter( self, *_):
+        """ install the eventfilter for assigning fouvourite settings
+        """
         for btn in self.__buttons:
             if hasattr(btn, "attached"):
                 for w in btn.attached:
@@ -359,10 +432,14 @@ class VertAndBoneFunction(QWidget):
             btn.installEventFilter(self) 
 
     def _clearLayout(self):
+        """ make sure that the buttons are unparented but not destroyed
+        """
         for btn in self.__buttons:
             btn.setParent(None)
 
     def _setFavLayout(self):
+        """ repopulate the current widget with only buttons that are assigned as favourite
+        """
         self._clearLayout()
         
         _checked = []
@@ -385,6 +462,8 @@ class VertAndBoneFunction(QWidget):
             index += 1
 
     def _setBtnLayout(self):
+        """ populate the current widget with all objects
+        """
         self._clearLayout()
         _rc = int(len(self.__buttons)*.5)
         for index, btn in enumerate(self.__buttons):
@@ -392,6 +471,8 @@ class VertAndBoneFunction(QWidget):
             self.gridLayout.addWidget(btn, index - (row * _rc), row)
 
     def _convertStyleSheet(self, inStyleSheet):
+        """ stylesheet change for display if the object is being selected
+        """
         if not "background-color" in inStyleSheet:
             return inStyleSheet
 
@@ -400,6 +481,8 @@ class VertAndBoneFunction(QWidget):
         return "%s%s%s"%(presplit[0], self.style, postsplit)
 
     def active(self, *_):
+        """ the settings to actively assign the favourite toolsets
+        """
         self.noAction = not self.noAction
         for btn in self.individualBtns:
             btn.blockSignals(self.noAction)        
@@ -416,6 +499,10 @@ class VertAndBoneFunction(QWidget):
             QApplication.restoreOverrideCursor()
 
     def eventFilter(self, obj, event):
+        """ event filter,
+        this event filter listens to the mouse events on certain buttons to figure out if they can be chosen as favourite
+        the event filter will display the current elements and groups as favourite when possible
+        """
         if event is None or self is None:
             return
         if event.type() == QEvent.MouseButtonPress:
@@ -438,56 +525,119 @@ class VertAndBoneFunction(QWidget):
 
     # -- checkbox modifiers    
     def _pruneOption(self, btn, value):
-        #@todo: check if we can get this to work
+        #@todo: check if we can get this to work with language changes
         btn.setText("prune %s infl."%["excluded, selected"][btn.checks["invert"].isChecked()])
 
     # -- buttons with extra functionality
     def _AvgWght_func(self, sender):
+        """ average weight connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.avgVtx(sender.checks["use distance"].isChecked(), self.BezierGraph.curveAsPoints(), self.progressBar)
 
     def _trsfrSK_func(self, sender, inPlace):
+        """ transfer skin connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        :param inPlace: differentiates between skin and pose functionality
+        :type inPlace: bool
+        """
         interface.copySkin(inPlace, sender.checks["smooth"].isChecked(), sender.checks["uvSpace"].isChecked(), self.progressBar)
 
     def _nghbors_func(self, sender):
+        """ neighbours smoothing connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.neighbors(True, sender.checks["growing"].isChecked(), sender.checks["full"].isChecked(), self.progressBar)
 
     def _convertToJoint_func(self, sender):
+        """ convert selection to joint connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.convertToJoint(sender.checks["specify name"].isChecked(), self.progressBar)
 
     def _delBone_func(self, sender):
+        """ delete bone connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.removeJoint(sender.checks["use parent"].isChecked(), sender.checks["delete"].isChecked(), sender.checks["fast"].isChecked(), self.progressBar)
 
     def _unifyBn_func(self, sender):
+        """ unify influence map connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.unifySkeletons(sender.checks["query"].isChecked(), self.progressBar)
 
     def _vtexMax_func(self, query):
+        """ maximum influences per vertex connection function using the extra attributes
+
+        :param query: if `True` will return the vertices, if `False` sets the max influences
+        :type query: bool
+        """
         if query:
             return interface.getMaxInfl(self._maxSpin.value(), self.progressBar)
         interface.setMaxInfl(self._maxSpin.value(), self.progressBar)
 
     def _cutMesh_func(self, sender):
+        """ cut mesh by influences connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.cutMesh(sender.checks["internal"].isChecked(), sender.checks["use opm"].isChecked(), self.progressBar)
 
     def _pruneSel_func(self, sender):
+        """ prune influences connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.keepOnlyJoints(sender.checks["invert"].isChecked())
 
     def _storesel_func(self, *args):
+        """ store the current component selection and alter the connected buttons
+        """
         self.borderSelection.storeSel()
         self.shrinks_Btn.setEnabled(False)
         self.growsel_Btn.setEnabled(True)
 
     def _shrinks_func(self, *args):
+        """ shrink the current selection
+        """
         self.borderSelection.shrink()
         self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
 
     def _growsel_func(self, *args):
+        """ grow the current selection
+        """
         self.borderSelection.grow()
         self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
 
     def _bindFix_func(self, sender,  *args):
+        """ fix the bind map connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         interface.prebindFixer(sender.checks["model only"].isChecked(), sender.checks["in Pose"].isChecked(), self.progressBar)
 
     def _smoothBrs_func(self, sender,  *args):
+        """ smooth brush connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         _radius = 0.0
         if sender.checks["volume"].isChecked():
             _radius = self._smthSpin.value()
@@ -495,6 +645,11 @@ class VertAndBoneFunction(QWidget):
         rodPaintSmoothBrush(_radius, int(sender.checks["relax"].isChecked()))
 
     def _updateBrush_func(self, sender,  *args):
+        """ update smooth brush connection function using the extra attributes
+
+        :param sender: button object on which the checkbox is attached
+        :type sender: QPushButton
+        """
         _radius = 0.0
         if sender.checks["volume"].isChecked():
             _radius = self._smthSpin.value()

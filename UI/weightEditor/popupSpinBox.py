@@ -36,7 +36,7 @@ class PopupSpinBox(QWidget):
             self.input.selectAll()
 
         self.input.resize(50, 23)
-        #@todo: need to set up in a way that the popup is placed ontop of the table cells
+        # :todo: need to set up in a way that the popup is placed ontop of the table cells
         self.input.move(parent.view.mapFromGlobal(pos).x(), parent.view.mapFromGlobal(pos).y())
         self.input.editingFinished.connect(self.close)
             

@@ -31,54 +31,12 @@ class WeightEditorWindow(QWidget):
         :type parent: QWidget
         """
         super(WeightEditorWindow, self).__init__(parent)
+        self.setLayout(nullVBoxLayout())
         
         self.__defaults()
-        
         self.apiWeights = ApiWeights()
         
-        self.setLayout(nullVBoxLayout())
-
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        scroll.setFocusPolicy(Qt.NoFocus)
-        scroll.setMinimumHeight(1)
-        
-        self.layout().addWidget(scroll)
-        
-        self.mainLay = nullVBoxLayout()
-        scroll.setLayout(self.mainLay)
-        
-        searchLay = nullHBoxLayout()
-        searchLay.setSpacing(0)
-
-        self.mainLay.addLayout(searchLay)
-        
-        self.textInfo["label"] = QLabel('Search: ')
-        searchLay.addWidget(self.textInfo["label"])
-        self.textInfo["jointSearchLE"] = LineEdit()
-        self.textInfo["jointSearchLE"].setPlaceholderText("Type part of joint name to search...")
-        self.textInfo["jointSearchLE"].editingFinished.connect(self.searchJointName)
-        self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
-        searchLay.addWidget(self.textInfo["jointSearchLE"])
-        
-        self.showButton = HoverIconButton()
-        self.showButton.setCustomIcon(":/RS_visible.png", ":/RS_visible.png", ":/hotkeyFieldClear.png")
-        self.showButton.setCheckable(True)
-        self.showButton.clicked.connect(self.getSkinWeights)
-        searchLay.addWidget(self.showButton)
-
-        headerView = VertHeaderView(self)
-        headerView.sectionDoubleClicked.connect(self.lockJointWeight)
-        headerView.rightClicked.connect(self.selectFromHeader)
-        
-        self.view = RightClickTableView(self)
-        self.view.setHorizontalHeader(headerView)
-        self.view.rightClicked.connect(self.getClickedItemVal)
-        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        
-        self.view.keyPressed.connect(self.directInput)
-        self.mainLay.addWidget(self.view)
-    
+        self._uiSetup()
         self.createCallback()
         self.getSkinWeights()
         self.setStyleSheet("border 0px;")
@@ -116,6 +74,48 @@ class WeightEditorWindow(QWidget):
         self._doSelectCB = None
         self.isClosed = False
         self.selectMode = False
+
+    def _uiSetup(self):
+        """ convenience function to gather all buttons for the current UI
+        """
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setFocusPolicy(Qt.NoFocus)
+        scroll.setMinimumHeight(1)
+        self.layout().addWidget(scroll)
+        self.mainLay = nullVBoxLayout()
+        scroll.setLayout(self.mainLay)
+        
+        searchLay = nullHBoxLayout()
+        searchLay.setSpacing(0)
+        self.mainLay.addLayout(searchLay)
+        
+        self.textInfo["label"] = QLabel('Search: ')
+        self.textInfo["jointSearchLE"] = LineEdit()
+        self.textInfo["jointSearchLE"].setPlaceholderText("Type part of joint name to search...")
+        self.textInfo["jointSearchLE"].editingFinished.connect(self.searchJointName)
+        self.textInfo["jointSearchLE"].textChanged.connect(self.searchJointName)
+        
+        searchLay.addWidget(self.textInfo["label"])
+        searchLay.addWidget(self.textInfo["jointSearchLE"])
+        
+        self.showButton = HoverIconButton()
+        self.showButton.setCustomIcon(":/RS_visible.png", ":/RS_visible.png", ":/hotkeyFieldClear.png")
+        self.showButton.setCheckable(True)
+        self.showButton.clicked.connect(self.getSkinWeights)
+        searchLay.addWidget(self.showButton)
+
+        headerView = VertHeaderView(self)
+        headerView.sectionDoubleClicked.connect(self.lockJointWeight)
+        headerView.rightClicked.connect(self.selectFromHeader)
+        
+        self.view = RightClickTableView(self)
+        self.view.setHorizontalHeader(headerView)
+        self.view.rightClicked.connect(self.getClickedItemVal)
+        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        self.view.keyPressed.connect(self.directInput)
+        self.mainLay.addWidget(self.view)
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
@@ -238,10 +238,11 @@ class WeightEditorWindow(QWidget):
         influenceAdded = False
         for meshInfl, mesh in zip(joints, meshes):
             subset = list(set(allCopyInf) - set(meshInfl))
+            if not subset:
+                continue
         
-            if subset:
-                influenceAdded = True
-                api.addCleanJoint(subset, mesh, False)
+            influenceAdded = True
+            api.addCleanJoint(subset, mesh, False)
         
         if influenceAdded:
             self.getSkinWeights()
@@ -264,9 +265,11 @@ class WeightEditorWindow(QWidget):
             
             for i, pinf in enumerate(curInf):
                 newWeigths[i] = 0.0
-                if pinf in copyInf:
-                    influenceID = copyInf.index(pinf)
-                    newWeigths[i] = wghtToPaste[ influenceID ]
+                if not pinf in copyInf:
+                    continue
+                
+                influenceID = copyInf.index(pinf)
+                newWeigths[i] = wghtToPaste[ influenceID ]
             
             self.rowsToUpdate.add(row)
             
@@ -294,10 +297,12 @@ class WeightEditorWindow(QWidget):
             self.copyCellPos.append([row - startRow, col - startCol])
             value = self.weightTable.getCellData(row=row, col=col)
             self.copyValues.append(value)
+
         smallestRow = min( self.copyCellPos, key = lambda x: x[ 0 ] )[ 0 ]
         biggestRot = max( self.copyCellPos, key = lambda x: x[ 0 ] )[ 0 ]
         smallestCol = min( self.copyCellPos, key = lambda x: x[ 1 ] )[ 1 ]
         biggestCol = max( self.copyCellPos, key = lambda x: x[ 1 ] )[ 1 ]
+
         self.rowLen = biggestRot - smallestRow + 1
         self.colLen = biggestCol - smallestCol + 1
         
@@ -341,6 +346,11 @@ class WeightEditorWindow(QWidget):
         self.tryNormalizeWeights()
             
     def directInput(self, string):
+        """ set up popup box based on given string
+
+        :param string: string object representing the number
+        :type string: string
+        """
         if not self.weightSelectModel.selectedIndexes() or string == '':
             return
         if string in '0123456789-.':
@@ -349,13 +359,20 @@ class WeightEditorWindow(QWidget):
             self.popupBox.closed.connect(partial( self.setPopupValue, True))
         
     def searchJointName(self):
+        """ based on the given text we only display columns that are represted by a partial identification of the given string in the search lineedit
+        """
         self.jointSearch = []
         if str(self.textInfo["jointSearchLE"].text()) != '':
             self.jointSearch = self.textInfo["jointSearchLE"].text().split(' ')
             self.jointSearch  = [name for name in self.jointSearch if name != '']
         self.getSkinWeights()
 
-    def evalHeaderWidth(self, index=None, add=3):
+    def evalHeaderWidth(self, add=3):
+        """ in here we change the size of the header based on the format of the font and amount of bones
+
+        :param add: buffer pixels to extend the size with
+        :type add: int
+        """
         if self.weightTable is None:
             return
         _space = 45
@@ -375,6 +392,12 @@ class WeightEditorWindow(QWidget):
             
     @Slot(int)
     def lockJointWeight(self, jointID):
+        """ based on joint id given we lock the joint weights so they cannot change,
+        this will be represented in the table widget as well by darkening the cells
+
+        :param jointID: the index of the joint to be locked
+        :type jointID: int
+        """
         for l in self.weightLockData:
             if l[1] == jointID:
                 self.lockWeigths(jointID=[jointID], lock = False )
@@ -385,12 +408,18 @@ class WeightEditorWindow(QWidget):
         self.refreshTable()
     
     def lockWeigths(self, jointID=None, lock = True):
+        """ function to lock or unlock weights, this will be represented in the widget as well as in the dcc tool
+
+        :param jointID: the index of the joint to be locked
+        :type jointID: int
+        :param lock: if `True` will lock the weight so it cannot be changed, if `False` will unlock the weight
+        :type lock: bool
+        """
         for cell in self.selectedCells:
             row = cell.row()
             col = cell.column()
-        
             index = (row, col)
-
+        
             _data = self.vtxDataDict[row]
             influences =  _data[2]
             vtxName = _data[5]
@@ -415,10 +444,20 @@ class WeightEditorWindow(QWidget):
         self.setLockedData(jointID, lock)
 
     def setLockedData(self, ids, inValue):
+        """ make sure that the weights are also locked in the dcc tool
+        
+
+        :param ids: the list of indeces of the joints to be locked
+        :type ids: list
+        :param inValue: if `True` will lock the weight so it cannot be changed, if `False` will unlock the weight
+        :type inValue: bool
+        """
         for index in ids:
             interface.setJointLocked(self.allInfJoints[index], inValue)
 
     def copyMenu(self):
+        """ simple popup menu with copy functions
+        """
         popMenu = QMenu()
 
         cpVtx = popMenu.addAction( self.actionLabels["cpVtx"] )
@@ -437,6 +476,8 @@ class WeightEditorWindow(QWidget):
         popMenu.exec_(cursor)
             
     def getClickedItemVal(self):
+        """ get the current value of the selected cells
+        """
         shiftPressed = bool(QApplication.keyboardModifiers() & Qt.ShiftModifier)
         ctrlPressed = bool(QApplication.keyboardModifiers() & Qt.ControlModifier)
         width = self.view.verticalHeader().sizeHint().width()
@@ -457,6 +498,12 @@ class WeightEditorWindow(QWidget):
         self.popupBox.closed.connect(self.setPopupValue)
     
     def setPopupValue(self, textValue=True):
+        """ set the value for the popup menu based on the current cells
+        
+        :note: maybe make this smarter so it just checks what the input is and base it on that instead of using an arg
+        :param textValue: if `True` will convert the information from string to float, if `False` expects the information to be float already 
+        :type textValue: bool
+        """
         if textValue:
             try:
                 self.inputValue = float(self.popupBox.input.text())
@@ -472,7 +519,11 @@ class WeightEditorWindow(QWidget):
         self.view.ignoreInput = False
         
     def getSkinWeights(self):
-        
+        """ get skinweights function,
+        this is where we grab all the information from the dcc tool to populate the table
+        based on either object or component selection we make sure to grab all joints and weights associated
+        the selections will be listed as vertex components and will be split according to the object where they came from
+        """
         if not self.isInView:
             return
         
@@ -528,8 +579,8 @@ class WeightEditorWindow(QWidget):
 
             skinCluster = self.meshSkinClusters[node]
             influences = self.meshInfluences[node]
-            
             nodeInfIDs =  {inf:influences.index(inf)  for inf in influences}
+            
             self.nodeInfIds[node] = nodeInfIDs
             
             amountInfluences = len(influences)
@@ -550,43 +601,42 @@ class WeightEditorWindow(QWidget):
             if not _current:
                 continue
                 
-            filter_vtx = self.meshVerts[node]
-            targets = sorted(list(set(_current) & set(filter_vtx)))
+            filterVtx = self.meshVerts[node]
+            targets = sorted(list(set(_current) & set(filterVtx)))
             
+            if not targets:
+                continue
 
-            if targets:
-                meshWeightList = self.meshWeights[node]
+            items = []
+            for v in targets:
+                vertex = "{0:}.vtx[{1:}]".format(node, v)
+                locks = lockedData.get(v, None)
+                if locks:
+                    self.lockedData[_allRows] = [vertex, locks]
+                    
+                self.vertexSideBar.append(v)
+                weightList = self.meshWeights[node][v][:]
                 
-                items = []
-                for v in targets:
-                    vertex = "{0:}.vtx[{1:}]".format(node, v)
-                    locks = lockedData.get(v, None)
-                    if locks:
-                        self.lockedData[_allRows] = [vertex, locks]
-                        
-                    self.vertexSideBar.append(v)
-                    weightList = meshWeightList[v][:]
+                nonzero = [i for i, e in enumerate(weightList) if e != 0]
+                for i in nonzero:
+                    _cur = influences[i].split("|")[-1]
                     
-                    nonzero = [i for i, e in enumerate(weightList) if e != 0]
-                    for i in nonzero:
-                        _cur = influences[i].split("|")[-1]
-                        
-                        if _cur in weightedJoints:
-                            continue
-                        weightedJoints.append(_cur)
+                    if _cur in weightedJoints:
+                        continue
+                    weightedJoints.append(_cur)
 
-                    self.nodeVtxIndexList[vertex] = weightList
-                    self._data.append(weightList)
+                self.nodeVtxIndexList[vertex] = weightList
+                self._data.append(weightList)
+                
+                sumWeights = round(sum(weightList), 12)
+                totalInfluences = amountInfluences - weightList.count(0.0)
+                self.overMaxInfDict[_allRows] = totalInfluences
+
+                if not round(sumWeights-1.0, 10) < 1e-6:
+                    self.totalNotNormalized.add(_allRows)
                     
-                    sumWeights = round(sum(weightList), 12)
-                    totalInfluences = amountInfluences - weightList.count(0.0)
-                    self.overMaxInfDict[_allRows] = totalInfluences
-
-                    if not round(sumWeights-1.0, 10) < 1e-6:
-                        self.totalNotNormalized.add(_allRows)
-                        
-                    self.vtxDataDict[_allRows] = [v, skinCluster, influences, [], jointIdx, vertex, node, nodeId]
-                    _allRows += 1
+                self.vtxDataDict[_allRows] = [v, skinCluster, influences, [], jointIdx, vertex, node, nodeId]
+                _allRows += 1
              
         self.meshIndexRows.append(_allRows)
         
@@ -639,8 +689,9 @@ class WeightEditorWindow(QWidget):
 
         self.evalHeaderWidth()
         
-    def cellChanged(self, selected, deselected):
-
+    def cellChanged(self, *args):
+        """ cell changed signal, makes sure that the selected indices are returned and the contexts are cleared
+        """
         if self._beforeCtx:
             self._beforeCtx = None
             self._headerSelection = None
@@ -649,6 +700,10 @@ class WeightEditorWindow(QWidget):
         
     @api.dec_undo
     def selectFromHeader(self):
+        """ select the current joint we work with from the current header (based on right-click)
+
+        :todo: needs to change when other dcc then maya will be used
+        """
         self._beforeCtx = cmds.currentCtx()
         self._headerSelection = self.baseSelection[:]
         self._beforeMode = cmds.selectMode(q=True, co=True)
@@ -658,6 +713,8 @@ class WeightEditorWindow(QWidget):
         interface.doSelect(self.allInfJoints[col], False)
                     
     def getCellValue(self):
+        """ get and set the new cell value based on the self.inputValue from the popupbox
+        """
         if self.isClosed:
             return
             
@@ -692,6 +749,11 @@ class WeightEditorWindow(QWidget):
         self.tryNormalizeWeights()
 
     def tryNormalizeWeights(self):
+        """ force normalize the weights of the current vertex row
+        making sure that all elements are adding up to a maximum of 1
+        trys to make sure that the maximum influences are kept unless more cells are altered at the same time
+        htis is used as the set weights function as we dont want weights that are not normalized
+        """
         _workData = self.weightTable._data
         
         self.meshIDdict = defaultdict( lambda : OpenMaya.MIntArray() )
@@ -823,21 +885,29 @@ class WeightEditorWindow(QWidget):
         self.refreshTable()
         
     def refreshTable(self):
+        """ force redraw the current table view
+        """
         self.view.setFocus()
         header = self.view.verticalHeader()
         for i in xrange(header.count()):
             header.updateSection(i)
                 
     def createCallback(self):
+        """ create callback to refresh the current table based on selection in dcc tool
+        """
         self.clearCallback()
         self._doSelectCB = api.connectSelectionChangedCallback(self.getSkinWeights) 
         
     def clearCallback(self):
+        """ remove selection based callback
+        """
         if self._doSelectCB is not None:
             api.disconnectCallback(self._doSelectCB)
             self._doSelectCB = None
 
     def cleanupTable(self):
+        """ cleanup table data, forced garbage collection as this tool deals with a lot of data
+        """
         if self.weightTable is not None:
             self.weightTable._data = {}
             self.weightTable.deleteLater()
@@ -846,13 +916,18 @@ class WeightEditorWindow(QWidget):
             self.weightSelectModel.deleteLater()
     
     def setClose(self):
+        """ close and cleanup the weights table
+        """
         self.isClosed=True
         self.cleanupTable()
         self.clearCallback()
         self.deleteLater()
 
-    def closeEvent(self, e):
+    def closeEvent(self, event):
+        """ close event override
+        """
         self.setClose()
+        super(WeightEditorWindow, self).closeEvent(event)
 
 def testUI():
     """ test the current UI without the need of all the extra functionality

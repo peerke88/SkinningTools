@@ -33,7 +33,7 @@ what this should do:
 |  [       create shelf button          ]  |
 |                                          |
 |                                          |
-|                                          |
+|   install info                           |
 |                                          |
 |  [##########% progress bar            ]  |
 #------------------------------------------#
@@ -47,7 +47,7 @@ from SkinningTools.UI import utils
 from SkinningTools.Maya import api
 from maya import cmds
 
-__VERSION__ = "5.0.20210119"
+__VERSION__ = "5.0.20210126"
 
 class InstallWindow(QDialog):
     def __init__(self,scriptDir, parent = None):
@@ -93,6 +93,16 @@ class InstallWindow(QDialog):
         self.layout().addWidget(installBtn)
         self.progress = QProgressBar()
         self.layout().addWidget(self.progress)
+
+        self.layout().addWidget(QLabel("use the following python code to start the tool"))
+        self.layout().addWidget(QLabel("(note: maya needs to be restarted for it to work!)"))
+        infoEdit = QPlainTextEdit()
+        infoString = "import SkinningTools\nSkinningTools.tool()"
+        infoEdit.setPlainText(infoString)
+        infoEdit.setReadOnly(True)
+        self.layout().addWidget(infoEdit)
+
+
         installBtn.clicked.connect(self.install)
 
     def install(self):

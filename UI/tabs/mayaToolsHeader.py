@@ -7,9 +7,21 @@ from SkinningTools.UI.dialogs.remapDialog import RemapDialog
 
 
 class MayaToolsHeader(QWidget):
+    """ basic group object that holds all the maya Tools
+    :note: this needs to change later based on the dcc tool
+    """
     toolName = "MayaToolsHeader"
     
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
+        """ the constructor
+
+        :param inGraph: the graph function that allows change of the average weight function
+        :type inGraph: BezierGraph
+        :param inProgressBar: the progressbar to show progress on tools current state
+        :type inProgressBar: QProgressBar
+        :param parent: the object to attach this ui to
+        :type parent: QWidget
+        """
         super(MayaToolsHeader, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
@@ -26,6 +38,11 @@ class MayaToolsHeader(QWidget):
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
+        """ translate the ui based on given dictionary
+
+        :param localeDict: the dictionary holding information on how to translate the ui
+        :type localeDict: dict
+        """
         for key, value in localeDict.iteritems():
             self.textInfo[key].setText(value)
         
@@ -39,6 +56,7 @@ class MayaToolsHeader(QWidget):
 
     def doTranslate(self):
         """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName) 
@@ -47,6 +65,8 @@ class MayaToolsHeader(QWidget):
     # --------------------------------- ui setup ----------------------------------  
 
     def __mayaToolsSetup(self):
+        """ convenience function to gather all buttons for the current UI
+        """
         h = nullHBoxLayout()
         g = nullGridLayout()
 
@@ -76,7 +96,7 @@ class MayaToolsHeader(QWidget):
         filePath = self._updateGraph()
         self.graph = toolButton(filePath, size=self.__graphSize)
         self.graph.setWhatsThis("Averagevtx")
-        self.graph.clicked.connect(self._showGraph)
+        self.graph.clicked.connect(self.BezierGraph.show)
         self.BezierGraph.closed.connect(self._updateGraphButton)
         h.addLayout(g)
         h.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
@@ -85,46 +105,54 @@ class MayaToolsHeader(QWidget):
         self.layout().addLayout(h)
 
     def __connections(self):
+        """ signal connections
+        """
         self.textInfo["skSave"].clicked.connect(self._storeSkin)
         self.textInfo["vtSave"].clicked.connect(self._storeVtx)
         self.textInfo["skLoad"].clicked.connect(self._loadSkin)
         self.textInfo["vtLoad"].clicked.connect(self._loadVtx)
 
-    def _showGraph(self):
-        self.BezierGraph.show()
-
     def _updateGraph(self):
+        """ convert the graph to an image 
+
+        :return: path to the image to use as button
+        :rtype: string
+        """
         filePath = os.path.join(tempfile.gettempdir(), 'screenshot.jpg')
         QPixmap.grabWidget(self.BezierGraph.view).save(filePath, 'jpg')
         return filePath
 
     def _updateGraphButton(self):
+        """ update the button image with information of the current graph
+        """
         filePath = self._updateGraph()
         self.graph.setIcon(QIcon(QPixmap(filePath)))
         self.graph.setIconSize(QSize(self.__graphSize, self.__graphSize))
 
     def _storeVtx(self):
+        """ visual update on storing vertex weigth information
+        """
         index = self._vtSaveLoad.getVtxWeight()
         self.vtLine.setText(str(index))
 
     def _loadVtx(self):
+        """ load current stored vertex weigth information
+        """
         if self.vtLine.text == '':
             return
         self._vtSaveLoad.setVtxWeight()
 
     def _storeSkin(self):
+        """ visual update on storing object weigth information
+        """
         index = self._skSaveLoad.getSkinWeight()
         self.skLine.setText(str(index))
 
     def _loadSkin(self):
+        """ load current stored object weigth information
+        """
         if self.skLine.text == '':
             return
-        if self._skSaveLoad.needsRemap():
-            rmpDialog = RemapDialog(self._skSaveLoad, interface.getAllJoints(), self)
-            rmpDialog.exec_()
-            # @todo: make sure that the order here is correct?
-            # maybe this doesnt work as intended and we need to remap by index
-            self._skSaveLoad.boneInfo = rmpDialog.getConnectionInfo().values()
         self._skSaveLoad.setSkinWeights()
 
 
