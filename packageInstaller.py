@@ -56,9 +56,9 @@ class InstallWindow(QDialog):
         self.setWindowTitle("install SkinningTools %s"%__VERSION__)
         
         self.__scriptDir = scriptDir
-        self.__skinFile = os.path.join(self.__scriptDir, "SkinningTools")
+        self.__skinFile = os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools"))
         self.__exists = os.path.exists(self.__skinFile )
-        self.__oldSettings =  os.path.join(self.__skinFile, "UI/settings.ini")
+        self.__oldSettings =  os.path.normpath(os.path.join(self.__skinFile, "UI/settings.ini"))
         # ---- simple banner
         self.setLayout(utils.nullVBoxLayout(size = 1))
 
@@ -110,9 +110,8 @@ class InstallWindow(QDialog):
         if self.__exists:
             # ---- copy old settings file 
             if os.path.exists(self.__oldSettings) and self.oldSettings.isChecked():
-                newIni = os.path.join(CURRENTFOLDER, "SkinningTools/UI/settings.ini")
-                with open(newIni, "wb") as fh:
-                    pass
+                newIni = os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools/UI/settings.ini"))
+                with open(newIni, "w") as fh: pass
                 shutil.copy2(self.__oldSettings, newIni)
                 utils.setProgress(10, self.progress, "copied old settings")
             # ---- check what to do with previous version
@@ -122,7 +121,7 @@ class InstallWindow(QDialog):
             else:
                 now = datetime.datetime.now( )
                 versionDate = "%s%02d%02d" % (now.year, now.month, now.day)
-                backup = os.path.join(self.__scriptDir, "Backup_%s"%versionDate)
+                backup = os.path.normpath(os.path.join(self.__scriptDir, "Backup_%s"%versionDate))
                 if os.path.exists(backup):
                     print("backup already created: %s"%backup)
                 else:
@@ -130,7 +129,7 @@ class InstallWindow(QDialog):
                     utils.setProgress(30, self.progress, "backed up folder as: Backup_%s"%versionDate)
 
         utils.setProgress(40, self.progress, "move skinningtools")
-        shutil.move(os.path.join(CURRENTFOLDER, "SkinningTools"), os.path.join(self.__scriptDir, "SkinningTools"))
+        shutil.move(os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools")), os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools")))
         utils.setProgress(100, self.progress, "skinningtools installed")
 
         self.close()
