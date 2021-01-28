@@ -593,6 +593,7 @@ class SkinningToolsUI(interface.DockWidget):
             del self.editor
         except:
             self.deleteLater()
+        return True
 
 
 def showUI(newPlacement=False):

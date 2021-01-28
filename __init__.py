@@ -28,8 +28,10 @@
 # Public License.
 #--------------------------------------------------------------------------------------
 global skinToolWindow
+import os
 
 def tool():
     from SkinningTools.UI import SkinningToolsUI
-    skinToolWindow = SkinningToolsUI.showUI()
+    _settings = os.path.join(os.path.dirname(__file__), "UI/settings.ini")
+    skinToolWindow = SkinningToolsUI.showUI(not os.path.exists(_settings))
     

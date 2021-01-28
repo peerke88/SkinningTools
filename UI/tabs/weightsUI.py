@@ -3,7 +3,6 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.Maya.tools import weightsManager, shared
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
-from SkinningTools.UI.searchAbleComboBox import SearchableComboBox
 from functools import partial
 import os, json, random
 
@@ -17,6 +16,7 @@ if not os.path.exists(_LOCALFOLDER):
     os.makedirs(_LOCALFOLDER)
 
 # @todo: make it possible that we can upscale the information as well!
+# rework combobox, multiple objects not necessary and making it more difficult to plan
 
 class WeightsUI(QWidget):
     """ weights manager
@@ -40,7 +40,7 @@ class WeightsUI(QWidget):
 
         self.textInfo = {}
         self._infoTextOptions()
-        self.__bbCube = []
+        self.__bbCube = ''
         self.__infoData = None
         self.__infoDetails = None
         self.__cache = {}
@@ -48,6 +48,7 @@ class WeightsUI(QWidget):
         self.progressBar = inProgressBar
         self.__wm = weightsManager.WeightsManager(inProgressBar)
         self.__addButtons()
+        self.ComboC = None
 
 
     def _infoTextOptions(self):
@@ -177,7 +178,7 @@ class WeightsUI(QWidget):
             lne = LineEdit()
             for w in [lbl, lne]:
                 h.addWidget(w)
-            pkgNameDlg.layout().instertLayout(0, h)
+            pkgNameDlg.layout().insertLayout(0, h)
             pkgNameDlg.exec_()
             if pkgNameDlg.result() == 0 or lne.text() == '' or FalseFolderCharacters(lne.text()):
                 return
@@ -246,9 +247,9 @@ class WeightsUI(QWidget):
         
         h = nullHBoxLayout()
         h.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        c = SearchableComboBox()
-        c.addItems(self.__cache[sender.info]["meshes"], True)
-        h.addWidget(c)
+        self.ComboC = QComboBox()
+        self.ComboC.addItems(self.__cache[sender.info]["meshes"])
+        h.addWidget(self.ComboC)
         
         self.__infoData.layout().addLayout(h)
         self.__infoSpace = QWidget()
@@ -256,27 +257,24 @@ class WeightsUI(QWidget):
         self.__infoData.layout().addWidget(self.__infoSpace)
         self.__infoData.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         
-        c.currentIndexChanged.connect(partial(self._changeMeshInfo, sender.info, c))
-        self._changeMeshInfo(sender.info, c)
+        self.ComboC.currentIndexChanged.connect(partial(self._changeMeshInfo, sender.info))
+        self._changeMeshInfo(sender.info, self.ComboC)
 
-    def _changeMeshInfo(self, curFile, currentC, *_):
+    def _changeMeshInfo(self, curFile,  *_):
         """ chagne the information based on the current weight file selection
 
         :param curFile: the weight file to gather data from
         :type curFile: string
-        :param currentC: the current combobox
-        :type curentC: QComboBox
         """
         if self.__infoDetails is not None:
             self.__infoDetails.deleteLater()
             for cube in self.__bbCube:
                 if cmds.objExists(cube):
                     cmds.delete(cube)
-        currentText = currentC.getCheckedItems()
-        def lockLine(inText, inList):
-            info = 0
-            for l in inList:
-                info += len(inText[l])
+        currentText = self.ComboC.currentText()
+        
+        def lockLine(inText, inMesh):
+            info = len(inText[inMesh])
             _line = QLineEdit(str(info))
             _line.setEnabled(False)
             return _line
@@ -294,8 +292,13 @@ class WeightsUI(QWidget):
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkVerts, self.__cache[curFile]["vertPos"], currentText, btn))
+        chk = QSpinBox()
+        chk.setMinimum(1)
+        chk.setEnabled(False)
+        self.__infoDetails.currentInfo['closest'] = chk
         self.__infoDetails.currentInfo['verts'] = btn
-        self.__infoDetails.layout().addWidget(btn, 0,2)
+        self.__infoDetails.layout().addWidget(chk, 0,2)
+        self.__infoDetails.layout().addWidget(btn, 0,3)
 
         # --- bb
         self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["bbox"]), 1,0)
@@ -305,31 +308,31 @@ class WeightsUI(QWidget):
         spin.valueChanged.connect(self._scaleBBox)
         spin.setEnabled(False)
         self.__infoDetails.currentInfo['scale'] = spin
-        self.__infoDetails.layout().addWidget(spin, 1,1)
+        self.__infoDetails.layout().addWidget(spin, 1,2)
         btn = buttonsToAttach(self.infoLabels["check"], partial(self._makeBB, self.__cache[curFile]["bbox"], currentText))
         self.__infoDetails.currentInfo['bbox'] = btn
-        self.__infoDetails.layout().addWidget(btn, 1,2)
+        self.__infoDetails.layout().addWidget(btn, 1,3)
 
         # --- joints
         self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["joints"]), 2,0)
-        self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 2,1)
+        self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 2,2)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkJoints, self.__cache[curFile]["allJnts"], btn))
         self.__infoDetails.currentInfo['joints'] = btn
-        self.__infoDetails.layout().addWidget(btn, 2,2)
+        self.__infoDetails.layout().addWidget(btn, 2,3)
 
         # --- uvs
         self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["UVs"]), 3,0)
         chk = QCheckBox(self.infoLabels["cPos"])
         chk.setEnabled(False)
         self.__infoDetails.currentInfo['useUV'] = chk
-        self.__infoDetails.layout().addWidget(chk, 3, 1)
+        self.__infoDetails.layout().addWidget(chk, 3, 2)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkUvs, self.__cache[curFile]["uvs"], currentText, btn, chk))
         self.__infoDetails.currentInfo['uvs'] = btn
-        self.__infoDetails.layout().addWidget(btn, 3,2)
+        self.__infoDetails.layout().addWidget(btn, 3,3)
 
 
     # @todo: move these functions to api/interface
@@ -350,9 +353,8 @@ class WeightsUI(QWidget):
         if not sel:
             sel = currentMesh
             _selection = False
-        if '.' in sel[0]:
-            sel = [sel[0].split('.')[0]]
-
+        if '.' in sel:
+            sel = [sel.split('.')[0]]
 
         checkBox.setEnabled(False)
         if None in uvs:
@@ -381,9 +383,10 @@ class WeightsUI(QWidget):
 
         sender.setStyleSheet('background-color: #17D206;')
         checkBox.setEnabled(True)
+        self.__infoDetails.currentInfo['closest'].setEnabled(True)
 
 
-    def _checkVerts(self, verts, currentMeshes, sender):
+    def _checkVerts(self, verts, currentMesh, sender):
         """ check if the objects vertices are similar
 
         :todo: make sure that the scale values are used
@@ -397,36 +400,35 @@ class WeightsUI(QWidget):
         """
         sel = interface.getSelection()
         if not sel:
-            sel = [currentMesh]
-        if '.' in sel[0]:
-            sel = [sel[0].split('.')[0]]
+            sel = currentMesh
+        if '.' in sel:
+            sel = [sel.split('.')[0]]
         nVerts = api.meshVertexList(sel[0])
         sender.setStyleSheet('background-color: #17D206;')
         amount = len(nVerts)
         matches = True
         positions = True
+        self.__infoDetails.currentInfo['verts'].type = 'Match'
         scl = self.__infoDetails.currentInfo['scale'].value()
-        for currentMesh in currentMeshes:
-            if len(verts[currentMesh]) != amount:
-                matches = False
-                continue
-                
-            for i in xrange(5):
-                _id =  random.randint(0, amount)
-                pos = smart_roundVec(verts[currentMesh][_id], 3)
-                _fp = cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1)
-                nPos = smart_roundVec([_fp[0]*scl, _fp[1]*scl, _fp[2]*scl], 3)
-                if pos == nPos:
-                    continue
-                positions = False
-
-        if not matches:
+        if len(verts[currentMesh]) != amount:
             sender.setStyleSheet('background-color: #ad4c4c;')
             sender.setToolTip(self.infoLabels["vPos"])
+            self.__infoDetails.currentInfo['verts'].type = 'Pos'
+            self.__infoDetails.currentInfo['closest'].setEnabled(True)
+            
+        for i in xrange(5):
+            _id =  random.randint(0, amount)
+            pos = smart_roundVec(verts[currentMesh][_id], 3)
+            _fp = cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1)
+            nPos = smart_roundVec([_fp[0]*scl, _fp[1]*scl, _fp[2]*scl], 3)
+            if pos == nPos:
+                continue
+            positions = False
 
         if not positions:
             sender.setStyleSheet('background-color: #e85617;')
             sender.setToolTip(self.infoLabels["vCount"])
+            self.__infoDetails.currentInfo['verts'].type = 'noMatch'
 
     def _checkJoints(self, joints, sender):
         """ check if the objects joints inputs are similar
@@ -443,35 +445,31 @@ class WeightsUI(QWidget):
             sender.setToolTip(self.infoLabels["jntMatch"])
             sender.setStyleSheet('background-color: #ad4c4c;')
 
-
-    def _makeBB(self, bbox, meshList):
+    def _makeBB(self, bbox, mesh):
         """ create a cube that uses the infromation of the skinweights file bounding box, 
         to identify possible problems when loading the skincluster information
         """
-        for cube in self.__bbCube:
-            if cmds.objExists(cube):
-                cmds.delete(cube)
-        self.__bbCube = []
+        
+        if cmds.objExists(self.__bbCube):
+            cmds.delete(self.__bbCube)
+        self.__bbCube = ''
         self.__infoDetails.currentInfo['scale'].setEnabled(True)
-        for mesh in meshList:
-            _bb = cmds.polyCube(n = "bboxCube")[0]
-            self.__bbCube.append(_bb)
-            cmds.move(bbox[mesh][0][0], '%s.f[5]' % _bb , x=True)
-            cmds.move(bbox[mesh][0][1], '%s.f[3]' % _bb , y=True)
-            cmds.move(bbox[mesh][0][2], '%s.f[2]' % _bb , z=True)
-            cmds.move(bbox[mesh][1][0], '%s.f[4]' % _bb , x=True)
-            cmds.move(bbox[mesh][1][1], '%s.f[1]' % _bb , y=True)
-            cmds.move(bbox[mesh][1][2], '%s.f[0]' % _bb , z=True)
-            shape = cmds.listRelatives(_bb , s=1)[0]
-            cmds.setAttr("%s.overrideEnabled"%shape, 1)
-            cmds.setAttr("%s.overrideShading"%shape, 0)
+        self.__bbCube = cmds.polyCube(n = "bboxCube")[0]
+        cmds.move(bbox[mesh][0][0], '%s.f[5]' % self.__bbCube , x=True)
+        cmds.move(bbox[mesh][0][1], '%s.f[3]' % self.__bbCube , y=True)
+        cmds.move(bbox[mesh][0][2], '%s.f[2]' % self.__bbCube , z=True)
+        cmds.move(bbox[mesh][1][0], '%s.f[4]' % self.__bbCube , x=True)
+        cmds.move(bbox[mesh][1][1], '%s.f[1]' % self.__bbCube , y=True)
+        cmds.move(bbox[mesh][1][2], '%s.f[0]' % self.__bbCube , z=True)
+        shape = cmds.listRelatives(self.__bbCube , s=1)[0]
+        cmds.setAttr("%s.overrideEnabled"%shape, 1)
+        cmds.setAttr("%s.overrideShading"%shape, 0)
 
     def _scaleBBox(self, inValue):
-        for cube in self.__bbCube:
-            if not cmds.objExists(cube):
-                continue
+        if not cmds.objExists(self.__bbCube):
+            return
 
-            [cmds.setAttr("%s.scale%s"%(cube, ax), inValue) for ax in "XYZ"]
+        [cmds.setAttr("%s.scale%s"%(cube, ax), inValue) for ax in "XYZ"]
 
     def _loadExternalFiles(self):
         """ load external weight files, 
@@ -485,22 +483,24 @@ class WeightsUI(QWidget):
         self.settings.setValue("weightFiles", list(set(_current)))
         self._loadFiles()
 
-
     def _setSkinInfo(self):
         if self.__infoDetails is None:
             print("no weight info selected")
             return
         print("setting the skinning info")
-        for key, val in self.__infoDetails.currentInfo.iteritems():
-            print key, val
 
+        currentMesh = self.ComboC.currentText()
+        sel = interface.getSelection()
+        if not sel:
+            sel = currentMesh
+        if '.' in sel:
+            sel = sel.split('.')[0]
 
-        """
-        check the settings in the self.__infoDetails to make sure how we want to handle all the information
-
-        base dont he infromation we remap all of the data to set the weights
-        we can use the plugin to set the weights necessary!
-        """
+        curFile = self.fileList.selectedItems()[0]
+        scale = self.__infoDetails.currentInfo["scale"].value()
+        closest = self.__infoDetails.currentInfo["closest"].value()
+        useUv = self.__infoDetails.currentInfo['useUV'].isChecked()
+        self.__wm.importData(curFile.info, workMesh = sel, scale = scale, closestNPoints = closest, uvBased =  useUv)
 
     def hideEvent(self, event):
         """ make sure we don't have any lingering data
