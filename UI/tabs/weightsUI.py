@@ -484,6 +484,11 @@ class WeightsUI(QWidget):
         self._loadFiles()
 
     def _setSkinInfo(self):
+        """ set the skinning info from current object to selected or multiple
+        :todo: need to make sure this only allows the user to check
+        :todo: or if it actually has a meaningfull relationship to the weights manager 
+
+        """
         if self.__infoDetails is None:
             print("no weight info selected")
             return
@@ -507,9 +512,10 @@ class WeightsUI(QWidget):
         """
         if not self.__cache == {}:
             del self.__cache
-        for cube in self.__bbCube:
-            if cmds.objExists(cube):
-                cmds.delete(cube)
+    
+        if cmds.objExists(self.__bbCube):
+            cmds.delete(self.__bbCube)
+        super(WeightsUI, self).hideEvent(event)
 
                                  
 def testUI():
