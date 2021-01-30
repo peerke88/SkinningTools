@@ -102,7 +102,8 @@ class SkinningToolsUI(interface.DockWidget):
         self.currentWidgetAtMouse = None
         self.toolTipWindow = None
         self.__timing = 700
-
+        self.__dialogGeo = {}
+        
     def __connections(self):
         """ connection to a callback filter to make sure that the seperate marking menu is created
         """
@@ -397,11 +398,21 @@ class SkinningToolsUI(interface.DockWidget):
             dialog.setWindowIcon(QIcon(view.windowDispIcon))
         dialog.setOriginalState(index, tabs)
         dialog.addwidget(view)
+        
+        if dialog.gettabName() in self.__dialogGeo.keys():
+            dialog.restoreGeometry(self.__dialogGeo[dialog.gettabName()])
+        
         if pos.y() > -1:
             dialog.move(pos)
 
+        dialog.closed.connect(self.storeTearOffInfo)
         dialog.show()
+        self.__detached[dialog.gettabName()] = True
         tabs.removeTab(index)
+
+    def storeTearOffInfo(self, dialog):
+        self.__dialogGeo[dialog.gettabName()] = dialog.saveGeometry()
+        self.__detached[dialog.gettabName()] = False
 
     # -------------------- tool tips -------------------------------------
 
@@ -531,6 +542,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
         self.settings.setValue("language", self.changeLN.title())
         self.settings.setValue("toolTips", self.textInfo["tooltipAction"].isChecked())
+        self.settings.setValue("dialogsInfo", self.__dialogGeo)
         
     def loadUIState(self):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
@@ -565,7 +577,8 @@ class SkinningToolsUI(interface.DockWidget):
             _toolTipSetting = False
         self.textInfo["tooltipAction"].setChecked(bool(_toolTipSetting))
         
-
+        self.__dialogGeo = self.settings.value("dialogsInfo", {})
+        
     def hideEvent(self, event):
         """ the hide event is something that is triggered at the same time as close,
         sometimes the close event is not handled correctly by maya so we add the save state in here to make sure its always triggered
