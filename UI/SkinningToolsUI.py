@@ -27,7 +27,7 @@ from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-import webbrowser, os
+import webbrowser, os, warnings
 
 class SkinningToolsUI(interface.DockWidget):
     """ main skinningtools UI class
@@ -45,7 +45,6 @@ class SkinningToolsUI(interface.DockWidget):
         :type parent: QWidget
         """
         super(SkinningToolsUI, self).__init__(parent)
-        # placeholder image
         self.setWindowIcon(QIcon(":/commandButton.png"))
 
         __sel = interface.getSelection()
@@ -145,6 +144,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["fetchAction"].triggered.connect(interface.fetch)
         self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
+        self.textInfo["docAction"].triggered.connect(self._openDocHelp)
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
@@ -156,6 +156,40 @@ class SkinningToolsUI(interface.DockWidget):
         """
         webUrl = r"https://www.perryleijten.com/skinningtool/html/"
         webbrowser.open(webUrl)
+
+    def _openDocHelp(self):
+        """ open the corresponding pdf page with the help documentation tool information
+        """
+        _copy = {0: "ClosestVertexWeightWidget",
+                 1: "AssignWeightsWidget",
+                 2: "TransferUvsWidget"}
+        _tools = {0: "VertAndBoneFunction",
+                  1: _copy,
+                  2: "MayaTools"}
+        _base = {0: _tools,
+                 1: "SkinSliderSetup",
+                 2: "WeightEditorWindow",
+                 3: "weightUI"}
+        _other = "BezierGraph"
+
+        _helpInfo = _base[self.tabs.currentIndex()]
+        if type(_helpInfo) == dict:
+            _helpInfo = _helpInfo[self.mayaToolsTab.currentIndex()]
+        if type(_helpInfo) == dict:
+            _helpInfo = _helpInfo[self.copyToolsTab.currentIndex()]
+        if self.BezierGraph.isVisible():
+            _helpInfo = _other
+
+        _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s.pdf"%_helpInfo)
+        
+        try:
+            os.startfile( r'file:%s'%_helpFile )  
+        except:
+            try:
+                warnings.warn("could not open Pdf file, trying through webrowser!")
+                webbrowser.open_new( r'file:%s'%_helpFile )  
+            except Exception, e:
+                warnings.warn(e)
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):

@@ -30,6 +30,21 @@ maya code should be seperated in the Maya folder hopefully we can make some part
  - sphinx (extensions: sphinx-autoapi,  groundwork-sphinx-theme)
 ```
 
+## launch
+
+use the package creator to create a package and install through the mel file 
+or use the following python commands:
+
+```python
+from SkinningTools import reloader
+reload(reloader)
+reloader.unload(newScene=False)
+
+from SkinningTools.UI import SkinningToolsUI
+reload(SkinningToolsUI)
+myWindow = SkinningToolsUI.showUI()
+```
+
 
 ## Acknowledgments
 

@@ -4,7 +4,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.ThirdParty import requests
 
-import re, difflib, math, tempfile, base64, os, json
+import re, difflib, math, tempfile, base64, os, json, warnings
 from functools import partial
 
 UIDIRECTORY = os.path.dirname(__file__)
@@ -746,3 +746,47 @@ def QuickDialog(title):
     btn.clicked.connect(myWindow.reject)
     h.addWidget(btn)
     return myWindow
+
+class SimplePopupSpinBox(QDialog):
+    """ spinbox delegate that is able to display as its own window
+    """
+    closed = pyqtSignal()
+
+    def __init__(self, parent = None, value=0.5, geo = None, scene=None):
+        """ the constructor
+
+        :param parent: the parent widget for this object
+        :type parent: QWidget
+        :param value: the default value to display on the widget
+        :type value: float
+        """
+        super(SimplePopupSpinBox, self).__init__(parent)
+        self.setWindowFlags( Qt.Window|Qt.FramelessWindowHint )
+
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+
+        self.input = QDoubleSpinBox(self)
+        self.input.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.input.setDecimals(3)
+        self.input.setRange(0, 1)
+        self.input.setSingleStep(.1)
+        self.input.setValue(value)
+        
+        self.input.selectAll()
+
+        if geo:
+            self.input.setGeometry(geo)
+        else:
+            pos = QCursor.pos()
+            self.input.resize(50, 23)
+            self.input.move(parent.view.mapFromGlobal(pos).x(), parent.view.mapFromGlobal(pos).y())
+        self.input.editingFinished.connect(self.close)
+            
+        self.input.setFocus()
+        self.activateWindow()
+        self.exec_()
+        
+    
+    def closeEvent(self, e):
+        self.closed.emit()
