@@ -5,7 +5,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.py23 import *
 
-from SkinningTools.Maya import interface
+from SkinningTools.Maya import interface, api
 
 _DIR = os.path.dirname(__file__)
 _DEBUG = getDebugState()
@@ -74,8 +74,7 @@ class SkinningToolsUI(interface.DockWidget):
             self.loadUIState()
 
         self.recurseMouseTracking(self, True)
-        interface.dccInstallEventFilter()
-
+        
         self._callbackFilter()
         self._tooltips = loadLanguageFile(self.changeLN.title(), "tooltips")
 
@@ -620,7 +619,11 @@ class SkinningToolsUI(interface.DockWidget):
         """
         QApplication.restoreOverrideCursor()
         self.saveUIState()
+        api._cleanEventFilter()
         super(SkinningToolsUI, self).hideEvent(event)
+
+    def showEvent(self, event):
+        api.dccInstallEventFilter()
 
     def closeEvent(self, event):
         """ the close event, 
@@ -629,11 +632,11 @@ class SkinningToolsUI(interface.DockWidget):
         force the deletion here as well. somehow this avoids crashes in maya!
         """
         QApplication.restoreOverrideCursor()
+        api._cleanEventFilter()
         self.saveUIState()
         try:
             self.skinSlider.clearCallback()
             self.editor.setClose()
-            interface._cleanEventFilter()
             self.skinSlider.deleteLater()
             del self.skinSlider
             self.editor.deleteLater()
@@ -649,7 +652,6 @@ def showUI(newPlacement=False):
     :param newPlacement: if `True` will force the tool to not read the ini file, if `False` will open the tool as intended
     :type newPlacement: bool
     """
-    mainWindow = interface.get_maya_window()
-    dock = SkinningToolsUI(newPlacement, mainWindow)
+    dock = SkinningToolsUI(newPlacement, parent = None)
     dock.run()
     return dock

@@ -22,12 +22,11 @@ class DockWidget(MayaQWidgetDockableMixin, QDialog):
 
         # new connection to the closeEvent so its always called even when we close the docked version
         self.closeEventTriggered.connect(self.closeEvent)
-        self.closeEventTriggered.connect(self.deleteInstances)
 
     def dockCloseEventTriggered(self):
         """this is the function that is called when you close the widget when its docked
         """
-        self.closeEvent(None) 
+        self.closeEvent(QCloseEvent()) 
 
     def deleteInstances(self):
         """remove any lingering instances of the current tool,
@@ -45,10 +44,11 @@ class DockWidget(MayaQWidgetDockableMixin, QDialog):
         """
         self.show(dockable = True)
 
-    def closeEvent(self, *_):
+    def closeEvent(self, event):
         """ override for the closeEvent, we add one here as the Mixin in maya does not call the closeEvent
         currently using NotImplementedError as the tool we are using needs a closeEvent
         """
-        raise NotImplementedError( "%s.closeEvent"%self.__class__)
-
+        self.deleteInstances()
+        super(DockWidget, self).closeEvent(event)
+        
     

@@ -953,7 +953,11 @@ def doSkinPercent(bone, value, operation=0):
     if sc is None:
         return False
 
-    bone = cmds.ls(bone, l=1)[0]
+    bone = cmds.ls(bone, l=1)
+    if bone in [[], None]:
+        return False
+    
+    bone = bone[0]
     allBones = joints.getInfluencingJoints(sc)
     if not bone in allBones:
         cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=bone)
@@ -967,7 +971,8 @@ def doSkinPercent(bone, value, operation=0):
     else:
         newVal = value * _mult[operation]
         cmds.skinPercent(sc, vertices, r = _rel, tv=[bone, value * _mult[operation]], normalize=True)
-
+    shared.doCorrectSelectionVisualization(inMesh)
+    cmds.select(vertices, r=1)
     return True
 
 

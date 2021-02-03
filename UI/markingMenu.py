@@ -24,9 +24,11 @@ class MarkingMenuFilter(QObject):
         :type parent: QWidget
         """
         super(MarkingMenuFilter, self).__init__(parent)
+        
+        self.MMenu = radialMenu(interface.get_maya_window())
         self.__debug = isDebug
+        self._storedValue = .5
         self.MenuName = name
-        self.popup = None
         self.getBoneUnderMouse = False
 
     @staticmethod
@@ -57,27 +59,19 @@ class MarkingMenuFilter(QObject):
 
             if foundObjects == (False, '') or foundObjects is False:
                 return False
-            from SkinningTools.Maya import api
-            mainWin = api.get_maya_window()
-
-            self.popup = radialMenu(mainWin, foundObjects)
-            self.popup.showAtMousePos()
+            self.MMenu.setName(foundObjects[1])
+            self.MMenu.showAtMousePos()
             return True
 
-        if self.popup is not None:
-            self.popup.updateLine(QCursor.pos())
+        self.MMenu.updateLine(QCursor.pos())
 
         if event.type() == QEvent.MouseButtonRelease and event.button() == 4:
-            if self.popup is None:
-                return False
-            _curItem = self.popup.getActiveItem()
+            _curItem = self.MMenu.getActiveItem()
             if _curItem is not None:
-                # this is the function of the button that is under the mouse
                 _curItem.runFunction()
 
-            self.popup.hide()
-            self.popup.deleteLater()
-            self.popup = None
+            self._storedValue = self.MMenu.value
+            self.MMenu.hide()
         return False
 
 
@@ -103,13 +97,11 @@ class radialMenu(QMainWindow):
     __radius = 80
     _availableSpaces = 8
 
-    def __init__(self, parent=None, inputObjects=None, flags=Qt.FramelessWindowHint):
+    def __init__(self, parent=None, flags=Qt.FramelessWindowHint):
         """ the constructor
 
         :param parent: the window to attach this ui to
         :type parent: QWidget
-        :param inputObjects: list of a boolean value if the current hit worked and the name of the bone found under the mouse
-        :type inputObjects: list
         :param flags: this flags default is to make sure we dont spawn a window, this could be overwritten for debug purposes
         :type flags: Qt.window flags
         """
@@ -122,22 +114,35 @@ class radialMenu(QMainWindow):
         self.__ActiveItem = None
         self.setFixedSize(self.__geoSize, self.__geoSize)
         self.checkState = interface.getSmoothAware()
-        self.inputObjects = inputObjects or []
+        self.inputObject = '' 
+        self._value = .5
 
         self.scene = QGraphicsScene()
-        graphicsView = QGraphicsView()
-        graphicsView.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
-        graphicsView.setScene(self.scene)
-        graphicsView.setSceneRect(self.frameGeometry())
-        graphicsView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        graphicsView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        graphicsView.setMouseTracking(True)
+        self.view = QGraphicsView()
+        self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
+        self.view.setScene(self.scene)
+        self.view.setSceneRect(self.frameGeometry())
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setMouseTracking(True)
 
-        self.setCentralWidget(graphicsView)
+        self.setCentralWidget(self.view)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setStyleSheet("QWidget{background-color: rgba(100,0, 0, 50);background : transparent; border : none}")
         self.__drawUI()
         self._buildButtons()
+
+    def _setValue(self, value):
+        if not type(value) in [int, float]:
+            return
+        self._value = value
+        self.remitem.setText("rem weight: %s" % self._value)
+        self.additem.setText("add weight: %s" % self._value)
+        
+    def _getValue(self):
+        return self._value
+
+    value = property(_getValue, _setValue)
 
     def _setPen(self, color, width, style):
         """ override function to change the pen style of the widget
@@ -231,6 +236,15 @@ class radialMenu(QMainWindow):
         qy = origin.y() + sin(angle) * (point.x() - origin.x()) + cos(angle) * (point.y() - origin.y())
         return QPointF(qx, qy)
 
+    def setName(self, inName):
+        self.inputObject = inName
+        self.mainItem.setText(inName)
+        self.mainItem.setStyleSheet(self.__borders["default"])
+        self.mainItem.setAlignment(Qt.AlignCenter)
+        w = QPainter().fontMetrics().width(self.mainItem.text()) + 10
+        position = self.mainItem.curPos
+        self.mainItem.setGeometry(position.x() - (w * .5), position.y() - 10.5, w, 21)
+
     def __MMButton(self, inText, position, inValue=None, inFunction=None, operation=1):
         """ single marking menu button
         
@@ -293,8 +307,10 @@ class radialMenu(QMainWindow):
         [positionList.append(self.rotateVec(origin, basePos, i * angle) + offset) for i in range(self._availableSpaces)]
 
         # ---- label -----
-        item = self.__MMButton(self.inputObjects[1], positionList[0])
-        self.scene.addWidget(item)
+        self.mainItem = self.__MMButton('test', positionList[0], self._value, self._changeVal)
+        self.mainItem.curPos = positionList[0]
+        self.scene.addWidget(self.mainItem)
+        self.uiObjects.append(self.mainItem)
 
         # ---- surfaceAware -----
         item = self.__MMCheck("surface aware", positionList[4], self.checkState, self._setCheckState)
@@ -313,16 +329,20 @@ class radialMenu(QMainWindow):
         self.scene.addWidget(item)
         self.uiObjects.append(item)
 
-        item = self.__MMButton("rem weight: %s" % .5, positionList[7], .5, self.__funcPressed, 0)
-        self.scene.addWidget(item)
-        self.uiObjects.append(item)
+        self.remitem = self.__MMButton("rem weight: %s" % self._value, positionList[7], self._value, self.__funcPressed, 0)
+        self.scene.addWidget(self.remitem)
+        self.uiObjects.append(self.remitem)
 
         # ------ add val -----
-        item = self.__MMButton("add weight: %s" % .5, positionList[1], .5, self.__funcPressed, 2)
-        self.scene.addWidget(item)
-        self.uiObjects.append(item)
+        self.additem = self.__MMButton("add weight: %s" % self._value, positionList[1], self._value, self.__funcPressed, 2)
+        self.scene.addWidget(self.additem)
+        self.uiObjects.append(self.additem)
 
         return True
+
+    def _changeVal(self, item, value, operation=0 ):
+        _popup = SimplePopupSpinBox(parent = interface.get_maya_window(), value = self._value)
+        self._setValue( _popup.input.value() )
 
     def __funcPressed(self, _, value, operation=0):
         """ function that will run when a button is clicked
@@ -333,7 +353,9 @@ class radialMenu(QMainWindow):
         :type operation: int
         :note operation: { 0:removes the values, 1:sets the values, 2: adds the values}
         """
-        skinCluster.doSkinPercent(self.inputObjects[1], value, operation=operation)
+        if operation != 1 and value != 1:
+            value = self._value
+        skinCluster.doSkinPercent(self.inputObject, value, operation=operation)
 
     def _setCheckState(self, item, *_):
         """ function that will run once the checkbox state has changed

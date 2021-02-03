@@ -236,7 +236,6 @@ def selectVertices(meshVertexPairs):
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
     mel.eval('doMenuComponentSelection("%s", "%s");' % (meshVertexPairs[0][0].split('.')[0], "vertex"))
 
-
 def _eventFilterTargets():
     """We must return all widgets that receive strong focus that we want to tap into
     such as the main window or 3D viewports that are not simple Qt widgets.

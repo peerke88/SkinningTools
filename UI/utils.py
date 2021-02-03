@@ -752,7 +752,7 @@ class SimplePopupSpinBox(QDialog):
     """
     closed = pyqtSignal()
 
-    def __init__(self, parent = None, value=0.5, geo = None, scene=None):
+    def __init__(self, parent = None, value=0.5):
         """ the constructor
 
         :param parent: the parent widget for this object
@@ -765,28 +765,21 @@ class SimplePopupSpinBox(QDialog):
 
         self.setAttribute(Qt.WA_TranslucentBackground)
         
-
         self.input = QDoubleSpinBox(self)
         self.input.setButtonSymbols(QAbstractSpinBox.NoButtons)
         self.input.setDecimals(3)
         self.input.setRange(0, 1)
         self.input.setSingleStep(.1)
         self.input.setValue(value)
-        
         self.input.selectAll()
-
-        if geo:
-            self.input.setGeometry(geo)
-        else:
-            pos = QCursor.pos()
-            self.input.resize(50, 23)
-            self.input.move(parent.view.mapFromGlobal(pos).x(), parent.view.mapFromGlobal(pos).y())
+        
+        pos = QCursor.pos()
+        self.setGeometry(pos.x()-25, pos.y()-23, 50, 23)
         self.input.editingFinished.connect(self.close)
             
         self.input.setFocus()
         self.activateWindow()
         self.exec_()
         
-    
     def closeEvent(self, e):
         self.closed.emit()
