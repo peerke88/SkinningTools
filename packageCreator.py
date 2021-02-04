@@ -87,7 +87,7 @@ for dirName, __, fList in os.walk(curFolder):
 			continue
 		if ".git" in dirName or ".vs" in dirName or "Logs" in dirName or ".idea" in dirName:
 			continue
-		if "docs" in dirName:
+		if "docs" in dirName and not "Maya\\docs" in dirName:
 			continue
 		if file in _noFile:
 			continue
