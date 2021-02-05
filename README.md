@@ -7,11 +7,11 @@ main goal of the tools is to make clean code that is ready for Python 3
 maya code should be seperated in the Maya folder hopefully we can make some parts DCC agnostic to get the same or similar functionality in other dcc tools (future dev)
 
 ### todo:
- - add all functionality to menubar
- - add settings page (size of elements/icons, language, etc)
- - add translator class for automated language information, option to save and modify
  - create small videos/gifs to explain the tools as tooltips (use this for testing functionality)
 
+## documentation
+
+[API](https://www.perryleijten.com/skinningtool/html)
 
 ## Authors
 
@@ -28,6 +28,21 @@ maya code should be seperated in the Maya folder hopefully we can make some part
  - Maya 2017+
  - Python 2.7 (3.7)
  - sphinx (extensions: sphinx-autoapi,  groundwork-sphinx-theme)
+```
+
+## launch
+
+use the package creator to create a package and install through the mel file 
+or use the following python commands:
+
+```python
+from SkinningTools import reloader
+reload(reloader)
+reloader.unload(newScene=False)
+
+from SkinningTools.UI import SkinningToolsUI
+reload(SkinningToolsUI)
+myWindow = SkinningToolsUI.showUI()
 ```
 
 

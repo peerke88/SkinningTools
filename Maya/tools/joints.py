@@ -185,6 +185,7 @@ def freezeRotate(inJnts, progressBar=None):
     :return: list of joints that are cleaned
     :rtype: list
     """
+
     percentage = 99.0 / len(inJnts)
     for i, joint in enumerate(inJnts):
         if cmds.objectType(joint) != "joint":
@@ -247,6 +248,9 @@ def removeBindPoses(progressBar=None):
     :rtype: bool
     """
     dagPoses = cmds.ls(type="dagPose")
+    if dagPoses == []:
+        return
+
     percentage = 99.0 / len(dagPoses)
     for index, dagPose in enumerate(dagPoses):
         if not cmds.getAttr("%s.bindPose" % dagPose):
@@ -271,6 +275,8 @@ def addCleanJoint(jnts, inMesh, progressBar=None):
     :rtype: bool
     """
     sc = shared.skinCluster(inMesh, silent=True)
+    if jnts == []:
+        return
     percentage = 99.0 / len(jnts)
     if sc != None:
         jointInfls = getInfluencingJoints(sc)
@@ -318,7 +324,7 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
         outInfluencesArray[(j * infLengt) + pos1] = 0.0
         utils.setProgress(j * percentage, progressBar, "moving joint influences")
 
-    shared.setWeigths(skin, outInfluencesArray)
+    shared.setWeights(skin, outInfluencesArray)
     utils.setProgress(100, progressBar, "moved joint influences")
     return True
 
@@ -343,11 +349,11 @@ def BoneSwitch(joint1, joint2, skin, progressBar=None):
     addCleanJoint([joint1, joint2], skin)
 
     _connectDict = shared.getJointIndexMap(sc)
-    for key, val in _connectDict.items():
-        cmds.disconnectAttr('%s.worldMatrix' % key, '%s.matrix[%i]' % (sc, val))
-        cmds.disconnectAttr("%s.lockInfluenceWeights" % key, "%s.lockWeights[%s]" % (sc, val))
+    for jnt in [joint1, joint2]:
+        cmds.disconnectAttr('%s.worldMatrix' % jnt, '%s.matrix[%i]' % (sc, _connectDict[jnt]))
+        cmds.disconnectAttr("%s.lockInfluenceWeights" % jnt, "%s.lockWeights[%s]" % (sc, _connectDict[jnt]))
     utils.setProgress(33, progressBar, "get influence map")
-
+    
     cmds.connectAttr(joint1 + '.worldMatrix', '%s.matrix[%i]' % (sc, _connectDict[joint2]), f=1)
     cmds.connectAttr(joint2 + '.worldMatrix', '%s.matrix[%i]' % (sc, _connectDict[joint1]), f=1)
     cmds.connectAttr("%s.lockInfluenceWeights" % joint1, "%s.lockWeights[%s]" % (sc, _connectDict[joint2]), f=1)
@@ -485,6 +491,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
                 continue
             skinObjects.append(mesh)
 
+    skinClusters = []
     skinPercentage = 100.0 / len(skinObjects)
     for skinIter, skinObject in enumerate(skinObjects):
         sc = shared.skinCluster(skinObject, True)
@@ -625,7 +632,7 @@ def getInfluencingJoints(inObject):
     :return: list of all the joints that are currently driving the given mesh
     :rtype:  list
     """
-    if cmds.objectType(inObject) == "mesh":
+    if cmds.objectType(inObject) != "skinCluster":
         inObject = shared.skinCluster(inObject, silent=True)
     if inObject != None:
         jointInfls = cmds.ls(cmds.listConnections("%s.matrix" % inObject, source=True), l=1)

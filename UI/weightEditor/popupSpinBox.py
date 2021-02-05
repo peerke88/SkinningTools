@@ -2,9 +2,20 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 
 class PopupSpinBox(QWidget):
+    """ spinbox/lineedit delegate that is able to display as its own window
+    """
     closed = pyqtSignal()
 
     def __init__(self, parent = None, value=0.0, textValue=False):
+        """ the constructor
+
+        :param parent: the parent widget for this object
+        :type parent: QWidget
+        :param value: the default value to display on the widget
+        :type value: float
+        :param textValue: if `True` it will build the setup as a lineEdit, if `False` it will make a double spinbox
+        :type textValue: bool
+        """
         super(PopupSpinBox, self).__init__(parent)
         self.setWindowFlags( Qt.Window|Qt.FramelessWindowHint )
 
@@ -25,7 +36,7 @@ class PopupSpinBox(QWidget):
             self.input.selectAll()
 
         self.input.resize(50, 23)
-        #@todo: need to set up in a way that the popup is placed ontop of the table cells
+        # :todo: need to set up in a way that the popup is placed ontop of the table cells
         self.input.move(parent.view.mapFromGlobal(pos).x(), parent.view.mapFromGlobal(pos).y())
         self.input.editingFinished.connect(self.close)
             

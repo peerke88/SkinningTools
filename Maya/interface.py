@@ -257,15 +257,15 @@ def convertToJoint(inName=None, progressBar=None):
 def resetPose(progressBar=None):
     selection = getSelection()
     jnts = []
-    sc = []
+    results = []
     for obj in selection:
         if cmds.objectType(obj) == "joint":
             jnts.append(obj)
             continue
-        sc.append(shared.skinCluster(obj, True))
-
-    result = joints.resetSkinnedJoints(jnts, sc, progressBar)
-    return result
+        sc = shared.skinCluster(obj, True)
+        _res = joints.resetSkinnedJoints(jnts, sc, progressBar)
+        results.append(_res)
+    return results
 
 
 @shared.dec_repeat
@@ -344,7 +344,7 @@ def unifySkeletons(query=False, progressBar=None):
 @shared.dec_repeat
 def selectJoints(progressBar=None):
     selection = getSelection()
-    result = joints.getInfluencingJoints(selection, progressBar)
+    result = joints.getInfluencingJoints(selection)
     cmds.select(result, r=1)
     return result
 
@@ -482,6 +482,7 @@ def pinToSurface():
 def prebindFixer( doModel, inPose ,progressBar = None):
     # @note:
     # this displays the originshape when moving joints, need to make sure both shapes are visibile maybe when using the inpose == False
+    # maybe double check if this could be changed, so that once an opject is in edit mode either way, the next click will always make sure the objects is set to a default state
     selection = getSelection()
     if len(selection) > 1:
         selection = selection[0]
@@ -490,13 +491,14 @@ def prebindFixer( doModel, inPose ,progressBar = None):
 
     if doModel or inPose:
         mesh.toggleDisplayOrigShape(selection, both = inPose)
-
-    joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
+    
+    else:
+        joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
 
 def getUVInfo(inMesh):
     allUvSets = cmds.polyUVSet(inMesh, q=1, auv =1 )
     currentUvSet = cmds.polyUVSet(inMesh, q=1, cuv =1 )
-    uvSets =[currentUvSet]
+    uvSets = currentUvSet
     for s in allUvSets:
         if s in uvSets:
             continue
@@ -544,13 +546,13 @@ class vertexWeight(object):
         self.boneInfo = None
         self.__progressBar = inProgressBar
 
-    def getVtxWeigth(self):
+    def getVtxWeight(self):
         selection = getSelection()
         if not selection:
             cmds.error("nothing selected")
 
         vtxs = shared.convertToVertexList(selection)
-        sc = shared.skincluster(vtxs[0].split('.')[0])
+        sc = shared.skinCluster(vtxs[0].split('.')[0])
         index = int(vtxs[0][vtxs[0].index("[") + 1: -1])
         self.boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
 
@@ -569,7 +571,7 @@ class vertexWeight(object):
 
         vtxs = shared.convertToVertexList(selection)
         mesh = vtxs[0].split('.')[0]
-        sc = shared.skincluster(mesh)
+        sc = shared.skinCluster(mesh)
         boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
 
@@ -588,7 +590,7 @@ class skinWeight(object):
         self.boneInfo = None
         self.__progressBar = inProgressBar
 
-    def getSkinWeigth(self):
+    def getSkinWeight(self):
         selection = getSelection()
         if not selection:
             cmds.error("nothing selected")
@@ -597,14 +599,14 @@ class skinWeight(object):
         if "." in mesh:
             mesh = mesh.split('.')[0]
 
-        sc = shared.skincluster(mesh)
+        sc = shared.skinCluster(mesh)
         self.boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
         self.weightInfo = shared.getWeights(mesh)
         return mesh
 
     def needsRemap(self):
-        toCheck = set(self.boneInfo).instersection(set(cmds.ls(type="joint")))
-        return (not list(toCheck) == self.boneInfo)
+        toCheck = set(self.boneInfo).intersection(set(cmds.ls(type="joint")))
+        return (not toCheck == set(self.boneInfo))
 
     def calcRemap(self, remapDict):
         joints = []
@@ -612,7 +614,7 @@ class skinWeight(object):
             joints.append(remapDict[jnt])
         self.boneInfo = joints
 
-    def setSkinWeigths(self):
+    def setSkinWeights(self):
         selection = getSelection()
         if not selection:
             cmds.error("nothing selected")
@@ -621,14 +623,16 @@ class skinWeight(object):
         if "." in mesh:
             mesh = mesh.split('.')[0]
 
-        sc = shared.skincluster(mesh)
-
-        boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
+        sc = shared.skinCluster(mesh, True)
+        if sc is None:
+            sc = cmds.skinCluster(mesh, self.boneInfo, tsb=1)
+        else:
+            boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
 
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)
 
-        shared.setWeigths(mesh, self.weightInfo)
+        shared.setWeights(mesh, self.weightInfo)
 
 
 class NeighborSelection(object):
@@ -654,12 +658,16 @@ class NeighborSelection(object):
         self.__borderSel()
 
     def __borderSel(self, *_):
-        for _ in range(self.__bdrIndex):
+        for i in range(self.__bdrIndex):
             toConvert = self.__bdrSel
             if i == 0:
                 toConvert = self.__bdrSelBase
             self.__bdrSel = getNeightbors(toConvert)
-            
+        
+        if self.__bdrIndex == 0:
+            cmds.select(self.__bdrSelBase, r=1)
+            return
+
         borderSelect = list(set(self.__bdrSel) ^ set(self.__bdrSelBase))
         cmds.select(borderSelect, r=1)
 

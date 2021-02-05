@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20201221"
+__VERSION__ = "5.0.20210204"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.py23 import *
 
-from SkinningTools.Maya import interface
+from SkinningTools.Maya import interface, api
 
 _DIR = os.path.dirname(__file__)
 _DEBUG = getDebugState()
@@ -15,7 +15,7 @@ from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningTools
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 from SkinningTools.UI.fallofCurveUI import BezierGraph
 from SkinningTools.UI.messageProgressBar import MessageProgressBar
-from SkinningTools.UI.tearOff.editableTab import EditableTabWidget
+from SkinningTools.UI.tearOff.editableTab import TabWidget
 from SkinningTools.UI.tearOff.tearOffDialog import *
 from SkinningTools.UI.weightEditor import weightEditor
 
@@ -27,7 +27,7 @@ from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-import webbrowser, os
+import webbrowser, os, warnings
 
 class SkinningToolsUI(interface.DockWidget):
     """ main skinningtools UI class
@@ -45,7 +45,6 @@ class SkinningToolsUI(interface.DockWidget):
         :type parent: QWidget
         """
         super(SkinningToolsUI, self).__init__(parent)
-        # placeholder image
         self.setWindowIcon(QIcon(":/commandButton.png"))
 
         __sel = interface.getSelection()
@@ -75,9 +74,10 @@ class SkinningToolsUI(interface.DockWidget):
             self.loadUIState()
 
         self.recurseMouseTracking(self, True)
-        interface.dccInstallEventFilter()
-
+        
         self._callbackFilter()
+        self._tooltips = loadLanguageFile(self.changeLN.title(), "tooltips")
+
         interface.doSelect(__sel)
 
     def __uiElements(self):
@@ -100,7 +100,8 @@ class SkinningToolsUI(interface.DockWidget):
         self.currentWidgetAtMouse = None
         self.toolTipWindow = None
         self.__timing = 700
-
+        self.__dialogGeo = {}
+        
     def __connections(self):
         """ connection to a callback filter to make sure that the seperate marking menu is created
         """
@@ -142,9 +143,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["fetchAction"].triggered.connect(interface.fetch)
         self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
-
-        #@todo: add the functionality later
-        self.textInfo["tooltipAction"].setEnabled(False)
+        self.textInfo["docAction"].triggered.connect(self._openDocHelp)
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
@@ -157,8 +156,47 @@ class SkinningToolsUI(interface.DockWidget):
         webUrl = r"https://www.perryleijten.com/skinningtool/html/"
         webbrowser.open(webUrl)
 
+    def _openDocHelp(self):
+        """ open the corresponding pdf page with the help documentation tool information
+        """
+        _copy = {0: "ClosestVertexWeightWidget",
+                 1: "AssignWeightsWidget",
+                 2: "TransferUvsWidget"}
+        _tools = {0: "VertAndBoneFunction",
+                  1: _copy,
+                  2: "MayaTools"}
+        _base = {0: _tools,
+                 1: "SkinSliderSetup",
+                 2: "WeightEditorWindow",
+                 3: "weightUI"}
+        _other = "BezierGraph"
+
+        _helpInfo = _base[self.tabs.currentIndex()]
+        if type(_helpInfo) == dict:
+            _helpInfo = _helpInfo[self.mayaToolsTab.currentIndex()]
+        if type(_helpInfo) == dict:
+            _helpInfo = _helpInfo[self.copyToolsTab.currentIndex()]
+        if self.BezierGraph.isVisible():
+            _helpInfo = _other
+
+        _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s.pdf"%_helpInfo)
+        
+        try:
+            os.startfile( r'file:%s'%_helpFile )  
+        except:
+            try:
+                warnings.warn("could not open Pdf file, trying through webrowser!")
+                webbrowser.open_new( r'file:%s'%_helpFile )  
+            except Exception, e:
+                warnings.warn(e)
+
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
+        """ translate the ui based on given dictionary
+
+        :param localeDict: the dictionary holding information on how to translate the ui
+        :type localeDict: dict
+        """
         for key, value in localeDict.iteritems():
             if hasattr(self.textInfo[key], "tearOffTabName"):
                 self.textInfo[key].tabParent.setTabText(self.textInfo[key].cIndex, value)
@@ -190,6 +228,9 @@ class SkinningToolsUI(interface.DockWidget):
 
     def _changeLanguage(self, lang = None):
         """ change the ui language
+
+        :param lang: the shortname of the language to change the ui to
+        :type lang: string
         """
         if lang is None:
             lang = self.sender().text()
@@ -202,13 +243,14 @@ class SkinningToolsUI(interface.DockWidget):
 
         _dict =loadLanguageFile(lang, self.toolName.split(":")[0])
         self.translate(_dict)
+        self._tooltips = loadLanguageFile(lang, "tooltips")
 
     # --------------------------------------------------------------------------------
 
     def __tabsSetup(self):
         """ main tab widget which will hold all other widget information
         """
-        self.tabs = EditableTabWidget()
+        self.tabs = TabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.tearOff.connect(self.tearOff)
         self.tabs.tabBar().setWest()
@@ -221,7 +263,7 @@ class SkinningToolsUI(interface.DockWidget):
         """
         self.textInfo["mayaTab"] = self.tabs.addGraphicsTab("Maya Tools", useIcon = ":/menuIconSkinning.png")
         self.textInfo["mayaTab"].tabParent = self.tabs
-        self.mayaToolsTab = EditableTabWidget()
+        self.mayaToolsTab = TabWidget()
         self.mayaToolsTab.tearOff.connect(self.tearOff)
 
         vLayout = nullVBoxLayout()
@@ -282,7 +324,7 @@ class SkinningToolsUI(interface.DockWidget):
         vLayout = nullVBoxLayout()
         self.textInfo["copyTab"].view.frame.setLayout(vLayout)
 
-        self.copyToolsTab = EditableTabWidget()
+        self.copyToolsTab = TabWidget()
         self.copyToolsTab.tearOff.connect(self.tearOff)
 
         vLayout.addWidget(self.copyToolsTab)
@@ -389,11 +431,21 @@ class SkinningToolsUI(interface.DockWidget):
             dialog.setWindowIcon(QIcon(view.windowDispIcon))
         dialog.setOriginalState(index, tabs)
         dialog.addwidget(view)
+        
+        if dialog.gettabName() in self.__dialogGeo.keys():
+            dialog.restoreGeometry(self.__dialogGeo[dialog.gettabName()])
+        
         if pos.y() > -1:
             dialog.move(pos)
 
+        dialog.closed.connect(self.storeTearOffInfo)
         dialog.show()
+        self.__detached[dialog.gettabName()] = True
         tabs.removeTab(index)
+
+    def storeTearOffInfo(self, dialog):
+        self.__dialogGeo[dialog.gettabName()] = dialog.saveGeometry()
+        self.__detached[dialog.gettabName()] = False
 
     # -------------------- tool tips -------------------------------------
 
@@ -437,7 +489,7 @@ class SkinningToolsUI(interface.DockWidget):
         else:
             point = QPoint(event.globalPos().x(), event.globalPos().y())
         curWidget = widgetsAt(point)
-
+        
         def _removeTT():
             if self.toolTipWindow is not None:
                 self.toolTipWindow.deleteLater()
@@ -450,7 +502,7 @@ class SkinningToolsUI(interface.DockWidget):
             if self.toolTipWindow != None:
                 _removeTT()
 
-            if not isinstance(curWidget, QPushButton):  # <- add multiple checks if more implemented then just buttons
+            if not isinstance(curWidget, QWidget):  # <- add multiple checks if more implemented then just buttons
                 _removeTT()
                 self.currentWidgetAtMouse = None
                 return
@@ -484,9 +536,15 @@ class SkinningToolsUI(interface.DockWidget):
         :note: tooltips are currently disabled as there are no images to show or text to display
         """
         self._timer.stop()
-        if (self.currentWidgetAtMouse is None) or (self.textInfo["tooltipAction"].isChecked() == False):
-            return
         tip = self.currentWidgetAtMouse.whatsThis()
+
+        if (self.currentWidgetAtMouse is None) or (self.textInfo["tooltipAction"].isChecked() == False):
+            if str(tip) in self._tooltips.keys():
+                self.currentWidgetAtMouse.setToolTip(self._tooltips[tip])
+            return
+        
+        if not str(tip) in self._tooltips.keys():
+            return
 
         size = 250
         if QDesktopWidget().screenGeometry().height() > 1080:
@@ -496,10 +554,7 @@ class SkinningToolsUI(interface.DockWidget):
             rect = QRect(QCursor.pos().x() + 20, QCursor.pos().y() + 20, size, size)
 
         self.toolTipWindow = AdvancedToolTip(rect)
-        # @TODO: change this to only display text if gif does not exist
-        # if not self.toolTipWindow.toolTipExists(tip):
-        #     return 
-        self.toolTipWindow.setTip(str(tip))
+        self.toolTipWindow.setTip(self._tooltips[str(tip)].replace("^", "\n"))
         self.toolTipWindow.setGifImage(tip)
         self.toolTipWindow.show()
 
@@ -510,7 +565,6 @@ class SkinningToolsUI(interface.DockWidget):
 
         :todo: instead of only geometry also store torn of tabs for each posssible object
         :todo: save the geometries of torn of tabs as well
-        :todo: store the settings used in the vertex and bone functions tabs
         """
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("tools", self.mayaToolsTab.currentIndex())
@@ -520,6 +574,8 @@ class SkinningToolsUI(interface.DockWidget):
         self.settings.setValue("useFav", self.vnbfWidget.setFavcheck.isChecked())
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
         self.settings.setValue("language", self.changeLN.title())
+        self.settings.setValue("toolTips", self.textInfo["tooltipAction"].isChecked())
+        self.settings.setValue("dialogsInfo", self.__dialogGeo)
         
     def loadUIState(self):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
@@ -548,7 +604,14 @@ class SkinningToolsUI(interface.DockWidget):
         self.vnbfWidget.setFavcheck.setChecked(bool(useFav))
         self._changeLanguage(self.settings.value("language","en"))
 
+        _toolTipSetting = self.settings.value("toolTips", False)
 
+        if _toolTipSetting in [False, "false", "False"]:
+            _toolTipSetting = False
+        self.textInfo["tooltipAction"].setChecked(bool(_toolTipSetting))
+        
+        self.__dialogGeo = self.settings.value("dialogsInfo", {})
+        
     def hideEvent(self, event):
         """ the hide event is something that is triggered at the same time as close,
         sometimes the close event is not handled correctly by maya so we add the save state in here to make sure its always triggered
@@ -556,7 +619,11 @@ class SkinningToolsUI(interface.DockWidget):
         """
         QApplication.restoreOverrideCursor()
         self.saveUIState()
+        api._cleanEventFilter()
         super(SkinningToolsUI, self).hideEvent(event)
+
+    def showEvent(self, event):
+        api.dccInstallEventFilter()
 
     def closeEvent(self, event):
         """ the close event, 
@@ -565,17 +632,18 @@ class SkinningToolsUI(interface.DockWidget):
         force the deletion here as well. somehow this avoids crashes in maya!
         """
         QApplication.restoreOverrideCursor()
+        api._cleanEventFilter()
         self.saveUIState()
         try:
             self.skinSlider.clearCallback()
             self.editor.setClose()
-            interface._cleanEventFilter()
             self.skinSlider.deleteLater()
             del self.skinSlider
             self.editor.deleteLater()
             del self.editor
         except:
             self.deleteLater()
+        return True
 
 
 def showUI(newPlacement=False):
@@ -584,7 +652,6 @@ def showUI(newPlacement=False):
     :param newPlacement: if `True` will force the tool to not read the ini file, if `False` will open the tool as intended
     :type newPlacement: bool
     """
-    mainWindow = interface.get_maya_window()
-    dock = SkinningToolsUI(newPlacement, mainWindow)
+    dock = SkinningToolsUI(newPlacement, parent = None)
     dock.run()
     return dock

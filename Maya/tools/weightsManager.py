@@ -84,10 +84,13 @@ class WeightsManager(object):
             data = json.load(f)
         return data
 
-    def importData(self, jsonFile, closestNPoints = 3, uvBased = False):
+    def importData(self, jsonFile, workMesh = None, scale = 1.0, closestNPoints = 3, uvBased = False):
         """ import data from a json file 
         this setup tries to make it possible to load skinning information that does not match the original object
-
+        
+        :todo: make sure it works only on the workmesh if given
+        :todo: fix the setup in a way that it works with the given scale
+        
         :param jsonFile: the file that holds all the skinning information
         :type jsonFile: string
         :param closestNPoints: closest amount of positions to search from

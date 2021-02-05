@@ -71,8 +71,9 @@ class TransferWeightsWidget(QWidget):
 
         self.textInfo["btn"] = buttonsToAttach('StoreSelection', self.__storeSelectionCB)
         self.textInfo["btn1"] = buttonsToAttach('ClearList', self.__clearSelectionCB)
-        h.addWidget(self.textInfo["btn"])
-        h.addWidget(self.textInfo["btn1"])
+        for w in ["btn", "btn1"]:
+            h.addWidget(self.textInfo[w])
+            self.textInfo[w].setWhatsThis("transfer")        
 
         v1.addWidget(self.list)
         v1.addLayout(h)
@@ -155,8 +156,8 @@ class TransferWeightsWidget(QWidget):
         if add:
             cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
 
-        inWeights = cmds.SkinWeights(cmds.skinCluster(source, q=True, g=True)[0], source, q=True)
-        outWeights = cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, q=True)
+        inWeights = getWeights(source)
+        outWeights = getWeights(target)
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
 
         numInInf = len(inInfluences)
@@ -169,7 +170,7 @@ class TransferWeightsWidget(QWidget):
 
         for iteration, vertex in enumerate(expandedVertices):
             identifier = int(vertex.rsplit('[', 1)[-1].split(']', 1)[0])
-            if not self.additive.isChecked():
+            if not self.textInfo["additive"].isChecked():
                 outWeights[identifier * numOutInf: (identifier + 1) * numOutInf] = [0] * numOutInf
             for i in range(numInInf):
                 offset = outInfluences.index(inInfluences[i])
@@ -187,7 +188,8 @@ class TransferWeightsWidget(QWidget):
                 self.__loadBar.setValue(percentage * (iteration + 1))
                 qApp.processEvents()
 
-        cmds.SkinWeights(cmds.skinCluster(target, q=True, g=True)[0], target, nwt=outWeights)
+
+        setWeights(target, outWeights)
         if self.__loadBar is not None:
             self.__loadBar.setValue(100)
             qApp.processEvents()
@@ -302,8 +304,10 @@ class ClosestVertexWeightWidget(QWidget):
 
         for w in [self.textInfo["line1"], self.textInfo["btn1"]]:
             h1.addWidget(w)
+            w.setWhatsThis("copyClosest")
         for w in [self.textInfo["line2"], self.textInfo["btn2"]]:
             h2.addWidget(w)
+            w.setWhatsThis("copyClosest")
 
         self.textInfo["trnsComp"] = buttonsToAttach("Transfer Components", self._transferComp)
 
@@ -339,6 +343,8 @@ class ClosestVertexWeightWidget(QWidget):
 
     def __storeVerts(self, inputVerts):
         Mesh = inputVerts[0].split('.')[0]
+        if cmds.objectType(Mesh) != "transform":
+            Mesh = cmds.listRelatives(Mesh, parent=1, f=1)[0]
         SkinCluster = skinCluster(Mesh)
 
         Selection = []
@@ -358,8 +364,8 @@ class ClosestVertexWeightWidget(QWidget):
             cmds.warning('source or target selection is not defined!')
             return
 
-        TargetSelection, TargetSkinCluster = self.textInfo["line1"].userData
-        SourceSelection, SourceSkinCluster = self.textInfo["line2"].userData
+        SourceSelection, SourceSkinCluster = self.textInfo["line1"].userData
+        TargetSelection, TargetSkinCluster = self.textInfo["line2"].userData
 
         execCopySourceTarget(
             TargetSkinCluster=TargetSkinCluster,
@@ -434,6 +440,7 @@ class TransferUvsWidget(QWidget):
         
         for w in [self.textInfo["sourceBtn"], self.textInfo["targetBtn"]]:
             h0.addWidget(w)
+            w.setWhatsThis("uvTransfer")
 
         for h in [h2, h3]:
             h1.addLayout(h)
@@ -467,7 +474,8 @@ class TransferUvsWidget(QWidget):
 
     def __setValue(self, inLineEdit, inCombo):
         sel = interface.getSelection()
-        if len(sel) > 1:
+        
+        if type(sel) in (list, tuple) and sel != []:
             sel = sel[0]
         if "." in sel:
             sel = sel.split('.')[0]
@@ -478,7 +486,7 @@ class TransferUvsWidget(QWidget):
         uvSets = interface.getUVInfo(sel)
         inCombo.clear()
         inCombo.addItems(uvSets)
-
+        
         self.compSetting[[self.textInfo["line1"], self.textInfo["line2"]].index(inLineEdit)] = 1
 
         self.__checkEnabled()
@@ -646,7 +654,7 @@ class AssignWeightsWidget(QWidget):
         self.clearUI()
 
         selection = interface.getSelection()
-        print(selection)
+        
         if len(selection) > 0:
             selection = selection[0]
         if "." in selection:

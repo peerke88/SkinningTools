@@ -4,7 +4,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.ThirdParty import requests
 
-import re, difflib, math, tempfile, base64, os, json
+import re, difflib, math, tempfile, base64, os, json, warnings
 from functools import partial
 
 UIDIRECTORY = os.path.dirname(__file__)
@@ -97,7 +97,7 @@ def buttonsToAttach(name, command, *_):
     return button
 
 
-def svgButton(name='', pixmap='', size=None):
+def svgButton(name='', pixmap='', size=None, toolTipInfo = None):
     """ toolbutton function with image from svg file
     
     :param name: text to add to the button
@@ -121,6 +121,9 @@ def svgButton(name='', pixmap='', size=None):
         pixmap = QPixmap(pixmap)
     btn.setIcon(QIcon(pixmap))
     btn.setFocusPolicy(Qt.NoFocus)
+    if not toolTipInfo is None:
+        btn.setWhatsThis(toolTipInfo)
+
     if size is not None:
         _size = QSize(size, size)
         btn.setIconSize(_size)
@@ -265,6 +268,15 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
     return True
 
 def storeLanguageFile(inDict, language, widgetName):
+    """ store the language file based on given inputs
+
+    :param inDict: the translation dictionary
+    :type inDict: dict
+    :param language: the language used in the dictionary
+    :type language: string
+    :param widgetName: name of the widget used to link the language file with
+    :type widgetName: string
+    """
     languagesDir = os.path.join(UIDIRECTORY, "languages")
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
@@ -275,15 +287,24 @@ def storeLanguageFile(inDict, language, widgetName):
         json.dump(inDict, f, indent=2)
 
 def loadLanguageFile(language, widgetName):
+    """ load the language file based on given inputs
+
+    :param language: the language used in the dictionary
+    :type language: string
+    :param widgetName: name of the widget used to link the language file with
+    :type widgetName: string
+    :return: the translation dictionary
+    :rtype: dict
+    """
     languagesDir = os.path.join(UIDIRECTORY, "languages")
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
-        print "no language (%s) folder found for widget <%s>!"%(language, widgetName)
+        print("no language (%s) folder found for widget <%s>!"%(language, widgetName))
         return False
 
     widgetLanguageFile = os.path.join(curLangDir, "%s.LAN"%widgetName)
     if not os.path.exists(widgetLanguageFile):
-        print "no language (%s) file found for widget <%s>!"%(language, widgetName)
+        print("no language (%s) file found for widget <%s>!"%(language, widgetName))
         return False
 
     with open(widgetLanguageFile) as f:
@@ -494,7 +515,7 @@ def addChecks(cls, button, checks=None):
     checks = checks or []
     for check in checks:
         chk = QCheckBox()
-        chk.setEnabled(False)
+        # chk.setEnabled(False)
         chk.setToolTip(check)
         chk.displayText = check
         v.addWidget(chk)
@@ -503,6 +524,9 @@ def addChecks(cls, button, checks=None):
     functions, popup = addContextToMenu(cls, checks, button)
     button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
     
+    button.getNameInfo = {}
+    for check in checks:
+        button.getNameInfo[check] = functions[check]
 
 def addContextToMenu(cls, actionNames, btn):
     """ add context menu to button based on the checkboxes
@@ -722,3 +746,40 @@ def QuickDialog(title):
     btn.clicked.connect(myWindow.reject)
     h.addWidget(btn)
     return myWindow
+
+class SimplePopupSpinBox(QDialog):
+    """ spinbox delegate that is able to display as its own window
+    """
+    closed = pyqtSignal()
+
+    def __init__(self, parent = None, value=0.5):
+        """ the constructor
+
+        :param parent: the parent widget for this object
+        :type parent: QWidget
+        :param value: the default value to display on the widget
+        :type value: float
+        """
+        super(SimplePopupSpinBox, self).__init__(parent)
+        self.setWindowFlags( Qt.Window|Qt.FramelessWindowHint )
+
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        self.input = QDoubleSpinBox(self)
+        self.input.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.input.setDecimals(3)
+        self.input.setRange(0, 1)
+        self.input.setSingleStep(.1)
+        self.input.setValue(value)
+        self.input.selectAll()
+        
+        pos = QCursor.pos()
+        self.setGeometry(pos.x()-25, pos.y()-23, 50, 23)
+        self.input.editingFinished.connect(self.close)
+            
+        self.input.setFocus()
+        self.activateWindow()
+        self.exec_()
+        
+    def closeEvent(self, e):
+        self.closed.emit()

@@ -438,7 +438,7 @@ def extractFacesByVertices(vertices, internal=False):
             ids.append(vertexMap[vertex.rsplit('[',1)[-1].split(']',1)[0]])
 
     m = MFnMesh()
-    m.create(vertexPositions.length(), counts.length(), vertexPositions, counts, ids)
+    m.create(vertexPositions, counts, ids)
 
     path = m.fullPathName()
     if cmds.ls(path, type='mesh'):
@@ -496,9 +496,9 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
         if obj is None:
             continue
 
-        newObj = cmds.rename(obj[0], "%s_%s_Proxy"%(shortJointName, inObject))
+        newObj = cmds.rename(obj[0], "%s_%s_Proxy"%(shortJointName, inObject.split("|")[-1]))
 
-        grp = cmds.group(n= "%s_%s_ProxyGrp"%(shortJointName, inObject), em=1)
+        grp = cmds.group(n= "%s_%s_ProxyGrp"%(shortJointName, inObject.split("|")[-1]), em=1)
 
         if not maya2020:
             decomp = cmds.createNode("decomposeMatrix", n = "%s_%s_ProxyDCP"%(shortJointName, inObject) )
@@ -512,9 +512,8 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
         objList.append(grp)
         utils.setProgress(20.0 + (index * percentage), progressBar, "%s > %s proxy created"%(inObject, shortJointName))
 
-
     utils.setProgress(100, progressBar, "%s proxys generated"%inObject)
-    return cmds.group(objList, n="LowRez_%s"%inObject)
+    return cmds.group(objList, n="LowRez_%s"%inObject.split("|")[-1])
 
 def setOrigShapeColor(inShape, inColor = (.8, 0.2, 0.2)):
     """ set a new vertex color to the given shape

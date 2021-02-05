@@ -158,3 +158,9 @@ package/
 *.skinWeights
 
 SkinTools.zip
+
+Maya/docs/~$zierGraph.docx
+
+*.tmp
+
+UI/settings.ini
