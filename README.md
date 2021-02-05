@@ -6,9 +6,6 @@ https://gumroad.com/l/skinningTools_PL
 main goal of the tools is to make clean code that is ready for Python 3
 maya code should be seperated in the Maya folder hopefully we can make some parts DCC agnostic to get the same or similar functionality in other dcc tools (future dev)
 
-### todo:
- - create small videos/gifs to explain the tools as tooltips (use this for testing functionality)
-
 ## documentation
 
 [API](https://www.perryleijten.com/skinningtool/html)

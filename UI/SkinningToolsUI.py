@@ -111,6 +111,7 @@ class SkinningToolsUI(interface.DockWidget):
     def __menuSetup(self):
         """ the menubar
         this will hold information on language, simple copy/paste(hold fetch) functionality and all the documentation/settings
+        documentation will open specifically for the current open tab, next to that we also have a markingmenu button as this is available all the time
         """
         self.menuBar = QMenuBar(self)
         self.menuBar.setLayoutDirection(Qt.RightToLeft)
@@ -123,14 +124,14 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"] = QAction("skeleton -> obj", self)
         self.textInfo["apiAction"] = QAction("API documentation", self)
         self.textInfo["docAction"] = QAction("UI documentation", self)
+        self.mmAction = QAction("Marking Menu doc", self)
         self.textInfo["tooltipAction"] = QAction("Enhanced ToolTip", self)
         self.textInfo["tooltipAction"].setCheckable(True)
 
         for act in [self.textInfo["holdAction"], self.textInfo["fetchAction"], self.textInfo["objSkeletonAction"]]:
             self.textInfo["extraMenu"].addAction(act)
-        for act in [self.textInfo["apiAction"], self.textInfo["docAction"], self.textInfo["tooltipAction"]]:
+        for act in [self.textInfo["apiAction"], self.textInfo["docAction"],self.mmAction, self.textInfo["tooltipAction"]]:
             helpAction.addAction(act)
-
 
         self.changeLN = QMenu("en", self)
         languageFiles = os.listdir(os.path.join(_DIR, "languages"))
@@ -144,6 +145,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
         self.textInfo["docAction"].triggered.connect(self._openDocHelp)
+        self.mmAction.triggered.connect(partial(self._openDocHelp, True))
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
@@ -156,9 +158,10 @@ class SkinningToolsUI(interface.DockWidget):
         webUrl = r"https://www.perryleijten.com/skinningtool/html/"
         webbrowser.open(webUrl)
 
-    def _openDocHelp(self):
+    def _openDocHelp(self, isMarkingMenu = False):
         """ open the corresponding pdf page with the help documentation tool information
         """
+
         _copy = {0: "ClosestVertexWeightWidget",
                  1: "AssignWeightsWidget",
                  2: "TransferUvsWidget"}
@@ -178,6 +181,8 @@ class SkinningToolsUI(interface.DockWidget):
             _helpInfo = _helpInfo[self.copyToolsTab.currentIndex()]
         if self.BezierGraph.isVisible():
             _helpInfo = _other
+        if isMarkingMenu:
+            _helpInfo = "MarkingMenu"
 
         _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s.pdf"%_helpInfo)
         
