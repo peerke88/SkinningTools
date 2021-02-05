@@ -187,7 +187,7 @@ class SkinningToolsUI(interface.DockWidget):
             try:
                 warnings.warn("could not open Pdf file, trying through webrowser!")
                 webbrowser.open_new( r'file:%s'%_helpFile )  
-            except Exception, e:
+            except Exception as e:
                 warnings.warn(e)
 
     # --------------------------------- translation ----------------------------------

@@ -4,6 +4,14 @@ pushd %~dp0
 
 REM Command file for Sphinx documentation
 
+REM Install Sphinx with:  
+REM > pip install -U sphinx
+REM > pip install sphinx-autoapi
+REM > pip install groundwork-sphinx-theme
+
+REM Usage: make.bat "buildType"
+REM buildType: singlehtml, html, latex etc.
+
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )

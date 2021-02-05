@@ -43,7 +43,7 @@ def unload(silent=True, packages=None, newScene = True):
 
     try:
         SkinningToolsUI.closeSkinningToolsMainWindow()
-    except Exception,err:
+    except Exception as err:
         print("failed to close window")
 
     if newScene:
@@ -54,7 +54,7 @@ def unload(silent=True, packages=None, newScene = True):
             if cmds.pluginInfo(path, q=True, loaded=True):
                 name = cmds.pluginInfo(path, query=True, name=True)
                 cmds.unloadPlugin(cmds.pluginInfo(name, query=True, name=True))
-        except Exception, err:
+        except Exception as err:
             print("failed to unload "+path)
 
     # construct reload list
@@ -73,7 +73,7 @@ def unload(silent=True, packages=None, newScene = True):
                 del(sys.modules[i])
                 if not silent:
                     print("unloaded "+i)
-        except Exception,err:
+        except Exception as err:
             print("failed to unload "+i)
             pass
 
