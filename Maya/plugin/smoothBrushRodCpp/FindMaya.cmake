@@ -1,8 +1,27 @@
 
+# Add the other Maya libraries into the main Maya::Maya library
+set(_MAYA_LIBRARIES OpenMayaAnim OpenMayaFX OpenMayaRender OpenMayaUI Foundation clew)
+
 find_package(OpenGL REQUIRED)
 
+# hack: we force find_package to refresh cached variables
+# at every call of find_package.
+# this allows to change MAYA_VERSION on the fly by directly editing the
+# CMakeList.txt
+unset(MAYA_LIBRARY_DIR  CACHE)
+unset(MAYA_INCLUDE_DIRS CACHE)
+unset(MAYA_INCLUDE_DIR  CACHE)
+unset(MAYA_LIBRARIES    CACHE)
+unset(MAYA_FOUND        CACHE)
+unset(MAYA_EXECUTABLE   CACHE)
+
+foreach(MAYA_LIB ${_MAYA_LIBRARIES})
+    unset(MAYA_${MAYA_LIB}_LIBRARY CACHE)
+endforeach()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+
+# ------------------------------------------------------------------------------
 
 # Set a default Maya version if not specified
 if(NOT DEFINED MAYA_VERSION)
@@ -56,10 +75,8 @@ else()
         # Pre Maya 2016 on Linux
         set(MAYA_INSTALL_BASE_SUFFIX -x64)
     endif()
-    # plugin extension
     set(MAYA_PLUGIN_EXTENSION ".so")
     set(OPENMAYA libOpenMaya.so)
-    
 endif()
 
 set(MAYA_INSTALL_BASE_PATH ${MAYA_INSTALL_BASE_DEFAULT} CACHE STRING
@@ -75,10 +92,11 @@ find_path(MAYA_INCLUDE_DIR maya/MFn.h
     PATH_SUFFIXES
         "include/"
         "devkit/include/"
-	
+    DOC "Maya include path"
 )
 message("[Log] Maya include location:  ${MAYA_INCLUDE_DIR}")
 
+# Maya library directory
 find_library(MAYA_LIBRARY
     NAMES 
         OpenMaya
@@ -115,8 +133,7 @@ if (NOT TARGET Maya::Maya)
     endif ()
 endif()
 
-# Add the other Maya libraries into the main Maya::Maya library
-set(_MAYA_LIBRARIES OpenMayaAnim OpenMayaFX OpenMayaRender OpenMayaUI Foundation clew)
+
 foreach(MAYA_LIB ${_MAYA_LIBRARIES})
     find_library(MAYA_${MAYA_LIB}_LIBRARY
         NAMES 
@@ -138,6 +155,8 @@ foreach(MAYA_LIB ${_MAYA_LIBRARIES})
         set(MAYA_LIBRARIES ${MAYA_LIBRARIES} "${MAYA_${MAYA_LIB}_LIBRARY}")
     endif()
 endforeach()
+
+# ------------------------------------------------------------------------------
 
 function(MAYA_PLUGIN _target)
     if (WIN32)
