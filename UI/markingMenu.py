@@ -202,7 +202,7 @@ class radialMenu(QMainWindow):
         for coll in self.itemToDraw.collidingItems():
             if isinstance(coll, QGraphicsEllipseItem):
                 continue
-            if not coll.widget() in self.uiObjects:
+            if not hasattr(coll, 'widget') or not coll.widget() in self.uiObjects:
                 continue
             coll.widget().setStyleSheet(self.__borders["hilite"])
             self.__ActiveItem = coll.widget()
