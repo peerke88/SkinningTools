@@ -44,7 +44,7 @@ CURRENTFOLDER = os.path.dirname(__file__)
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI import utils
-from SkinningTools.Maya import api
+from SkinningTools.Maya import api 
 from maya import cmds
 
 __VERSION__ = "5.0.20210204"
@@ -151,7 +151,7 @@ class InstallWindow(QDialog):
         print("gdrive install to folder: %s"%toFolder)
         # changed id based on what needs to be downlaoded, we can now acces elements based on what file they need to represent
         files = {
-                "testFile.7z" : "https://drive.google.com/file/d/1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx/view?usp=sharing"
+                "toolTips.7z" : "https://firebasestorage.googleapis.com/v0/b/skintooltest-1607622986961.appspot.com/o/toolTips.7z?alt=media&token=f5fdf956-d495-457a-89f2-245f5b188be2"
         }
         
         utils.gDriveDownload(files, toFolder)
@@ -168,3 +168,4 @@ def doFunction(useLocalMayaFolder = True):
     myWindow = InstallWindow(scriptDir,  parent = api.get_maya_window())
     myWindow.exec_()
 
+    
