@@ -32,6 +32,7 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 use the package creator to create a package and install through the mel file 
 or use the following python commands:
 
+- dev:
 ```python
 from SkinningTools import reloader
 reload(reloader)
@@ -41,8 +42,11 @@ from SkinningTools.UI import SkinningToolsUI
 reload(SkinningToolsUI)
 myWindow = SkinningToolsUI.showUI()
 ```
-
-
+- release:
+```python
+import SkinningTools
+myWindow = SkinningToolsUI.tool()
+```
 ## Acknowledgments
 
 * kdTree
