@@ -122,10 +122,6 @@ def _zipToolTips():
 		if os.path.isfile(_curfile) and _curfile.endswith(".gif"):
 			_toZip.append(_curfile)
 	
-	_addTooltips = os.path.join(baseFolder, "SkinningTools/Maya/tooltips")
-	if not os.path.isdir(_addTooltips):
-		os.mkdir(_addTooltips)
-
 	_nPath = os.path.join(baseFolder, "export")
 	if not os.path.isdir(_nPath):
 		os.mkdir(_nPath)
@@ -134,7 +130,7 @@ def _zipToolTips():
 		  
 	zipf = zipfile.ZipFile(_zipFile, 'w', zipfile.ZIP_DEFLATED)
 	for z in _toZip:
-		zipf.write(z)
+		zipf.write(z, os.path.basename(z))
 	zipf.close()
 
 	# @todo: make sure the tooltips are uploaded from here

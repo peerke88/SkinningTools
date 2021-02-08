@@ -40,7 +40,7 @@ what this should do:
 unzip the downloaded zip files (use zip instead of 7z as thats easier to use with python)
 
 """
-import os, shutil, datetime, tempfile
+import os, shutil, datetime, tempfile, zipfile
 
 CURRENTFOLDER = os.path.dirname(__file__)
 
@@ -198,10 +198,14 @@ class InstallWindow(QDialog):
         print("gdrive install to folder: %s"%tooltip)
         # changed id based on what needs to be downlaoded, we can now acces elements based on what file they need to represent
         files = {
-                "toolTips.7z" : "https://firebasestorage.googleapis.com/v0/b/skintooltest-1607622986961.appspot.com/o/toolTips.7z?alt=media&token=f5fdf956-d495-457a-89f2-245f5b188be2"
+                "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
         }
+        utils.setProgress(60, self.progress, "downloaded extra files")
+        utils.gDriveDownload(files, tooltip, None )
         
-        utils.gDriveDownload(files, tooltip, self.progress )
+        with zipfile.ZipFile(os.path.join(tooltip, "toolTips.zip")) as zip_ref:
+            zip_ref.extractall(tooltip)
+        utils.setProgress(80, self.progress, "unzipped tooltips")
 
 
 def doFunction(useLocalMayaFolder = True):
