@@ -701,11 +701,11 @@ def gDriveDownload(urlinfo, destination, progressBar = None):
     setProgress(0, progressBar, inText="start download information")
     
     setProgress(10, progressBar, inText="send request")
-    percentage = 80.0/len(url)
-    for index, u in enumerate(urlinfo.keys()):
+    percentage = 80.0/len(urlinfo.keys())
+    for index, (fileName, url) in enumerate(urlinfo.keys()):
 
-        response = requests.get(urlinfo[u], stream=True)
-        saveResponseContent(response, os.path.join( destination, u ) )
+        response = requests.get(url, stream=True)
+        saveResponseContent(response, os.path.join( destination, fileName ) )
         setProgress(10 + (index * percentage), progressBar, inText="checking response")
     
     setProgress(100, progressBar, inText="downloaded information")

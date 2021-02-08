@@ -6,13 +6,9 @@ this file will place everything that is relevant to the current skinningtools in
 currently we glob all necessary files together and place them accordingly
 
 @Todo:
- - actually copy and paste objects to the "package" folder
- - maybe add read me file or change readme.md to adhere to the latest install options
- - zip package together, with current date as versioning system
- - update current version in the skinningtoolsui.py file
- - upload to googledrive
+ - zip and upload tooltips to firebasestorage when building (update the link if necessary)
 
-@eventually:
+@Todo eventually:
  - add unit tests 
  - update documentation (this should be added to www.perryleijten.com)
 """
@@ -76,7 +72,7 @@ _exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
-		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName:
+		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName or "tooltips" in dirName:
 			continue
 		if not '.' in file:
 			continue
@@ -132,6 +128,7 @@ _turnOffDebug()
 
 print("changed debug to release")
 
+# using 7z in this case as its smaller in comparrision to zip
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "dragDropInstall.mel")])
