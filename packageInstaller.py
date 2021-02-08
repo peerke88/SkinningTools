@@ -93,10 +93,10 @@ class InstallWindow(QDialog):
         self.layout().addWidget(self.cbx)
         self.cbx.hide()
 
+        self.oldSettings = QCheckBox("keep old settings?")
         if os.path.exists(self.__oldSettings):
-            self.oldSettings = QCheckBox("keep old settings?")
             self.oldSettings.setChecked(True)
-            self.layout().addWidget(self.oldSettings)
+        self.layout().addWidget(self.oldSettings)
         self.oldSettings.hide()
 
         if self.__exists:
@@ -161,8 +161,6 @@ class InstallWindow(QDialog):
             if not self.downloadChk.isChecked():
                 newETT = os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools/Maya/tooltips"))
                 shutil.move(self.__oldEnhToolTip, newETT)
-            else:
-                self.downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
 
             # ---- check what to do with previous version
             if self.cbx.currentIndex() == 1:
@@ -177,6 +175,9 @@ class InstallWindow(QDialog):
                 else:
                     shutil.move(self.__skinFile, backup)
                     utils.setProgress(30, self.progress, "backed up folder as: Backup_%s"%versionDate)
+
+        if self.downloadChk.isChecked():
+            self.downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
 
         utils.setProgress(40, self.progress, "move skinningtools")
         shutil.move(os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools")), os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools")))
