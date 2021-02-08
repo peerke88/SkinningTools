@@ -13,7 +13,7 @@ currently we glob all necessary files together and place them accordingly
  - update documentation (this should be added to www.perryleijten.com)
 """
 
-import sys, os, errno, datetime, runpy, fileinput, subprocess
+import sys, os, errno, datetime, runpy, fileinput, subprocess, zipfile
 from shutil import copytree, copy2, rmtree, make_archive
 
 relPath = os.path.normpath(os.path.dirname(os.path.dirname(__file__)))
@@ -66,9 +66,8 @@ if os.path.isdir(baseFolder):
 	rmtree(baseFolder)
 os.mkdir(baseFolder)
 
-
 toMove = []
-_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel", "png", "docx", "JPG"]
+_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel", "png", "docx", "JPG", "gif"]
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
@@ -114,6 +113,31 @@ def _turnOffDebug():
 				line = line.replace("True", "False")
 			print(line, end = '')
 
+def _zipToolTips():
+	_toZip = []
+	_path = os.path.join(curFolder, "Maya/tooltips")
+
+	for f in os.listdir(_path):
+		_curfile = os.path.join(_path, f)
+		if os.path.isfile(_curfile) and _curfile.endswith(".gif"):
+			_toZip.append(_curfile)
+	
+	_addTooltips = os.path.join(baseFolder, "SkinningTools/Maya/tooltips")
+	if not os.path.isdir(_addTooltips):
+		os.mkdir(_addTooltips)
+
+	_nPath = os.path.join(baseFolder, "export")
+	if not os.path.isdir(_nPath):
+		os.mkdir(_nPath)
+	
+	_zipFile = os.path.join(_nPath, "tooltips.zip")
+		  
+	zipf = zipfile.ZipFile(_zipFile, 'w', zipfile.ZIP_DEFLATED)
+	for z in _toZip:
+		zipf.write(z)
+	zipf.close()
+
+	# @todo: make sure the tooltips are uploaded from here
 
 _baseINI = os.path.join(baseFolder, "__init__.py")
 _melInstaller = os.path.join(curFolder, "dragDropInstall.mel")
@@ -125,6 +149,7 @@ open(_baseINI, 'w').close()
 print("succesfully copied files")
 
 _turnOffDebug()
+_zipToolTips()
 
 print("changed debug to release")
 
