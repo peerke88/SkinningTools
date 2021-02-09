@@ -19,7 +19,7 @@ class AdvancedToolTip(QWidget):
         :type parent: QWidget
         """
         super(AdvancedToolTip, self).__init__(parent)
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setGeometry(rect)
 
         self.inText = ""

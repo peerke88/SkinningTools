@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210208"
+__VERSION__ = "5.0.20210209"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -46,7 +46,7 @@ class SkinningToolsUI(interface.DockWidget):
         """
         super(SkinningToolsUI, self).__init__(parent)
         self.setWindowIcon(QIcon(":/commandButton.png"))
-
+        
         __sel = interface.getSelection()
         interface.doSelect('')
 
@@ -70,9 +70,10 @@ class SkinningToolsUI(interface.DockWidget):
         mainLayout.addWidget(self.tabs)
         mainLayout.addWidget(self.progressBar)
 
-        if not newPlacement:
-            self.loadUIState()
-
+        if newPlacement:
+            self.settings.clear()
+            
+        self.loadUIState()
         self.recurseMouseTracking(self, True)
         
         self._callbackFilter()
@@ -84,7 +85,8 @@ class SkinningToolsUI(interface.DockWidget):
         """ several general UI elements that should be visible most of the times
         also loads the settings necessary for storing and retrieving information
         """
-        self.settings = QSettings(os.path.join(_DIR,'settings.ini'), QSettings.IniFormat)
+        _ini = os.path.join(_DIR,'settings.ini')
+        self.settings = QSettings(_ini, QSettings.IniFormat)
         self.progressBar = MessageProgressBar(self)
         self.BezierGraph = BezierGraph(settings = self.settings, parent = self)
         self.languageWidgets.append(self.BezierGraph)
@@ -124,13 +126,13 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"] = QAction("skeleton -> obj", self)
         self.textInfo["apiAction"] = QAction("API documentation", self)
         self.textInfo["docAction"] = QAction("UI documentation", self)
-        self.mmAction = QAction("Marking Menu doc", self)
+        self.textInfo["mmAction"] = QAction("Marking Menu doc", self)
         self.textInfo["tooltipAction"] = QAction("Enhanced ToolTip", self)
         self.textInfo["tooltipAction"].setCheckable(True)
 
         for act in [self.textInfo["holdAction"], self.textInfo["fetchAction"], self.textInfo["objSkeletonAction"]]:
             self.textInfo["extraMenu"].addAction(act)
-        for act in [self.textInfo["apiAction"], self.textInfo["docAction"],self.mmAction, self.textInfo["tooltipAction"]]:
+        for act in [self.textInfo["apiAction"], self.textInfo["docAction"],self.textInfo["mmAction"], self.textInfo["tooltipAction"]]:
             helpAction.addAction(act)
 
         self.changeLN = QMenu("en", self)
@@ -145,7 +147,7 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
         self.textInfo["docAction"].triggered.connect(self._openDocHelp)
-        self.mmAction.triggered.connect(partial(self._openDocHelp, True))
+        self.textInfo["mmAction"].triggered.connect(partial(self._openDocHelp, True))
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
@@ -184,7 +186,7 @@ class SkinningToolsUI(interface.DockWidget):
         if isMarkingMenu:
             _helpInfo = "MarkingMenu"
 
-        _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s.pdf"%_helpInfo)
+        _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s/%s.pdf"%(self.changeLN.title(), _helpInfo))
         
         try:
             os.startfile( r'file:%s'%_helpFile )  
@@ -586,10 +588,8 @@ class SkinningToolsUI(interface.DockWidget):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
         """
         getGeo = self.settings.value("geometry", None)
-        if getGeo in [None, "None"]:
-            return
-
-        self.restoreGeometry(getGeo)
+        if not getGeo in [None, "None"]:
+            self.restoreGeometry(getGeo)
         tools = { "tools": self.mayaToolsTab,
                   "tabs": self.tabs,
                   "copyTls": self.copyToolsTab,
