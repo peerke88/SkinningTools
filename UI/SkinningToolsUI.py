@@ -447,12 +447,10 @@ class SkinningToolsUI(interface.DockWidget):
 
         dialog.closed.connect(self.storeTearOffInfo)
         dialog.show()
-        self.__detached[dialog.gettabName()] = True
         tabs.removeTab(index)
 
     def storeTearOffInfo(self, dialog):
         self.__dialogGeo[dialog.gettabName()] = dialog.saveGeometry()
-        self.__detached[dialog.gettabName()] = False
 
     # -------------------- tool tips -------------------------------------
 
