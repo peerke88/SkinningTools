@@ -880,7 +880,7 @@ def AvarageVertex(selection, useDistance, weightAverageWindow=None, progressBar=
         finally:
             cmds.setAttr( "%s.envelope"%sc, 1)
 
-        setProgress(1.0, progressBar, "average skin applied to path")
+        setProgress(100, progressBar, "average skin applied to path")
         return True
 
     lastSelected = selection[-1]

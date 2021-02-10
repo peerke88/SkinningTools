@@ -347,6 +347,7 @@ class SkinningToolsUI(interface.DockWidget):
             self.textInfo["copyTab_%s"%(index)].tabParent = self.copyToolsTab
             _vLay = nullVBoxLayout()
             self.textInfo["copyTab_%s"%(index)].view.frame.setLayout(_vLay)
+            value[0].addLoadingBar(self.progressBar)
             self.languageWidgets.append(value[0])
             _vLay.addWidget(value[0])
 

@@ -186,13 +186,13 @@ class TransferWeightsWidget(QWidget):
 
             if self.__loadBar is not None:
                 self.__loadBar.setValue(percentage * (iteration + 1))
-                qApp.processEvents()
+                QApplication.processEvents()
 
 
         setWeights(target, outWeights)
         if self.__loadBar is not None:
             self.__loadBar.setValue(100)
-            qApp.processEvents()
+            QApplication.processEvents()
 
     def __addItem(self, name, pyData):
         match = self.list.findItems(name, Qt.MatchExactly)

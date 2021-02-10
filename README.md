@@ -45,7 +45,7 @@ myWindow = SkinningToolsUI.showUI()
 - release:
 ```python
 import SkinningTools
-myWindow = SkinningToolsUI.tool()
+myWindow = SkinningTools.tool()
 ```
 ## Acknowledgments
 
