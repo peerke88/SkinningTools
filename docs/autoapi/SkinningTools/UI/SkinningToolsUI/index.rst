@@ -35,7 +35,7 @@ Functions
    
 
 .. data:: __VERSION__
-   :annotation: = 5.0.20210209
+   :annotation: = 5.0.20210211
 
    
 
@@ -183,6 +183,9 @@ Functions
       :type maintool: Qwidget
       :return: name of the current tab
       :rtype: string
+
+
+   .. method:: _tooltipsCheck(self)
 
 
    .. method:: childMouseMoveEvent(self, child, event)

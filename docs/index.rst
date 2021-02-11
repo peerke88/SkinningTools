@@ -19,6 +19,31 @@ Contents:
    autoapi/SkinningTools/Maya/index
    autoapi/SkinningTools/UI/index
 
+Install
+==================
+
+use the package creator to create a package and install through the mel file 
+or place the skinningtools folder in a location maya can find (mydocuments/maya/scripts for example on windows)
+after that use the following python commands:
+
+* for release / use
+
+.. code-block:: python
+  
+  import SkinningTools
+  myWindow = SkinningTools.tool()
+
+* for development
+
+.. code-block:: python
+  
+  from SkinningTools import reloader
+  reload(reloader)
+  reloader.unload(newScene=False)
+
+  from SkinningTools.UI import SkinningToolsUI
+  reload(SkinningToolsUI)
+  myWindow = SkinningToolsUI.showUI()
 
 Notes
 ==================
