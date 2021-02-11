@@ -164,17 +164,18 @@ class SkinningToolsUI(interface.DockWidget):
         
         warnings.warn("no information found")
         dlDlg = QuickDialog("download tooltips")
-        dlDlg.layout().insert(0, QLabel("do you want to download them now?"))
-        dlDlg.layout().insert(0, QLabel("no tooltips found, possibly not downloaded yet."))
+        dlDlg.layout().insertWidget(0, QLabel("do you want to download them now?"))
+        dlDlg.layout().insertWidget(0, QLabel("no tooltips found, possibly not downloaded yet."))
         dlDlg.exec_()
-        if dlDlg.rejected():
+        if dlDlg.result() == 0:
             self.textInfo["tooltipAction"].setChecked(False)
             return
 
         files = {
                 "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
         }
-        utils.gDriveDownload(files, _toolPath, self.progressBar) 
+        os.makedirs(_toolPath)
+        gDriveDownload(files, _toolPath, self.progressBar) 
         with zipfile.ZipFile(os.path.join(_toolPath, "toolTips.zip")) as zip_ref:
             zip_ref.extractall(_toolPath)
 

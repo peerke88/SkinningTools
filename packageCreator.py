@@ -71,7 +71,7 @@ _exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
-		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName or "tooltips" in dirName:
+		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName or "tooltips" in dirName or "promotion" in dirName:
 			continue
 		if not '.' in file:
 			continue

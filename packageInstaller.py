@@ -40,7 +40,7 @@ what this should do:
 unzip the downloaded zip files (use zip instead of 7z as thats easier to use with python)
 
 """
-import os, shutil, datetime, tempfile, zipfile
+import os, shutil, datetime, tempfile, zipfile, warnings
 
 CURRENTFOLDER = os.path.dirname(__file__)
 
@@ -203,11 +203,15 @@ class InstallWindow(QDialog):
                 "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
         }
         utils.setProgress(60, self.progress, "downloaded extra files")
-        utils.gDriveDownload(files, tooltip, None )
-        
-        with zipfile.ZipFile(os.path.join(tooltip, "toolTips.zip")) as zip_ref:
-            zip_ref.extractall(tooltip)
-        utils.setProgress(80, self.progress, "unzipped tooltips")
+        try:
+            utils.gDriveDownload(files, tooltip, None )
+            
+            with zipfile.ZipFile(os.path.join(tooltip, "toolTips.zip")) as zip_ref:
+                zip_ref.extractall(tooltip)
+            utils.setProgress(80, self.progress, "unzipped tooltips")
+        except:
+            utils.setProgress(80, self.progress, "possible failure downloading tooltips")
+            warnings.warn("could not download tooltips, tool will continue installing and request download later")
 
 
 def doFunction(useLocalMayaFolder = True):
