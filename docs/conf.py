@@ -180,4 +180,4 @@ autoapi_ignore = ['*smoothBrushRodCpp*', '*averageWeightPerryCpp*']
 extensions = ['sphinx.ext.autodoc', 'autoapi.extension']
 autodoc_typehints = 'description'
 autoapi_member_order = 'groupwise'
-autoapi_keep_files = False
+autoapi_keep_files = True

@@ -160,7 +160,8 @@ class InstallWindow(QDialog):
             # ---- copy or download enhanced tooltips
             if not self.downloadChk.isChecked():
                 newETT = os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools/Maya/tooltips"))
-                shutil.move(self.__oldEnhToolTip, newETT)
+                if os.path.exists(self.__oldEnhToolTip):
+                    shutil.move(self.__oldEnhToolTip, newETT)
 
             # ---- check what to do with previous version
             if self.cbx.currentIndex() == 1:

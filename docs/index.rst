@@ -16,8 +16,8 @@ Contents:
    :maxdepth: 1
    
    autoapi/index
-   autoapi/scripts/SkinningTools/Maya/index
-   autoapi/scripts/SkinningTools/UI/index
+   autoapi/SkinningTools/Maya/index
+   autoapi/SkinningTools/UI/index
 
 
 Notes

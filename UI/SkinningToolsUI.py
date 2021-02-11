@@ -27,7 +27,7 @@ from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-import webbrowser, os, warnings
+import webbrowser, os, warnings, zipfile
 
 class SkinningToolsUI(interface.DockWidget):
     """ main skinningtools UI class
@@ -148,11 +148,35 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
         self.textInfo["docAction"].triggered.connect(self._openDocHelp)
         self.textInfo["mmAction"].triggered.connect(partial(self._openDocHelp, True))
+        self.textInfo["tooltipAction"].triggered.connect(self._tooltipsCheck)
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
         self.menuBar.addMenu(self.changeLN)
         self.layout().setMenuBar(self.menuBar)
+    
+    def _tooltipsCheck(self):
+        if not self.textInfo["tooltipAction"].isChecked():
+            return 
+        _toolPath = os.path.join(interface.getInterfaceDir(), "tooltips")
+        if os.path.exists(_toolPath):
+            return
+        
+        warnings.warn("no information found")
+        dlDlg = QuickDialog("download tooltips")
+        dlDlg.layout().insert(0, QLabel("do you want to download them now?"))
+        dlDlg.layout().insert(0, QLabel("no tooltips found, possibly not downloaded yet."))
+        dlDlg.exec_()
+        if dlDlg.rejected():
+            self.textInfo["tooltipAction"].setChecked(False)
+            return
+
+        files = {
+                "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
+        }
+        utils.gDriveDownload(files, _toolPath, self.progressBar) 
+        with zipfile.ZipFile(os.path.join(_toolPath, "toolTips.zip")) as zip_ref:
+            zip_ref.extractall(_toolPath)
 
     def _openApiHelp(self):
         """ open the web page with the help documentation and api information
