@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210211"
+__VERSION__ = "5.0.20210212"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -159,7 +159,11 @@ class SkinningToolsUI(interface.DockWidget):
         if not self.textInfo["tooltipAction"].isChecked():
             return 
         _toolPath = os.path.join(interface.getInterfaceDir(), "tooltips")
-        if os.path.exists(_toolPath):
+        
+        if not os.path.exists(_toolPath):
+            os.makedirs(_toolPath)
+
+        if os.listdir(_toolPath) != []:
             return
         
         warnings.warn("no information found")
@@ -174,11 +178,13 @@ class SkinningToolsUI(interface.DockWidget):
         files = {
                 "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
         }
-        os.makedirs(_toolPath)
-        gDriveDownload(files, _toolPath, self.progressBar) 
-        with zipfile.ZipFile(os.path.join(_toolPath, "toolTips.zip")) as zip_ref:
-            zip_ref.extractall(_toolPath)
-
+        try:
+            gDriveDownload(files, _toolPath, self.progressBar) 
+            with zipfile.ZipFile(os.path.join(_toolPath, "toolTips.zip")) as zip_ref:
+                zip_ref.extractall(_toolPath)
+        except:
+            warnings.warn("could not downoad tooltips at this time, server is overloaded, please try again tomorrow!")
+            
     def _openApiHelp(self):
         """ open the web page with the help documentation and api information
         """

@@ -387,7 +387,7 @@ class testWidget(QMainWindow):
         self.setCentralWidget(mainWidget)
         self.setWindowFlags(Qt.Tool)
 
-        _MMfilter = MarkingMenuFilter(isDebug=_DEBUG, parent=self)
+        _MMfilter = MarkingMenuFilter(isDebug=True, parent=self)
         self.installEventFilter(_MMfilter)
 
 
