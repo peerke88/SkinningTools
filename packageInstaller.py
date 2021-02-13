@@ -49,7 +49,7 @@ from SkinningTools.UI import utils
 from SkinningTools.Maya import api 
 from maya import cmds
 
-__VERSION__ = "5.0.20210212"
+__VERSION__ = "5.0.20210213"
 
 class InstallWindow(QDialog):
     def __init__(self,scriptDir, parent = None):
