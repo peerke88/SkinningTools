@@ -27,11 +27,11 @@
 # See http://www.gnu.org/licenses/gpl.html for a copy of the GNU General
 # Public License.
 #--------------------------------------------------------------------------------------
-global skinToolWindow
 import os
+from SkinningTools.UI import SkinningToolsUI
 
 def tool():
-    from SkinningTools.UI import SkinningToolsUI
     _settings = os.path.join(os.path.dirname(__file__), "UI/settings.ini")
+    global skinToolWindow
     skinToolWindow = SkinningToolsUI.showUI(not os.path.exists(_settings))
     

@@ -26,7 +26,7 @@ author = u'Mio Zwickl, Rodolphe Vaillant, Trevor v Hoof, Jan Pijpers, Perry Leij
 # The short X.Y version
 version = u'5.0'
 # The full version, including alpha/beta/rc tags
-release = u'5.0.20210204'
+release = u'5.0.20210213'
 
 # -- General configuration ---------------------------------------------------
 
@@ -180,4 +180,4 @@ autoapi_ignore = ['*smoothBrushRodCpp*', '*averageWeightPerryCpp*']
 extensions = ['sphinx.ext.autodoc', 'autoapi.extension']
 autodoc_typehints = 'description'
 autoapi_member_order = 'groupwise'
-autoapi_keep_files = False
+autoapi_keep_files = True

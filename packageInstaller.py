@@ -25,10 +25,7 @@ what this should do:
 |         extras:                          |
 |                                          |
 |  []keep old settings                     | # < copy the settings ini from previous setup to new (only use this(/make visible) when there is an older version)
-|                                          |   # V  following functions are examples, need to be added based on necessity
 |  []tooltip gifs                          | # <these functions should be added when necessary
-|  []videos                                | # <these functions should be added when necessary
-|  []help documentation                    | # <these functions should be added when necessary
 |                                          |
 |  [       create shelf button          ]  |
 |                                          |
@@ -37,17 +34,22 @@ what this should do:
 |                                          |
 |  [##########% progress bar            ]  |
 #------------------------------------------#
+
+
+:todo:
+unzip the downloaded zip files (use zip instead of 7z as thats easier to use with python)
+
 """
-import os, shutil, datetime, tempfile
+import os, shutil, datetime, tempfile, zipfile, warnings
 
 CURRENTFOLDER = os.path.dirname(__file__)
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI import utils
-from SkinningTools.Maya import api
+from SkinningTools.Maya import api 
 from maya import cmds
 
-__VERSION__ = "5.0.20210204"
+__VERSION__ = "5.0.20210213"
 
 class InstallWindow(QDialog):
     def __init__(self,scriptDir, parent = None):
@@ -59,6 +61,8 @@ class InstallWindow(QDialog):
         self.__skinFile = os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools"))
         self.__exists = os.path.exists(self.__skinFile )
         self.__oldSettings =  os.path.normpath(os.path.join(self.__skinFile, "UI/settings.ini"))
+        self.__oldEnhToolTip = os.path.normpath(os.path.join(self.__skinFile, "Maya/tooltips"))
+        
         # ---- simple banner
         self.setLayout(utils.nullVBoxLayout(size = 1))
 
@@ -71,21 +75,41 @@ class InstallWindow(QDialog):
 
         self.layout().addWidget(lbl)
 
-        # ---- bbasic functions when skinningtools already exist
-        if self.__exists:
-            self.cbx = QComboBox()
-            for item in ["backup", "replace"]:
-                self.cbx.addItem(item)
-            self.layout().addWidget(self.cbx)
+        # ---- install location
+        h = utils.nullHBoxLayout()
+        self.layout().addLayout(h)
+        self._installLine = QLineEdit(self.__scriptDir)
+        self._installLine.setEnabled(False)
+        folderBtn = utils.toolButton(":/SP_DirOpenIcon.png")
+        folderBtn.clicked.connect(self._searchInstallLocation)
 
-            if os.path.exists(self.__oldSettings):
-                self.oldSettings = QCheckBox("keep old settings?")
-                self.oldSettings.setChecked(True)
-                self.layout().addWidget(self.oldSettings)
+        for w in [QLabel("install location:"), self._installLine, folderBtn]:
+            h.addWidget(w)
+
+        # ---- bbasic functions when skinningtools already exist
+        self.cbx = QComboBox()
+        for item in ["backup", "replace"]:
+            self.cbx.addItem(item)
+        self.layout().addWidget(self.cbx)
+        self.cbx.hide()
+
+        self.oldSettings = QCheckBox("keep old settings?")
+        if os.path.exists(self.__oldSettings):
+            self.oldSettings.setChecked(True)
+        self.layout().addWidget(self.oldSettings)
+        self.oldSettings.hide()
+
+        if self.__exists:
+            self.cbx.show()
+            self.oldSettings.show()
 
         # ---- this is the place where we can add extra infromation gathering options
 
-
+        self.downloadChk = QCheckBox("download enhanced tooltips")
+        self.downloadChk.setChecked(True)
+        if os.path.exists(self.__oldEnhToolTip):
+            self.downloadChk.setChecked(False)
+        self.layout().addWidget(self.downloadChk)
         # ---- the installButtons
 
         self.layout().addItem(QSpacerItem(2,2,QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -105,6 +129,24 @@ class InstallWindow(QDialog):
 
         installBtn.clicked.connect(self.install)
 
+    def _searchInstallLocation(self, *args):
+        fd = QFileDialog.getExistingDirectory(self, "choose install location", self.__scriptDir )
+        if fd is None or fd in ['',[]]:
+            return
+        self.__scriptDir = fd
+        self._installLine.setText(fd)
+
+        self.__skinFile = os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools"))
+        self.__exists = os.path.exists(self.__skinFile )
+        if self.__exists:
+            self.cbx.show()
+            self.oldSettings.show()
+        else:
+            self.cbx.hide()
+            self.oldSettings.hide()
+        self.__oldSettings =  os.path.normpath(os.path.join(self.__skinFile, "UI/settings.ini"))
+        self.__oldEnhToolTip = os.path.normpath(os.path.join(self.__skinFile, "Maya/tooltips"))
+
     def install(self):
         utils.setProgress(0, self.progress, "start installing the skinningtools")
         if self.__exists:
@@ -114,6 +156,13 @@ class InstallWindow(QDialog):
                 with open(newIni, "w") as fh: pass
                 shutil.copy2(self.__oldSettings, newIni)
                 utils.setProgress(10, self.progress, "copied old settings")
+            
+            # ---- copy or download enhanced tooltips
+            if not self.downloadChk.isChecked():
+                newETT = os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools/Maya/tooltips"))
+                if os.path.exists(self.__oldEnhToolTip):
+                    shutil.move(self.__oldEnhToolTip, newETT)
+
             # ---- check what to do with previous version
             if self.cbx.currentIndex() == 1:
                 shutil.rmtree(self.__skinFile)
@@ -127,6 +176,9 @@ class InstallWindow(QDialog):
                 else:
                     shutil.move(self.__skinFile, backup)
                     utils.setProgress(30, self.progress, "backed up folder as: Backup_%s"%versionDate)
+
+        if self.downloadChk.isChecked():
+            self.downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
 
         utils.setProgress(40, self.progress, "move skinningtools")
         shutil.move(os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools")), os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools")))
@@ -145,16 +197,21 @@ class InstallWindow(QDialog):
         tooltip = os.path.join(currentSkinningFolder, "Maya/toolTips")
         if not os.path.exists(tooltip):
             os.makedirs(tooltip)
-        toFolder = os.path.join(currentSkinningFolder, "Maya/toolTips/toolTips.7z")  #< lets make sure this is placed correctly when the time comes
-        if not os.path.exists(toFolder):
-            with open(toFolder, 'w'): pass
-        print("gdrive install to folder: %s"%toFolder)
+        print("gdrive install to folder: %s"%tooltip)
         # changed id based on what needs to be downlaoded, we can now acces elements based on what file they need to represent
         files = {
-                "testFile.7z" : "https://drive.google.com/file/d/1owj0sLVrNjK3uvBQqBcoIK2Ty-XyUPBx/view?usp=sharing"
+                "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
         }
-        
-        utils.gDriveDownload(files, toFolder)
+        utils.setProgress(60, self.progress, "downloaded extra files")
+        try:
+            utils.gDriveDownload(files, tooltip, None )
+            
+            with zipfile.ZipFile(os.path.join(tooltip, "toolTips.zip")) as zip_ref:
+                zip_ref.extractall(tooltip)
+            utils.setProgress(80, self.progress, "unzipped tooltips")
+        except:
+            utils.setProgress(80, self.progress, "possible failure downloading tooltips")
+            warnings.warn("could not download tooltips, tool will continue installing and request download later")
 
 
 def doFunction(useLocalMayaFolder = True):
@@ -168,3 +225,4 @@ def doFunction(useLocalMayaFolder = True):
     myWindow = InstallWindow(scriptDir,  parent = api.get_maya_window())
     myWindow.exec_()
 
+    

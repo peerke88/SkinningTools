@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210204"
+__VERSION__ = "5.0.20210213"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -27,7 +27,7 @@ from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
-import webbrowser, os, warnings
+import webbrowser, os, warnings, zipfile
 
 class SkinningToolsUI(interface.DockWidget):
     """ main skinningtools UI class
@@ -46,7 +46,7 @@ class SkinningToolsUI(interface.DockWidget):
         """
         super(SkinningToolsUI, self).__init__(parent)
         self.setWindowIcon(QIcon(":/commandButton.png"))
-
+        
         __sel = interface.getSelection()
         interface.doSelect('')
 
@@ -70,9 +70,10 @@ class SkinningToolsUI(interface.DockWidget):
         mainLayout.addWidget(self.tabs)
         mainLayout.addWidget(self.progressBar)
 
-        if not newPlacement:
-            self.loadUIState()
-
+        if newPlacement:
+            self.settings.clear()
+            
+        self.loadUIState()
         self.recurseMouseTracking(self, True)
         
         self._callbackFilter()
@@ -84,7 +85,8 @@ class SkinningToolsUI(interface.DockWidget):
         """ several general UI elements that should be visible most of the times
         also loads the settings necessary for storing and retrieving information
         """
-        self.settings = QSettings(os.path.join(_DIR,'settings.ini'), QSettings.IniFormat)
+        _ini = os.path.join(_DIR,'settings.ini')
+        self.settings = QSettings(_ini, QSettings.IniFormat)
         self.progressBar = MessageProgressBar(self)
         self.BezierGraph = BezierGraph(settings = self.settings, parent = self)
         self.languageWidgets.append(self.BezierGraph)
@@ -124,13 +126,13 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"] = QAction("skeleton -> obj", self)
         self.textInfo["apiAction"] = QAction("API documentation", self)
         self.textInfo["docAction"] = QAction("UI documentation", self)
-        self.mmAction = QAction("Marking Menu doc", self)
+        self.textInfo["mmAction"] = QAction("Marking Menu doc", self)
         self.textInfo["tooltipAction"] = QAction("Enhanced ToolTip", self)
         self.textInfo["tooltipAction"].setCheckable(True)
 
         for act in [self.textInfo["holdAction"], self.textInfo["fetchAction"], self.textInfo["objSkeletonAction"]]:
             self.textInfo["extraMenu"].addAction(act)
-        for act in [self.textInfo["apiAction"], self.textInfo["docAction"],self.mmAction, self.textInfo["tooltipAction"]]:
+        for act in [self.textInfo["apiAction"], self.textInfo["docAction"],self.textInfo["mmAction"], self.textInfo["tooltipAction"]]:
             helpAction.addAction(act)
 
         self.changeLN = QMenu("en", self)
@@ -145,13 +147,44 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["objSkeletonAction"].triggered.connect(interface.createPolySkeleton)
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
         self.textInfo["docAction"].triggered.connect(self._openDocHelp)
-        self.mmAction.triggered.connect(partial(self._openDocHelp, True))
+        self.textInfo["mmAction"].triggered.connect(partial(self._openDocHelp, True))
+        self.textInfo["tooltipAction"].triggered.connect(self._tooltipsCheck)
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
         self.menuBar.addMenu(self.changeLN)
         self.layout().setMenuBar(self.menuBar)
+    
+    def _tooltipsCheck(self):
+        if not self.textInfo["tooltipAction"].isChecked():
+            return 
+        _toolPath = os.path.join(interface.getInterfaceDir(), "tooltips")
+        
+        if not os.path.exists(_toolPath):
+            os.makedirs(_toolPath)
 
+        if os.listdir(_toolPath) != []:
+            return
+        
+        warnings.warn("no information found")
+        dlDlg = QuickDialog("download tooltips")
+        dlDlg.layout().insertWidget(0, QLabel("do you want to download them now?"))
+        dlDlg.layout().insertWidget(0, QLabel("no tooltips found, possibly not downloaded yet."))
+        dlDlg.exec_()
+        if dlDlg.result() == 0:
+            self.textInfo["tooltipAction"].setChecked(False)
+            return
+
+        files = {
+                "toolTips.zip" : "https://firebasestorage.googleapis.com/v0/b/skinningtoolstooltips.appspot.com/o/tooltips.zip?alt=media&token=07f5c1b1-f8c2-4f18-83ce-2ea65eee4187"
+        }
+        try:
+            gDriveDownload(files, _toolPath, self.progressBar) 
+            with zipfile.ZipFile(os.path.join(_toolPath, "toolTips.zip")) as zip_ref:
+                zip_ref.extractall(_toolPath)
+        except:
+            warnings.warn("could not downoad tooltips at this time, server is overloaded, please try again tomorrow!")
+            
     def _openApiHelp(self):
         """ open the web page with the help documentation and api information
         """
@@ -184,7 +217,7 @@ class SkinningToolsUI(interface.DockWidget):
         if isMarkingMenu:
             _helpInfo = "MarkingMenu"
 
-        _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s.pdf"%_helpInfo)
+        _helpFile = os.path.join(interface.getInterfaceDir(), "docs/%s/%s.pdf"%(self.changeLN.title(), _helpInfo))
         
         try:
             os.startfile( r'file:%s'%_helpFile )  
@@ -345,6 +378,7 @@ class SkinningToolsUI(interface.DockWidget):
             self.textInfo["copyTab_%s"%(index)].tabParent = self.copyToolsTab
             _vLay = nullVBoxLayout()
             self.textInfo["copyTab_%s"%(index)].view.frame.setLayout(_vLay)
+            value[0].addLoadingBar(self.progressBar)
             self.languageWidgets.append(value[0])
             _vLay.addWidget(value[0])
 
@@ -445,12 +479,10 @@ class SkinningToolsUI(interface.DockWidget):
 
         dialog.closed.connect(self.storeTearOffInfo)
         dialog.show()
-        self.__detached[dialog.gettabName()] = True
         tabs.removeTab(index)
 
     def storeTearOffInfo(self, dialog):
         self.__dialogGeo[dialog.gettabName()] = dialog.saveGeometry()
-        self.__detached[dialog.gettabName()] = False
 
     # -------------------- tool tips -------------------------------------
 
@@ -586,10 +618,8 @@ class SkinningToolsUI(interface.DockWidget):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
         """
         getGeo = self.settings.value("geometry", None)
-        if getGeo in [None, "None"]:
-            return
-
-        self.restoreGeometry(getGeo)
+        if not getGeo in [None, "None"]:
+            self.restoreGeometry(getGeo)
         tools = { "tools": self.mayaToolsTab,
                   "tabs": self.tabs,
                   "copyTls": self.copyToolsTab,

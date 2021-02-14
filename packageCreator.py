@@ -6,18 +6,14 @@ this file will place everything that is relevant to the current skinningtools in
 currently we glob all necessary files together and place them accordingly
 
 @Todo:
- - actually copy and paste objects to the "package" folder
- - maybe add read me file or change readme.md to adhere to the latest install options
- - zip package together, with current date as versioning system
- - update current version in the skinningtoolsui.py file
- - upload to googledrive
+ - zip and upload tooltips to firebasestorage when building (update the link if necessary)
 
-@eventually:
+@Todo eventually:
  - add unit tests 
  - update documentation (this should be added to www.perryleijten.com)
 """
 
-import sys, os, errno, datetime, runpy, fileinput, subprocess
+import sys, os, errno, datetime, runpy, fileinput, subprocess, zipfile
 from shutil import copytree, copy2, rmtree, make_archive
 
 relPath = os.path.normpath(os.path.dirname(os.path.dirname(__file__)))
@@ -70,13 +66,12 @@ if os.path.isdir(baseFolder):
 	rmtree(baseFolder)
 os.mkdir(baseFolder)
 
-
 toMove = []
-_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel", "png", "docx", "JPG"]
+_exclude = ["pyc", "ai", "sh", "bat", "user", "cmake", "inl", "ini", "pro", "pri", "txt", "h", "cpp", "hpp", "dll", "zip", "mel", "png", "docx", "JPG", "gif"]
 _noFile = ["reloader.py", "packageCreator.py", "run_cmake.py", "smooth_brush_pri_update.py"]
 for dirName, __, fList in os.walk(curFolder):
 	for file in fList:
-		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName:
+		if (not "ThirdParty" in dirName and "package" in dirName) or "test" in dirName.lower() or "commons" in dirName or "tooltips" in dirName or "promotion" in dirName:
 			continue
 		if not '.' in file:
 			continue
@@ -118,6 +113,27 @@ def _turnOffDebug():
 				line = line.replace("True", "False")
 			print(line, end = '')
 
+def _zipToolTips():
+	_toZip = []
+	_path = os.path.join(curFolder, "Maya/tooltips")
+
+	for f in os.listdir(_path):
+		_curfile = os.path.join(_path, f)
+		if os.path.isfile(_curfile) and _curfile.endswith(".gif"):
+			_toZip.append(_curfile)
+	
+	_nPath = os.path.join(baseFolder, "export")
+	if not os.path.isdir(_nPath):
+		os.mkdir(_nPath)
+	
+	_zipFile = os.path.join(_nPath, "tooltips.zip")
+		  
+	zipf = zipfile.ZipFile(_zipFile, 'w', zipfile.ZIP_DEFLATED)
+	for z in _toZip:
+		zipf.write(z, os.path.basename(z))
+	zipf.close()
+
+	# @todo: make sure the tooltips are uploaded from here
 
 _baseINI = os.path.join(baseFolder, "__init__.py")
 _melInstaller = os.path.join(curFolder, "dragDropInstall.mel")
@@ -129,9 +145,11 @@ open(_baseINI, 'w').close()
 print("succesfully copied files")
 
 _turnOffDebug()
+_zipToolTips()
 
 print("changed debug to release")
 
+# using 7z in this case as its smaller in comparrision to zip
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "SkinningTools")])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), _baseINI])
 subprocess.call(['7z', 'a', os.path.join(baseFolder, "SkinTools_%s.7z"%_vers), os.path.join(baseFolder, "dragDropInstall.mel")])

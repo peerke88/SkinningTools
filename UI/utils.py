@@ -701,11 +701,11 @@ def gDriveDownload(urlinfo, destination, progressBar = None):
     setProgress(0, progressBar, inText="start download information")
     
     setProgress(10, progressBar, inText="send request")
-    percentage = 80.0/len(url)
-    for index, u in enumerate(urlinfo.keys()):
+    percentage = 80.0/len(urlinfo.keys())
+    for index, (fileName, url) in enumerate(urlinfo.iteritems()):
 
-        response = requests.get(urlinfo[u])
-        saveResponseContent(response, ps.path.join( destination, u ) )
+        response = requests.get(url, stream=True)
+        saveResponseContent(response, os.path.join( destination, fileName ) )
         setProgress(10 + (index * percentage), progressBar, inText="checking response")
     
     setProgress(100, progressBar, inText="downloaded information")
@@ -718,10 +718,13 @@ def saveResponseContent(response, destination):
     :param destination: the folder to place downloaded files
     :type destination: string
     """
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk: 
-                f.write(chunk)
+    if response.status_code == 200:
+        with open(destination, "wb") as f:
+            for chunk in response:
+                if chunk: 
+                    f.write(chunk)
+    else:
+        print(response.status_code) 
 
 # ------------------ google drive end -------------------------------
 

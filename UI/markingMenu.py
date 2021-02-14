@@ -192,24 +192,28 @@ class radialMenu(QMainWindow):
         :param pos: position of the mouse
         :type pos: QPos
         """
-        self.itemToDraw.setLine(self.mappingPos.x(), self.mappingPos.y(),
-                                pos.x() - self.OrigPos.x() + self.mappingPos.x(),
-                                pos.y() - self.OrigPos.y() + self.mappingPos.y())
-        self.itemToDraw.endCircle.setPos(QPoint(pos.x() - self.OrigPos.x(), pos.y() - self.OrigPos.y()))
-        _hit = False
-        for item in self.uiObjects:
-            item.setStyleSheet(self.__borders["default"])
-        for coll in self.itemToDraw.collidingItems():
-            if isinstance(coll, QGraphicsEllipseItem):
-                continue
-            if not hasattr(coll, 'widget') or not coll.widget() in self.uiObjects:
-                continue
-            coll.widget().setStyleSheet(self.__borders["hilite"])
-            self.__ActiveItem = coll.widget()
-            _hit = True
+        if not self.isVisible():
+            return
 
-        if not _hit:
-            self.__ActiveItem = None
+        line = self.mappingPos.x(), self.mappingPos.y(), pos.x() - self.OrigPos.x() + self.mappingPos.x(), pos.y() - self.OrigPos.y() + self.mappingPos.y()
+        self.itemToDraw.setLine(*line)
+        old = line
+        line = QLineF(*line)
+
+        self.itemToDraw.endCircle.setPos(QPoint(pos.x() - self.OrigPos.x(), pos.y() - self.OrigPos.y()))
+
+        self.__ActiveItem = None
+        for item in self.uiObjects:
+            rect = item.geometry()
+            item.setStyleSheet(self.__borders["default"])
+            if self.__ActiveItem:
+                continue
+            if QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.topRight()).intersect(line)[0] or \
+                    QLineF.BoundedIntersection == QLineF(rect.topRight(), rect.bottomRight()).intersect(line)[0] or \
+                    QLineF.BoundedIntersection == QLineF(rect.bottomLeft(), rect.bottomRight()).intersect(line)[0] or \
+                    QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.bottomLeft()).intersect(line)[0]:
+                item.setStyleSheet(self.__borders["hilite"])
+                self.__ActiveItem = item
 
     def getActiveItem(self):
         """ return the activated item that is in collision with the mouse
@@ -387,7 +391,7 @@ class testWidget(QMainWindow):
         self.setCentralWidget(mainWidget)
         self.setWindowFlags(Qt.Tool)
 
-        _MMfilter = MarkingMenuFilter(isDebug=_DEBUG, parent=self)
+        _MMfilter = MarkingMenuFilter(isDebug=True, parent=self)
         self.installEventFilter(_MMfilter)
 
 
