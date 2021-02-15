@@ -1,6 +1,6 @@
 from maya.api.OpenMaya import MVector, MPoint, MMatrix, MQuaternion
 from maya import cmds
-
+from SkinningTools.Maya.tools import enumerators
 
 def toVec3(inObject):
     """ convert a list or tuple to an MVector
@@ -142,3 +142,87 @@ def getCenterPosition(inPositions):
         baseVec += pos
 
     return baseVec / amount
+
+def getSceneUp(asIndex=True):
+    """function to get current scene up axis
+
+    :param asIndex: if `True` will return the index of current upvector, if `False` will return string representation
+    :type asIndex: bool
+    :return: scene up axis
+    :rtype: int,string
+    """
+    upAxis = cmds.upAxis(q=1, axis=True)
+    if asIndex:
+        return "xyz".index(upAxis)
+    return upAxis
+
+def lookAt(base, aim, up=None, primaryAxis=toVec3((1, 0, 0)), secondaryAxis=toVec3((0, 1, 0)), invertTerz=False):
+    """convert a minimal of 2 positions to an aim matrix 
+
+    :param Base: base position of the mmatrix 
+    :type Base: MVector
+    :param aim: position the matrix needs to point towards 
+    :type aim: MVector
+    :param up: poition that the matrix needs to identify the secondary lookat 
+    :type up: MVector
+    :param primaryAxis: vector used as the aim for current matrix 
+    :type primaryAxis: MVector
+    :param secondaryAxis: vector used as the up axis 
+    :type secondaryAxis: MVector
+    :return: the matrix created from 2 vectors
+    :rtype: MMatrix
+    """
+    jointPos = toVec3(base)
+    aimPos = toVec3(aim)
+
+    upPos = toVec3((0, 0, 0))
+    if isinstance(up, MVector):
+        upPos = up
+    else:
+        upPos[getSceneUp()] += 1
+
+    vAim = (aimPos - jointPos)
+    vUp = (upPos - jointPos)
+
+    vX = vAim.normal()
+    if getSceneUp() == 1:
+        if invertTerz:
+            vZ = (vUp ^ vAim).normal()
+            vY = vAim.normal() ^ vZ
+        else:
+            vZ = (vAim ^ vUp).normal()
+            vY = vZ ^ vAim.normal()
+    else:
+        if invertTerz:
+            vZ = (vAim.normal() ^ vUp.normal()).normal()
+            vY = vZ ^ vAim.normal()
+        else:
+            vZ = (vUp.normal() ^ vAim.normal()).normal()
+            vY = vAim.normal() ^ vZ
+
+    rotations = [vX, vY, vZ]
+
+    if enumerators.AxisEnumerator.isX(primaryAxis):
+        if enumerators.AxisEnumerator.isY(secondaryAxis):
+            rotations = [vX, vY, vZ]
+        elif enumerators.AxisEnumerator.isZ(secondaryAxis):
+            rotations = [vX, vZ, vY]
+    elif enumerators.AxisEnumerator.isY(primaryAxis):
+        if enumerators.AxisEnumerator.isX(secondaryAxis):
+            rotations = [vY, vX, vZ]
+        elif enumerators.AxisEnumerator.isZ(secondaryAxis):
+            rotations = [vY, vZ, vX]
+    elif enumerators.AxisEnumerator.isZ(primaryAxis):
+        if enumerators.AxisEnumerator.isX(secondaryAxis):
+            rotations = [vZ, vX, vY]
+        elif enumerators.AxisEnumerator.isY(secondaryAxis):
+            rotations = [vZ, vY, vX]
+
+    if enumerators.AxisEnumerator.isNegative(primaryAxis):
+        rotations[0] *= -1
+    if enumerators.AxisEnumerator.isNegative(secondaryAxis):
+        rotations[1] *= -1
+
+    rotations.append(jointPos)
+
+    return vectorsToMatrix(rotations)

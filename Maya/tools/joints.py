@@ -2,7 +2,7 @@ from SkinningTools.UI.utils import remap
 from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI import utils
-from SkinningTools.Maya.tools import shared, mathUtils, mesh
+from SkinningTools.Maya.tools import shared, mathUtils, mesh, enumerators
 from maya import cmds, mel
 from maya.api.OpenMaya import MSpace, MFnTransform, MVector, MFnMesh, MObject
 
@@ -752,6 +752,8 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     percentage = 99.0 / len(verts)
     for index, vert in enumerate(verts):
         cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])
+        utils.setProgress(index * percentage, progressBar, "set skinweights")
+    utils.setProgress(100, progressBar, "converted to joint")
     return jnt
 
 
@@ -824,3 +826,78 @@ def toggleMoveSkinnedJoints(inMesh, inPose = False,  progressBar=None):
         cmds.connectAttr(driver, driven)
 
     return True
+
+
+''' extra joint tools:
+5. create joint on selection (vertex position, face orientaton etc.) usin L or T shape based on selection
+6. add remove joint on current chain
+7. add orient to rotation, add rotation to orient, and use rotation axis (also add query)
+8. parent without transform
+
+9 allign orientation from 1 to another joint (with or without spacing) (use orientation from first to last)
+10 allign orientation based on plane
+11. allign orientation manually
+12. place/generate joints on curve/between selection
+'''
+
+def drawStyle(inSelection, style = False, progressBar = None):
+    percentage = 99.0 / len(inSelection)
+    for index, jnt in enumerate(inSelection):
+        if cmds.objectType(jnt) != "joint":
+            continue
+        cmds.setAttr("%s.drawStyle"%jnt, int(not style) * 2 )
+        utils.setProgress(index * percentage, progressBar, "set drawStyle")
+    utils.setProgress(100, progressBar, "set drawStyle")
+
+def segmentScale(inSelectio, compensate = False, progressBar = None):
+    percentage = 99.0 / len(inSelection)
+    for index, jnt in enumerate(inSelection):
+        if cmds.objectType(jnt) != "joint":
+            continue
+        cmds.setAttr("%s.segmentScaleCompensate"%jnt, compensate )
+        utils.setProgress(index * percentage, progressBar, "set sgement scale")
+    utils.setProgress(100, progressBar, "set sgement scale")
+
+def localRotateAxis(inSelection, showAxis = False, progressBar = None):
+    percentage = 99.0 / len(inSelection)
+    for index, jnt in enumerate(inSelection):
+        if cmds.objectType(jnt) != "joint":
+            continue
+        cmds.setAttr("%s.displayLocalAxis"%jnt, showAxis )
+        utils.setProgress(index * percentage, progressBar, "set LRA")
+    utils.setProgress(100, progressBar, "set LRA")
+
+def mirrorJoints(inSelection, mirrorAxis = "X", behaviour = True, searchReplace =('L_', 'R_') , progressBar = None):
+    if type(mirrorAxis) == int:
+        mirrorAxis = "XYZ"[ mirrorAxis ]
+    _mirrorSetup = { "X" : [ False, False, True ],
+                     "Y" : [ False, True, False ],
+                     "Z" : [ True, False, False ]}
+
+    percentage = 99.0 / len(inSelection)
+    for index, jnt in enumerate(inSelection):
+        if cmds.objectType(jnt) != "joint":
+            continue
+        cmds.mirrorJoint(jnt, mxy=_mirrorSetup[mirrorAxis.upper()][0], 
+                              mxz=_mirrorSetup[mirrorAxis.upper()][1], 
+                              myz=_mirrorSetup[mirrorAxis.upper()][2], 
+                              mirrorBehavior=behaviour,
+                              searchReplace=searchReplace )
+        utils.setProgress(index * percentage, progressBar, "mirror joints")
+    utils.setProgress(100, progressBar, "mirrored joints")
+
+def jointLookat(point, pointAt, normal = None, space = enumerators.Space.Global,primaryAxis =enumerators.AxisEnumerator.PosAxisX, secondaryAxis = enumerators.AxisEnumerator.PosAxisY, progressBar = None):
+    point = mathUtils.toVec3(point)
+    pointAt = mathUtils.toVec3(pointAt)
+    if space == enumerators.Space.Local:
+        pointAt = pointAt + point
+    
+    if not normal is None:
+        normal = mathUtils.toVec3(normal)
+        if space == enumerators.Space.Local:
+            normal = normal + point
+
+    matrix = mathUtils.lookAt(point, pointAt, normal, primaryAxis, secondaryAxis)
+    jnt = cmds.createNode("joint")
+    cmds.xform( jnt, ws=1, m = mathUtils.matrixToFloatList(matrix) )
+
