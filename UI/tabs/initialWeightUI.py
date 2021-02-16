@@ -24,25 +24,25 @@ class InitWeightUI(QWidget):
         
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
-        """ translate the ui based on given dictionary
-
-        :param localeDict: the dictionary holding information on how to translate the ui
-        :type localeDict: dict
-        """
         for key, value in localeDict.iteritems():
-            self.textInfo[key].setText(value)
+            if isinstance(self.textInfo[key], QLineEdit):
+                self.textInfo[key].setPlaceholderText(value)
+            else:
+                self.textInfo[key].setText(value)
         
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
         for key, value in self.textInfo.iteritems():
-            _ret[key] = value.text()
+            if isinstance(self.textInfo[key], QLineEdit):
+                _ret[key] = value.placeholderText()
+            else:
+                _ret[key] = value.text()
         return _ret
 
     def doTranslate(self):
         """ seperate function that calls upon the translate widget to help create a new language
-        we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName) 
@@ -50,6 +50,9 @@ class InitWeightUI(QWidget):
 
     # ------------------------------- visibility tools ------------------------------- 
 
+    def addLoadingBar(self, loadingBar):
+        self._progressBar = loadingBar
+        
     def __toolsSetup(self):
 
         hMesh =  nullHBoxLayout()

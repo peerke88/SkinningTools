@@ -1,0 +1,12 @@
+{
+  "target": "No joints given...", 
+  "delinear": "De-linearize weights", 
+  "iter": "iterations", 
+  "source": "No mesh given...", 
+  "proj": "projection", 
+  "selectJoint": "select Joints", 
+  "delineartype": "De-linearize Method", 
+  "blend": "blend weights", 
+  "applySkin": "apply skinning", 
+  "selectMesh": "select Mesh"
+}

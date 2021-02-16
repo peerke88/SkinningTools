@@ -15,6 +15,7 @@
   "copyTab_0": "Copy closest weigth", 
   "copyTab_1": "Transfer weigths", 
   "copyTab_2": "Transfer Uv's", 
+  "copyTab_3": "initial skin bind", 
   "copyTab": "copy functions", 
   "goto bind-pose_BTN": "goto bind-pose", 
   "Copy Skin Weights_BTN": "Copy Skin Weights", 

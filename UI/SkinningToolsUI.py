@@ -25,6 +25,7 @@ from SkinningTools.UI.tabs.mayaToolsHeader import MayaToolsHeader
 from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
+from SkinningTools.UI.tabs.initialWeightUI import InitWeightUI
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
 import webbrowser, os, warnings, zipfile
@@ -370,6 +371,7 @@ class SkinningToolsUI(interface.DockWidget):
         _dict["Copy closest weigth"] = [ClosestVertexWeightWidget(self), ":/arcLengthDimension.svg"]
         _dict["Transfer weigths"] = [TransferWeightsWidget(self), ":/alignSurface.svg"]
         _dict["Transfer Uv's"] = [TransferUvsWidget(self), ":/UVEditorBakeTexture.png"]
+        _dict["initial SkinBind"] = [InitWeightUI(self), ":/menuIconPaintEffects.png"]
         # this feature is to be added later; needs to be thuroughly tested!
         # _dict["Assign soft selection"] = [AssignWeightsWidget(self), ":/Grab.png"]
         
