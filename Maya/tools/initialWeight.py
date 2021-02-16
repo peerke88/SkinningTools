@@ -2,6 +2,11 @@ from SkinningTools.Maya.tools import mathUtils, mesh, shared, joints
 from maya import cmds
 from SkinningTools.UI import utils
 
+'''
+based on robert joosten's tool:
+https://github.com/robertjoosten/maya-skinning-tools/tree/master/scripts/skinningTools/initializeWeights
+'''
+
 def closestLineToPoint(lines, point):
     """Loop over all lines and find the closest point on the line from the
     provided point. After this is done the list of lines is sorted based on
