@@ -338,7 +338,7 @@ def getTweeningMethod(method):
     :return: Tweening function
     :rtype: func/None
     """
-    _dict = getTweeningMethods().iteritems():
+    _dict = getTweeningMethods()
     return _dict[method] or None
 
 

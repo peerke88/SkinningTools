@@ -52,11 +52,21 @@ class InitWeightUI(QWidget):
 
     def __toolsSetup(self):
 
-        h =  nullHBoxLayout()
+        hMesh =  nullHBoxLayout()
         self.textInfo["selectMesh"] = pushButton("select Mesh")
+        self.textInfo["source"] = QLineEdit()
+        self.textInfo["source"].setPlaceholderText("No mesh given...")
+        self.textInfo["source"].setStyleSheet('color:#000; background-color: #ad4c4c;')
+        for w in [self.textInfo["selectMesh"], self.textInfo["source"]]:
+            hMesh.addWidget(w)
+
+        hJoint =  nullHBoxLayout()
         self.textInfo["selectJoint"] = pushButton("select Joints")
-        for w in [self.textInfo["selectMesh"], self.textInfo["selectJoint"]]:
-            h.addWidget(w)
+        self.textInfo["target"] = QLineEdit()
+        self.textInfo["target"].setPlaceholderText("No joints given...")
+        self.textInfo["target"].setStyleSheet('color:#000; background-color: #ad4c4c;')
+        for w in [self.textInfo["selectJoint"], self.textInfo["target"]]:
+            hJoint.addWidget(w)
 
         h0 = nullHBoxLayout()
         self.textInfo["iter"] = QLabel("iterations")
@@ -80,6 +90,7 @@ class InitWeightUI(QWidget):
 
         h3 = nullHBoxLayout()
         self.textInfo["delinear"] = QLabel("De-linearize weights")
+        self.textInfo["delinear"].setEnabled(False)
         self.check2 = QCheckBox()
         self.check2.setEnabled(False)
         for w in [self.textInfo["delinear"], self.check2]:
@@ -95,7 +106,7 @@ class InitWeightUI(QWidget):
 
         self.textInfo["applySkin"] = pushButton("apply skinning")
 
-        for w in [h, h0, h1, h2, h3, h4]:
+        for w in [hMesh, hJoint, h0, h1, h2, h3, h4]:
             self.layout().addLayout(w)
         self.layout().addWidget(self.textInfo["applySkin"])
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -109,28 +120,41 @@ class InitWeightUI(QWidget):
     def _changeSetup(self):
         self.check2.setEnabled(self.check1.isChecked())
         self.combo.setEnabled(self.check1.isChecked())
+        self.textInfo["delinear"].setEnabled(self.check1.isChecked())
 
     def _selectMesh(self):
         selection = interface.getSelection()
         if not selection:
+            self.textInfo["source"].setText('')
+            self.textInfo["source"].setStyleSheet('color:#000; background-color: #ad4c4c;')
             cmds.error("nothing selected")
 
         mesh = selection[0]
         if "." in mesh:
             mesh = mesh.split('.')[0]
         self.__mesh = mesh
+        
+        self.textInfo["source"].setText(mesh)
+        self.textInfo["source"].setStyleSheet('background-color: #17D206;')
 
     def _selectJoint(self):
         joints = interface.getAllJoints(True)
         if joints in [[], None]:
             joints = interface.getAllJoints(False)
+        if joints == []:
+            self.textInfo["target"].setText('')
+            self.textInfo["target"].setStyleSheet('color:#000; background-color: #ad4c4c;')
+            cmds.error("no joints found")
         self.__joints = joints
+
+        self.textInfo["target"].setText(str(joints))
+        self.textInfo["target"].setStyleSheet('background-color: #17D206;')
 
     def _applySkin(self):
         if None in [self.__mesh, self.__joints]:
             warnings.warn("no mesh or joints found")
             return
-        blendMethod = self.deLinearMethods[self.combo.currentItemText()] if self.check2.isChecked() else None
+        blendMethod = self.combo.currentText() if self.check2.isChecked() else None
 
         initialWeight.setInitialWeights(self.__mesh, self.__joints, 
                                         iterations = self.spinIter.value(), 

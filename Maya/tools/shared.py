@@ -1,7 +1,7 @@
 import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess, os
 from collections import defaultdict, deque
 from functools import wraps
-from maya import cmds, mel
+from maya import cmds, mel, OpenMaya as oldOpenMaya
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -677,32 +677,37 @@ def getPoints(dag):
     """
     points = OpenMaya.MPointArray()
     mesh = OpenMaya.MFnMesh(dag)
-    mesh.getPoints(points, OpenMaya.MSpace.kWorld)
+    points = mesh.getPoints(OpenMaya.MSpace.kWorld)
 
-    return [OpenMaya.MVector(points[i]) for i in range(points.length())]
+    return [OpenMaya.MVector(points[i]) for i in range(len(points))]
 
 
-def getNormals(dag):
+def getNormals(meshName):
     """Get the average normal in world space of each vertex on the provided mesh.
     The reason why OpenMaya.MItMeshVertex function has to be used is that the
     MFnMesh class returns incorrect normal results.
-
+    
+    :note: using old open maya here as maya 2019.3.1 has a hard crash when gathering normals with new openmaya
     :param dag:
     :type dag: MDagPath
     :return: Normals
     :rtype: list
     """
-    # variables
     normals = []
 
-    iter = OpenMaya.MItMeshVertex(dag)
-    while not iter.isDone():
-        # get normal data
-        normal = OpenMaya.MVector()
-        iter.getNormal(normal, OpenMaya.MSpace.kWorld)
-        normals.append(normal)
+    selectionList = oldOpenMaya.MSelectionList()
+    selectionList.add(meshName)
+    obj = oldOpenMaya.MObject()
+    selectionList.getDependNode(0, obj)
+    dag = oldOpenMaya.MDagPath.getAPathTo(obj)
 
-        iter.next()
+    meshVerItFn = oldOpenMaya.MItMeshVertex(dag)
+    while not meshVerItFn.isDone():
+        normal = oldOpenMaya.MVector()
+        meshVerItFn.getNormal(normal, oldOpenMaya.MSpace.kWorld)
+        normals.append(OpenMaya.MVector(normal[0], normal[1], normal[2]))
+
+        meshVerItFn.next()
 
     return normals
 
@@ -720,7 +725,7 @@ def getConnectedVerticesMapper(dag):
     iter = OpenMaya.MItMeshVertex(dag)
 
     while not iter.isDone():
-        iter.getConnectedVertices(connected)
+        connected = iter.getConnectedVertices()
         data[iter.index()] = [c for c in connected]
         iter.next()
 
@@ -801,7 +806,7 @@ def setWeights(inMesh, weightData):
     :param inMesh: the object to set the data to
     :type inMesh: string
     :param weightData: full list of weight data [[value]* joints] * vertices
-    :type weightData: list
+    :type weightData: list/MDoubleArray
     """
     if cmds.objectType(inMesh) == "skinCluster":
         sc = inMesh
@@ -827,8 +832,15 @@ def setWeights(inMesh, weightData):
     infIndexes = OpenMaya.MIntArray(len(infDags), 0)
     for x in range(len(infDags)):
         infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
+    
+    if type(weightData) in [list, tuple]:
+        newWeightData = OpenMaya.MDoubleArray(len(weightData), 0)
+        for i, w in enumerate(weightData):
+            newWeightData[i]= w
+    else:
+        newWeightData = weightData
 
-    skinFn.setWeights(meshPath, vertexComp, infIndexes, weightData)
+    skinFn.setWeights(meshPath, vertexComp, infIndexes, newWeightData)
 
 
 # -------------
