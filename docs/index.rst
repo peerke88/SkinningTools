@@ -57,6 +57,8 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 Authors
 ==================
 
+* `Robert Joosten`_
+
 * `Mio Zwickl`_
 
 * `Rodolphe Vaillant`_
@@ -67,6 +69,7 @@ Authors
 
 * `Perry Leijten`_
 
+.. _Robert Joosten: https://github.com/robertjoosten
 .. _Mio Zwickl: https://www.artstation.com/ikitamonday
 .. _Rodolphe Vaillant: http://rodolphe-vaillant.fr/
 .. _Trevor van Hoof: http://trevorius.com/scrapbook/

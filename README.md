@@ -12,6 +12,7 @@ maya code should be seperated in the Maya folder hopefully we can make some part
 
 ## Authors
 
+* [Robert Joosten](https://github.com/robertjoosten)
 * [Mio Zwickl](https://www.artstation.com/ikitamonday)
 * [Rodolphe Vaillant](http://rodolphe-vaillant.fr/)
 * [Trevor van Hoof](http://trevorius.com/scrapbook/)

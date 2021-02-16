@@ -8,6 +8,9 @@ from SkinningTools.UI.fallofCurveUI import BezierFunctions
 from collections import OrderedDict, defaultdict
 
 
+def getRootPath(path):
+    return path.split("|")[-1]
+
 def getShellFaces(inMesh):
     """ convert the selection of vertices to face group selections
 

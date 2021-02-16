@@ -25,8 +25,8 @@ def showToolTip(inBool):
     cmds.help(popupMode=inBool)
 
 
-def getAllJoints():
-    return cmds.ls(sl=0, type="joint")
+def getAllJoints(useSelection = False):
+    return cmds.ls(sl=useSelection, type="joint")
 
 
 # ensure we get ordered selection and all in long names
