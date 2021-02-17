@@ -531,14 +531,15 @@ class SkinningToolsUI(interface.DockWidget):
         
         def _removeTT():
             if self.toolTipWindow is not None:
+                self.toolTipWindow.hide()
                 self.toolTipWindow.deleteLater()
             self.toolTipWindow = None
             self._timer.stop()
 
-        if curWidget == None and self.toolTipWindow != None:
+        if curWidget == None and self.toolTipWindow is not None:
             _removeTT()
         if self.currentWidgetAtMouse != curWidget:
-            if self.toolTipWindow != None:
+            if self.toolTipWindow is not None:
                 _removeTT()
 
             if not isinstance(curWidget, QWidget):  # <- add multiple checks if more implemented then just buttons
@@ -655,6 +656,9 @@ class SkinningToolsUI(interface.DockWidget):
         :note: its only storing info so it doesnt break anything
         """
         QApplication.restoreOverrideCursor()
+        if not self.toolTipWindow is None:
+            self.toolTipWindow.hide()
+            self.toolTipWindow.deleteLater()
         self.saveUIState()
         api._cleanEventFilter()
         super(SkinningToolsUI, self).hideEvent(event)

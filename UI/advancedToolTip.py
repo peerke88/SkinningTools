@@ -21,12 +21,14 @@ class AdvancedToolTip(QWidget):
         super(AdvancedToolTip, self).__init__(parent)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setGeometry(rect)
-
         self.inText = ""
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(3, 3, 3, 3)
         self.setLayout(self.layout)
 
+    def leaveEvent(self, event):
+        self.close()
+        
     def toolTipExists(self, imageName):
         """ check if the image to display exists
 
@@ -60,7 +62,7 @@ class AdvancedToolTip(QWidget):
         self.textLabel = QPlainTextEdit(self.inText)
         self.textLabel.setMinimumWidth(size)
         self.textLabel.setMaximumWidth(size)
-        # self.textLabel.setEnabled(False)
+        self.textLabel.setReadOnly(True)
         self.gifLabel = QLabel()
         self.gifLabel.setMovie(self.movie)
         self.movie.start()
