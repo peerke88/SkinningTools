@@ -1,5 +1,5 @@
 from SkinningTools.Maya import api, interface
-from SkinningTools.Maya.tools import softSelectWeigth, mesh
+from SkinningTools.Maya.tools import softSelectWeight, mesh
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 
@@ -40,7 +40,7 @@ class FillerInfluenceWidget(QWidget):
         
         self._influence = None
 
-        self.setlayout(nullHBoxLayout())
+        self.setLayout(nullHBoxLayout())
         
         jointBtn = toolButton(":/kinJoint.png", size = 24)
         self.label = QLabel("< filler influence >")
@@ -121,7 +121,7 @@ class InfluenceWidget(QWidget):
         :raises RuntimeError: if no joints are selected
         """
         joints = cmds.ls(sl=True, l=True, type="joint")
-        
+        print joints
         if not joints:
             self.influence = None
             self.label.setText("< influence >")
@@ -220,18 +220,18 @@ class SoftSelectionToWeightsWidget(QWidget):
         scrollArea.setWidgetResizable(True)
 
         self.widget = QWidget(self)
-        self.layout = nullVBoxLayout(self.widget)
-        self.widget.setLayout(self.layout)
+        self.lay = nullVBoxLayout(self.widget)
+        self.widget.setLayout(self.lay)
         
         scrollArea.setWidget(self.widget)
         self.layout().addWidget(scrollArea)
         
         self.filler = FillerInfluenceWidget(self)
-        self.layout.addWidget(self.filler)
+        self.lay.addWidget(self.filler)
         
-        self.layout.addItem(QSpacerItem(1, 1,QSizePolicy.Minimum,QSizePolicy.Expanding))
+        self.lay.addItem(QSpacerItem(1, 1,QSizePolicy.Minimum,QSizePolicy.Expanding))
         
-        button = pushButton(skin)
+        button = pushButton("skin")
         button.clicked.connect(self.skin)
         self.layout().addWidget(button)
         
@@ -241,8 +241,8 @@ class SoftSelectionToWeightsWidget(QWidget):
         widget = InfluenceWidget(self)
         widget.setSoftSelection.connect(self.setEnableInfluence)
         
-        num = self.layout.count() - 2
-        self.layout.insertWidget(num, widget)
+        num = self.lay.count() - 2
+        self.lay.insertWidget(num, widget)
         
     def getInfluences(self):
         """Loop over all of the content of the scroll layout and yield if the
@@ -252,8 +252,8 @@ class SoftSelectionToWeightsWidget(QWidget):
         :rtype: iterator
         """
         _inf = []
-        for i in range(self.layout.count()-1):
-            item = self.layout.itemAt(i)
+        for i in range(self.lay.count()-1):
+            item = self.lay.itemAt(i)
             widget = item.widget()
             if isinstance(widget, InfluenceWidget):
                 _inf.append(widget)
@@ -313,7 +313,7 @@ class SoftSelectionToWeightsWidget(QWidget):
                 print "No Filler Influence found for mesh: {0}".format( curMesh )
                 continue
 
-            softSelectWeigth.setSkinWeights( curMesh, meshData, infs, filler )
+            softSelectWeight.setSkinWeights( curMesh, meshData, infs, filler )
 
 
 def testUI():
