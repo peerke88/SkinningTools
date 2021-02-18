@@ -86,7 +86,7 @@ def forceLoadPlugin(inPlugin):
 
 def mirrorSkinOptions():
     cmds.optionVar(stringValue=("mirrorSkinAxis", "YZ"))
-    cmds.optionVar(intValue=("mirrorSkinWeightsSurfaceAssociationOption", 3))
+    cmds.optionVar(intValue=("mirrorSkinWeightsSurfaceAssociationOption", 1))
     cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption1", 3))
     cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption2", 2))
     cmds.optionVar(intValue=("mirrorSkinWeightsInfluenceAssociationOption3", 1))
@@ -95,7 +95,7 @@ def mirrorSkinOptions():
 
 
 def copySkinWeightsOptions():
-    cmds.optionVar(intValue=("copySkinWeightsSurfaceAssociationOption", 3))
+    cmds.optionVar(intValue=("copySkinWeightsSurfaceAssociationOption", 1))
     cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption1", 4))
     cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption2", 4))
     cmds.optionVar(intValue=("copySkinWeightsInfluenceAssociationOption3", 6))

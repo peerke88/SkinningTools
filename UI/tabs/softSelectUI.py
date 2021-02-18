@@ -1,9 +1,9 @@
 from SkinningTools.Maya import api, interface
-from SkinningTools.Maya.tools import softSelectWeight, mesh
+from SkinningTools.Maya.tools import softSelectWeight, mesh, shared
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 
-from maya import OpenMaya, cmds
+from maya import cmds
 from functools import partial
 
 class AddInfluenceWidget(QWidget):
@@ -19,15 +19,10 @@ class AddInfluenceWidget(QWidget):
         super(AddInfluenceWidget, self).__init__( parent)
         
         self.setLayout(nullHBoxLayout())
-        
         add = toolButton(":/setEdAddCmd.png", size = 24)
-        label = QLabel("Add Influence")
+        self.layout().addWidget(add)
         
         add.released.connect(self.addInfluence.emit)
-        
-        for w in [add, label]:
-            self.layout().addWidget(w)
-        
 
 class FillerInfluenceWidget(QWidget):
     """Widget used to set the filler influence. 
@@ -43,7 +38,7 @@ class FillerInfluenceWidget(QWidget):
         self.setLayout(nullHBoxLayout())
         
         jointBtn = toolButton(":/kinJoint.png", size = 24)
-        self.label = QLabel("< filler influence >")
+        self.label = QLabel("< filler >")
         
         jointBtn.released.connect(self.setInfluenceFromSelection)
         
@@ -68,7 +63,7 @@ class FillerInfluenceWidget(QWidget):
         
         if not joints:
             self.influence = None
-            self.label.setText("< filler influence >")
+            self.label.setText("< filler >")
             raise RuntimeError("No joint selection detected!")
             
         self.influence = joints[0]
@@ -91,24 +86,24 @@ class InfluenceWidget(QWidget):
     """
     setSoftSelection = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent = None):
         super(InfluenceWidget, self).__init__(parent)
         
         self._influence = None
-        self._ssActive = None
         self._ssData = {}
+        self._ssActive = ''
         self._ssSettings = {}
-        
         self.setLayout(nullHBoxLayout())
         
+
         jointBtn = toolButton(":/kinJoint.png", size = 24)
         soft = toolButton(":/customSoftSelectFalloffCurve.png", size = 24)
-        self.label = QLabel("< influence >")
+        self.label = QLabel("< influence > : None")
         remove = toolButton(":/setEdRemoveCmd.png", size = 24)
                   
-        jointBtn.released.connect(self.setInfluenceFromSelection)
-        soft.released.connect(self.setSoftSelectionFromSelection)
-        remove.released.connect(self.deleteLater)
+        jointBtn.clicked.connect(self.setInfluenceFromSelection)
+        soft.clicked.connect(self.setSoftSelectionFromSelection)
+        remove.clicked.connect(self.deleteLater)
 
         for w in [jointBtn, soft, self.label, remove]:
             self.layout().addWidget(w)
@@ -121,25 +116,27 @@ class InfluenceWidget(QWidget):
         :raises RuntimeError: if no joints are selected
         """
         joints = cmds.ls(sl=True, l=True, type="joint")
-        print joints
         if not joints:
             self.influence = None
-            self.label.setText("< influence >")
+            if self._ssData == {}:
+                self.label.setText("< influence > : None")
+            else:
+                self.label.setText("< influence > : Set")
             raise RuntimeError("No joint selection detected!")
             
         self.influence = joints[0]
-        self.label.setText(joints[0].split("|")[-1])
+        self.label.setText("%s : None"%joints[0].split("|")[-1])
     
     def _getInfluence(self):
         return self._influence
         
     def _setInfluence(self, influence):
         self._influence = influence
-    
+
     def _getSsActive(self):
         return self._ssActive
         
-    def _setSsActive(self, value):
+    def _SetSsActive(self, value):
         self._ssActive = value
     
     def _getSsSettings(self):
@@ -155,8 +152,8 @@ class InfluenceWidget(QWidget):
         self._ssData = value
     
     influence = property(_getInfluence, _setInfluence)
-    ssActive  =property(_getSsActive, _setSsActive)
     ssSettings  =property(_getSsSettings, _setSsSettings)
+    ssActive = property(_getSsActive, _SetSsActive)
     ssData  =property(_getSsData, _SetSsData)
     
 
@@ -166,12 +163,18 @@ class InfluenceWidget(QWidget):
         
         :raises RuntimeError: if no soft selection is made
         """
-        self.ssActive, self.ssData = mesh.softSelection()
+        vertices, weights = mesh.softSelection()
+        self.ssData = {}
+        self.ssActive =vertices[0].split('.')[0]
+
+        indices = shared.convertToIndexList(vertices)
+        for index, weight in zip(indices, weights):
+            self.ssData[index] = weight
+
         self.setSoftSelection.emit()
         
         # reset values if no soft selection
-        if not self.ssData:            
-            self.ssActive = None
+        if not self.ssData:        
             self.ssData = {}
             self.ssSettings = {}
             raise RuntimeError("No soft selection detected!")
@@ -179,13 +182,15 @@ class InfluenceWidget(QWidget):
         self.ssSettings = { "ssc": cmds.softSelect(query=True, ssc=True),
                             "ssf": cmds.softSelect(query=True, ssf=True),
                             "ssd": cmds.softSelect(query=True, ssd=True)}
+        jt = self.label.text().split(" :")[0]
+        self.label.setText("%s : Set"%jt)
         
     def selectSoftSelection(self):
         """Set the stored soft selection.
         """
-        cmds.softSelect(sse=1, **self.ssSettings) 
-        OpenMaya.MGlobal.setActiveSelectionList(self.ssActive)
-        
+        # cmds.softSelect(sse=1, **self.ssSettings) 
+        cmds.select(self.ssData.keys(), r=1)
+
     def contextMenuEvent(self, event):    
         menu = QMenu(self)
         influence = menu.addAction("Select: Influence", partial( cmds.select,  self.influence ) )
@@ -205,13 +210,15 @@ class SoftSelectionToWeightsWidget(QWidget):
     :param parent:   
     :type parent: QWidget
     """
-    def __init__(self, parent= None):
+    toolName = "AssignWeightsWidget"
+
+    def __init__(self, progressBar = None, parent= None):
         super(SoftSelectionToWeightsWidget, self).__init__(parent)
-        self.setWindowTitle("SoftSelWidget")           
-        # self.setWindowIcon(QIcon(":/render_rampShader.png"))
     
         self.setLayout(nullVBoxLayout())
-        
+        self.textInfo = {}
+
+        self.__progressBar = progressBar
         title = AddInfluenceWidget(self)
         title.addInfluence.connect(self.addInfluence)
         self.layout().addWidget(title)
@@ -234,12 +241,16 @@ class SoftSelectionToWeightsWidget(QWidget):
         button = pushButton("skin")
         button.clicked.connect(self.skin)
         self.layout().addWidget(button)
-        
+    
+    def addLoadingBar(self, loadingBar):
+        self.__progressBar = loadingBar
+
     def addInfluence(self):
         """Add an new influence widget to the layout, :class:`InfluenceWidget`.
         """
         widget = InfluenceWidget(self)
         widget.setSoftSelection.connect(self.setEnableInfluence)
+        widget.setInfluenceFromSelection()
         
         num = self.lay.count() - 2
         self.lay.insertWidget(num, widget)
@@ -270,10 +281,9 @@ class SoftSelectionToWeightsWidget(QWidget):
         self.filler.setEnabled(False)
         influences = self.getInfluences()
         for influence in influences:
-            for inMesh in influence.ssData.keys():
-                if shared.skinCluster(inMesh, True):
-                    self.filler.setEnabled(True)
-                    return
+            if shared.skinCluster(influence.ssActive, True):
+                self.filler.setEnabled(True)
+                return
                 
     def skin(self):
         """This function is called when the skin button is released. All of the
@@ -293,27 +303,25 @@ class SoftSelectionToWeightsWidget(QWidget):
                 continue
                 
             infs.append(inf)
-            
-            for curMesh, weights in soft.iteritems():
-                if curMesh not in data.keys():
-                    data[curMesh] = {}
-                    
-                for index, w in weights.iteritems():
-                    if index not in data[curMesh].keys():
-                        data[curMesh][index] = {}
-                        
-                    if inf not in data[curMesh][index].keys():
-                        data[curMesh][index][inf] = 0
-                        
-                    data[curMesh][index][inf] += w
+            if influence.ssActive not in data.keys():
+                data[influence.ssActive] = {}
 
-        for curMesh, meshData in data.iteritems():
+            for vertex, weights in soft.iteritems():
+                if vertex not in data[influence.ssActive].keys():
+                    data[influence.ssActive][vertex] = {}
+                    
+                if inf not in data[influence.ssActive][vertex].keys():
+                    data[influence.ssActive][vertex][inf] = 0
+                    
+                data[influence.ssActive][vertex][inf] += weights
+
+        for inMesh, meshData in data.iteritems():
             filler = self.filler.influence
             if not shared.skinCluster(inMesh, True) and not filler:
-                print "No Filler Influence found for mesh: {0}".format( curMesh )
-                continue
+                print "No Filler Influence found for mesh: {0}".format(inMesh )
+                return
 
-            softSelectWeight.setSkinWeights( curMesh, meshData, infs, filler )
+            softSelectWeight.setSkinWeights( inMesh, meshData, infs, filler, progressBar = self.__progressBar)
 
 
 def testUI():
@@ -321,7 +329,7 @@ def testUI():
     """
     mainWindow = interface.get_maya_window()
     mwd  = QMainWindow(mainWindow)
-    mwd.setWindowTitle("VertAndBoneFunction Test window")
+    mwd.setWindowTitle("%s Test window" %SoftSelectionToWeightsWidget.toolName)
     wdw = SoftSelectionToWeightsWidget(parent = mainWindow)
     mwd.setCentralWidget(wdw)
     mwd.show()

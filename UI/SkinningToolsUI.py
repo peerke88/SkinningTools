@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210213"
+__VERSION__ = "5.0.20210218"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -26,6 +26,7 @@ from SkinningTools.UI.tabs.skinSliderSetup import SkinSliderSetup
 from SkinningTools.UI.tabs.vertAndBoneFunction import VertAndBoneFunction
 from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.initialWeightUI import InitWeightUI
+from SkinningTools.UI.tabs.softSelectUI import SoftSelectionToWeightsWidget
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
 
 import webbrowser, os, warnings, zipfile
@@ -372,8 +373,7 @@ class SkinningToolsUI(interface.DockWidget):
         _dict["Transfer weigths"] = [TransferWeightsWidget(self), ":/alignSurface.svg"]
         _dict["Transfer Uv's"] = [TransferUvsWidget(self), ":/UVEditorBakeTexture.png"]
         _dict["initial SkinBind"] = [InitWeightUI(self), ":/menuIconPaintEffects.png"]
-        # this feature is to be added later; needs to be thuroughly tested!
-        # _dict["Assign soft selection"] = [AssignWeightsWidget(self), ":/Grab.png"]
+        _dict["Assign Soft Select"] = [SoftSelectionToWeightsWidget(self), ":/Grab.png"]
         
         for index, (key, value) in enumerate(_dict.iteritems()):
             self.textInfo["copyTab_%s"%(index)] = self.copyToolsTab.addGraphicsTab(key, useIcon = value[1])
@@ -381,7 +381,8 @@ class SkinningToolsUI(interface.DockWidget):
             _vLay = nullVBoxLayout()
             self.textInfo["copyTab_%s"%(index)].view.frame.setLayout(_vLay)
             value[0].addLoadingBar(self.progressBar)
-            self.languageWidgets.append(value[0])
+            if hasattr(value[0], "translate"):
+                self.languageWidgets.append(value[0])
             _vLay.addWidget(value[0])
 
     def __skinSliderSetup(self):
