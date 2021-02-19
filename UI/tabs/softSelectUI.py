@@ -216,7 +216,7 @@ class SoftSelectionToWeightsWidget(QWidget):
     :param parent: the object to attach this ui to
     :type parent: QWidget
     """
-    toolName = "AssignWeightsWidget"
+    toolName = "AssignSoftSelect"
 
     def __init__(self, progressBar = None, parent= None):
         super(SoftSelectionToWeightsWidget, self).__init__(parent)

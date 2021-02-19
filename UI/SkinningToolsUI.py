@@ -199,7 +199,9 @@ class SkinningToolsUI(interface.DockWidget):
 
         _copy = {0: "ClosestVertexWeightWidget",
                  1: "AssignWeightsWidget",
-                 2: "TransferUvsWidget"}
+                 2: "TransferUvsWidget",
+                 3: "InitWeightUI",
+                 4: "AssignSoftSelect"}
         _tools = {0: "VertAndBoneFunction",
                   1: _copy,
                   2: "MayaTools"}
