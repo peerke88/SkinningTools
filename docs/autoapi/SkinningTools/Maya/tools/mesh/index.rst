@@ -17,6 +17,7 @@ Functions
    SkinningTools.Maya.tools.mesh.cutCharacterFromSkin
    SkinningTools.Maya.tools.mesh.edgesToSmooth
    SkinningTools.Maya.tools.mesh.extractFacesByVertices
+   SkinningTools.Maya.tools.mesh.getRootPath
    SkinningTools.Maya.tools.mesh.getShellFaces
    SkinningTools.Maya.tools.mesh.polySkeleton
    SkinningTools.Maya.tools.mesh.setOrigShapeColor
@@ -80,6 +81,9 @@ Functions
    :type internal: bool
    :return: new created mesh
    :rtype: string
+
+
+.. function:: getRootPath(path)
 
 
 .. function:: getShellFaces(inMesh)

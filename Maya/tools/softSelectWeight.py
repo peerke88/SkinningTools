@@ -15,20 +15,7 @@ def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar = None
     be used to blend the new weights. Maintaining of maximum influences and 
     normalization of the weights will be taken into account if these 
     attributes are set on the skin cluster.
-    
-    meshData = {
-        mesh:{
-            {index:{
-                influence:weight,
-                influence:weight,
-            },
-            {index:{
-                influence:weight,
-                influence:weight,
-            },
-        }    
-    }
-    
+
     :param inMesh:
     :type inMesh: str
     :param meshData: skinning data for the mesh

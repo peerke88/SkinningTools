@@ -131,6 +131,7 @@ def setInitialWeights( inMesh, inJoints, iterations=3, projection=0, blend=False
     """
     sk = buildSkinCluster(inMesh, inJoints)
     dag = shared.getDagpath(inMesh)
+    projection = mathUtils.clamp( projection, 0.0, 1.0 ) 
 
     lines = jointsToLines(inJoints)
     connections = shared.getConnectedVerticesMapper(dag)

@@ -34,12 +34,15 @@ Functions
    SkinningTools.Maya.tools.shared.dijkstra
    SkinningTools.Maya.tools.shared.doCorrectSelectionVisualization
    SkinningTools.Maya.tools.shared.getComponents
+   SkinningTools.Maya.tools.shared.getConnectedVerticesMapper
    SkinningTools.Maya.tools.shared.getConnectedVerts
    SkinningTools.Maya.tools.shared.getDagpath
    SkinningTools.Maya.tools.shared.getJointIndexMap
    SkinningTools.Maya.tools.shared.getMfnSkinCluster
    SkinningTools.Maya.tools.shared.getNeighbours
+   SkinningTools.Maya.tools.shared.getNormals
    SkinningTools.Maya.tools.shared.getParentShape
+   SkinningTools.Maya.tools.shared.getPoints
    SkinningTools.Maya.tools.shared.getPolyOnMesh
    SkinningTools.Maya.tools.shared.getTriIndex
    SkinningTools.Maya.tools.shared.getTriWeight
@@ -250,6 +253,17 @@ Functions
    :rtype: OpenMaya.MIntArray
 
 
+.. function:: getConnectedVerticesMapper(dag)
+
+   Create a dictionary where the keys are the indices of the vertices and the
+   values a list of indices of the connected vertices.
+
+   :param dag:
+   :type dag: MDagPath
+   :return: Connected vertices mapper
+   :rtype: dict
+
+
 .. function:: getConnectedVerts(inMesh, vtxSelectionSet)
 
    get seperate groups of vertices that are connected by edges
@@ -306,6 +320,19 @@ Functions
    :rtype: set
 
 
+.. function:: getNormals(meshName)
+
+   Get the average normal in world space of each vertex on the provided mesh.
+   The reason why OpenMaya.MItMeshVertex function has to be used is that the
+   MFnMesh class returns incorrect normal results.
+
+   :note: using old open maya here as maya 2019.3.1 has a hard crash when gathering normals with new openmaya
+   :param dag:
+   :type dag: MDagPath
+   :return: Normals
+   :rtype: list
+
+
 .. function:: getParentShape(inObject)
 
    get the parent object of given object if the current given object is a shape
@@ -314,6 +341,16 @@ Functions
    :type inObject: string
    :return: name of the parent transform
    :rtype: string
+
+
+.. function:: getPoints(dag)
+
+   Get the position in world space of each vertex on the provided mesh.
+
+   :param dag:
+   :type dag: MDagPath
+   :return: Points
+   :rtype: list
 
 
 .. function:: getPolyOnMesh(point, inMesh)
@@ -398,7 +435,7 @@ Functions
    :param inMesh: the object to set the data to
    :type inMesh: string
    :param weightData: full list of weight data [[value]* joints] * vertices
-   :type weightData: list
+   :type weightData: list/MDoubleArray
 
 
 .. function:: shortest_path(graph, origin, destination)

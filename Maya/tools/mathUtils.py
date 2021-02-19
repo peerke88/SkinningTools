@@ -228,7 +228,9 @@ def lookAt(base, aim, up=None, primaryAxis=toVec3((1, 0, 0)), secondaryAxis=toVe
 
     return vectorsToMatrix(rotations)
 
-
+def clamp( value, minValue, maxValue ):
+    return max( min( value, maxValue ), minValue )
+    
 def closestPointOnLine(a, b, point):
     """
     Get the closest point on a line. The line is defined by the provided a

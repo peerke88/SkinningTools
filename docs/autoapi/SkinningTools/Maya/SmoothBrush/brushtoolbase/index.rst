@@ -20,13 +20,6 @@ Classes
 
 
 
-   The most base type
-
-   .. attribute:: __scriptingContext
-      
-
-      
-
    .. attribute:: callbackMap
       
 
@@ -41,6 +34,10 @@ Classes
       :annotation: = artUserPaintCtx -e -surfaceConformedBrushVertices 0
 
       
+
+   .. method:: __scriptingContext(self)
+      :property:
+
 
    .. method:: _activate(self)
 

@@ -3,6 +3,7 @@ from SkinningTools.Maya.tools import softSelectWeight, mesh, shared
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 
+import warnings
 from maya import cmds
 from functools import partial
 
@@ -10,7 +11,7 @@ class AddInfluenceWidget(QWidget):
     """Widget used to add influences. Will emit the 'addInfluence' signal when
     the add button is released.
 
-    :param parent:   
+    :param parent: the object to attach this ui to 
     :type parent: QWidget
     """
     addInfluence = Signal()
@@ -20,14 +21,16 @@ class AddInfluenceWidget(QWidget):
         
         self.setLayout(nullHBoxLayout())
         add = toolButton(":/setEdAddCmd.png", size = 24)
+        self.layout().addItem(QSpacerItem(1,1, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.layout().addWidget(add)
+        add.setWhatsThis("softAssign")
         
         add.released.connect(self.addInfluence.emit)
 
 class FillerInfluenceWidget(QWidget):
     """Widget used to set the filler influence. 
 
-    :param parent:   
+    :param parent: the object to attach this ui to 
     :type parent: QWidget
     """
     def __init__(self, parent):
@@ -39,11 +42,12 @@ class FillerInfluenceWidget(QWidget):
         
         jointBtn = toolButton(":/kinJoint.png", size = 24)
         self.label = QLabel("< filler >")
-        
+
         jointBtn.released.connect(self.setInfluenceFromSelection)
         
         for w in [jointBtn, self.label]:
             self.layout().addWidget(w)
+            w.setWhatsThis("softAssign")
         
     def _getInfluence(self):
         return self._influence
@@ -82,7 +86,8 @@ class InfluenceWidget(QWidget):
     """Widget used to set the influence and soft selection. Once a new soft 
     selection is made the 'setSoftSelection' signal will be emitted.
 
-    :param QWidget parent:   
+    :param parent: the object to attach this ui to 
+    :type parent: QWidget
     """
     setSoftSelection = Signal()
 
@@ -107,6 +112,7 @@ class InfluenceWidget(QWidget):
 
         for w in [jointBtn, soft, self.label, remove]:
             self.layout().addWidget(w)
+            w.setWhatsThis("softAssign")
 
 
     def setInfluenceFromSelection(self):
@@ -207,7 +213,7 @@ class InfluenceWidget(QWidget):
 class SoftSelectionToWeightsWidget(QWidget):
     """Widget used to manage all of the added influences and their soft selection.
     
-    :param parent:   
+    :param parent: the object to attach this ui to
     :type parent: QWidget
     """
     toolName = "AssignWeightsWidget"
@@ -318,7 +324,7 @@ class SoftSelectionToWeightsWidget(QWidget):
         for inMesh, meshData in data.iteritems():
             filler = self.filler.influence
             if not shared.skinCluster(inMesh, True) and not filler:
-                print "No Filler Influence found for mesh: {0}".format(inMesh )
+                warnings.warn("No Filler Influence found for mesh: {0}".format(inMesh ))
                 return
 
             softSelectWeight.setSkinWeights( inMesh, meshData, infs, filler, progressBar = self.__progressBar)

@@ -35,7 +35,7 @@ Functions
    
 
 .. data:: __VERSION__
-   :annotation: = 5.0.20210211
+   :annotation: = 5.0.20210219
 
    
 

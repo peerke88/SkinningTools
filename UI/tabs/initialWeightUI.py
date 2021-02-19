@@ -60,16 +60,20 @@ class InitWeightUI(QWidget):
         self.textInfo["source"] = QLineEdit()
         self.textInfo["source"].setPlaceholderText("No mesh given...")
         self.textInfo["source"].setStyleSheet('color:#000; background-color: #ad4c4c;')
+
         for w in [self.textInfo["selectMesh"], self.textInfo["source"]]:
             hMesh.addWidget(w)
+            w.setWhatsThis("initBind")
 
         hJoint =  nullHBoxLayout()
         self.textInfo["selectJoint"] = pushButton("select Joints")
         self.textInfo["target"] = QLineEdit()
         self.textInfo["target"].setPlaceholderText("No joints given...")
         self.textInfo["target"].setStyleSheet('color:#000; background-color: #ad4c4c;')
+
         for w in [self.textInfo["selectJoint"], self.textInfo["target"]]:
             hJoint.addWidget(w)
+            w.setWhatsThis("initBind")
 
         h0 = nullHBoxLayout()
         self.textInfo["iter"] = QLabel("iterations")
@@ -77,19 +81,24 @@ class InitWeightUI(QWidget):
         self.spinIter.setValue(3)
         for w in [self.textInfo["iter"], self.spinIter]:
             h0.addWidget(w)
+            w.setWhatsThis("initBind")
 
         h1 = nullHBoxLayout()
         self.textInfo["proj"] = QLabel("projection")
         self.spinProj = QDoubleSpinBox()
         self.spinProj.setValue(.75)
+        self.spinProj.setMinimum(0)
+        self.spinProj.setMaximum(1)
         for w in [self.textInfo["proj"], self.spinProj]:
             h1.addWidget(w)
+            w.setWhatsThis("initBind")
 
         h2 = nullHBoxLayout()
         self.textInfo["blend"] = QLabel("blend weights")
         self.check1 = QCheckBox()
         for w in [self.textInfo["blend"], self.check1]:
             h2.addWidget(w)
+            w.setWhatsThis("initBind")
 
         h3 = nullHBoxLayout()
         self.textInfo["delinear"] = QLabel("De-linearize weights")
@@ -98,14 +107,16 @@ class InitWeightUI(QWidget):
         self.check2.setEnabled(False)
         for w in [self.textInfo["delinear"], self.check2]:
             h3.addWidget(w)
+            w.setWhatsThis("initBind")
 
         h4 = nullHBoxLayout()
         self.textInfo["delineartype"] = QLabel("De-linearize Method")
         self.combo = QComboBox()
         self.combo.addItems(self.deLinearMethods.keys())
         self.combo.setEnabled(False)
-        for w in [self.textInfo["delinear"], self.combo]:
+        for w in [self.textInfo["delineartype"], self.combo]:
             h4.addWidget(w)
+            w.setWhatsThis("initBind")
 
         self.textInfo["applySkin"] = pushButton("apply skinning")
 

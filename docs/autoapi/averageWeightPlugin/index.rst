@@ -61,8 +61,6 @@ Functions
 
 
 
-   The most base type
-
    .. method:: calcWeights(self, value, origWeights, nbWeigths, influences, amountComps)
 
 

@@ -104,7 +104,8 @@ Functions
    .. method:: eventFilter(self, obj, event)
 
 
-   .. staticmethod:: singleton()
+   .. method:: singleton()
+      :staticmethod:
 
       singleton of the current class for ease of identifying
 

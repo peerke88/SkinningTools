@@ -22,17 +22,22 @@ Functions
    SkinningTools.Maya.tools.joints.convertClusterToJoint
    SkinningTools.Maya.tools.joints.convertVerticesToJoint
    SkinningTools.Maya.tools.joints.deleteJointSmart
+   SkinningTools.Maya.tools.joints.drawStyle
    SkinningTools.Maya.tools.joints.freezeRotate
    SkinningTools.Maya.tools.joints.freezeScale
    SkinningTools.Maya.tools.joints.freezeSkinnedJoints
    SkinningTools.Maya.tools.joints.getInfluencingJoints
    SkinningTools.Maya.tools.joints.getMeshesInfluencedByJoint
+   SkinningTools.Maya.tools.joints.jointLookat
+   SkinningTools.Maya.tools.joints.localRotateAxis
+   SkinningTools.Maya.tools.joints.mirrorJoints
    SkinningTools.Maya.tools.joints.removeBindPoses
    SkinningTools.Maya.tools.joints.removeJointBySkinPercent
    SkinningTools.Maya.tools.joints.removeJoints
    SkinningTools.Maya.tools.joints.removeUnusedInfluences
    SkinningTools.Maya.tools.joints.resetSkinnedJoints
    SkinningTools.Maya.tools.joints.resetToBindPoseobject
+   SkinningTools.Maya.tools.joints.segmentScale
    SkinningTools.Maya.tools.joints.toggleMoveSkinnedJoints
 
 
@@ -165,6 +170,9 @@ Functions
    :rtype: bool
 
 
+.. function:: drawStyle(inSelection, style=False, progressBar=None)
+
+
 .. function:: freezeRotate(inJnts, progressBar=None)
 
    force clean joint rotations per joint
@@ -228,6 +236,15 @@ Functions
    :type progressBar: QProgressBar
    :return: list of objects influences by the current selection of joints
    :rtype:  list
+
+
+.. function:: jointLookat(point, pointAt, normal=None, space=enumerators.Space.Global, primaryAxis=enumerators.AxisEnumerator.PosAxisX, secondaryAxis=enumerators.AxisEnumerator.PosAxisY, progressBar=None)
+
+
+.. function:: localRotateAxis(inSelection, showAxis=False, progressBar=None)
+
+
+.. function:: mirrorJoints(inSelection, mirrorAxis='X', behaviour=True, searchReplace=('L_', 'R_'), progressBar=None)
 
 
 .. function:: removeBindPoses(progressBar=None)
@@ -315,6 +332,9 @@ Functions
    :type progressBar: QProgressBar
    :return: `True` if the function is completed
    :rtype: bool
+
+
+.. function:: segmentScale(inSelectio, compensate=False, progressBar=None)
 
 
 .. function:: toggleMoveSkinnedJoints(inMesh, inPose=False, progressBar=None)

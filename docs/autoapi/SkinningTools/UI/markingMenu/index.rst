@@ -49,7 +49,8 @@ Functions
       here we check if all conditions necessary for the widget to spawn are met
 
 
-   .. staticmethod:: singleton()
+   .. method:: singleton()
+      :staticmethod:
 
       singleton method
       making sure that this object can only exist once and cannot be instantiated more then once
@@ -208,7 +209,8 @@ Functions
       :rtype: QWidget
 
 
-   .. staticmethod:: rotateVec(origin, point, angle)
+   .. method:: rotateVec(origin, point, angle)
+      :staticmethod:
 
       angular math to get the correct positions on a circle based on center, length and angle
 

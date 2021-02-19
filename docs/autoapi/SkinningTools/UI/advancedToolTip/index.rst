@@ -28,6 +28,9 @@ Classes
    advanced tooltip window
    allows the text of any language to be displayed together with a gif image to show what the current object could do for the user
 
+   .. method:: leaveEvent(self, event)
+
+
    .. method:: setGifImage(self, gifName)
 
       set the gif to the current object and play automatically

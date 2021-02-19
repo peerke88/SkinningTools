@@ -86,8 +86,6 @@ Functions
 
 
 
-   The most base type
-
    .. method:: __borderSel(self, *_)
 
 
@@ -108,8 +106,6 @@ Functions
 
 
 
-   The most base type
-
    .. method:: calcRemap(self, remapDict)
 
 
@@ -126,8 +122,6 @@ Functions
 .. py:class:: vertexWeight(inProgressBar=None)
 
 
-
-   The most base type
 
    .. method:: getVtxWeight(self)
 
@@ -178,7 +172,7 @@ Functions
 .. function:: freezeJoint(progressBar=None)
 
 
-.. function:: getAllJoints()
+.. function:: getAllJoints(useSelection=False)
 
 
 .. function:: getCurrentMeshJoints()

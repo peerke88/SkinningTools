@@ -69,7 +69,7 @@ Authors
 
 * `Perry Leijten`_
 
-.. _Robert Joosten: https://github.com/robertjoosten
+.. _Robert Joosten: http://technicaldirector.nl/
 .. _Mio Zwickl: https://www.artstation.com/ikitamonday
 .. _Rodolphe Vaillant: http://rodolphe-vaillant.fr/
 .. _Trevor van Hoof: http://trevorius.com/scrapbook/

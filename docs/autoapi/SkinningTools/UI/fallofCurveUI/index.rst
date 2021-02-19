@@ -78,7 +78,8 @@ Functions
    collection object for all functions that help create bezier curves
    https://en.wikipedia.org/wiki/B%C3%A9zier_curve
 
-   .. staticmethod:: bernstein(t, i, n)
+   .. method:: bernstein(t, i, n)
+      :staticmethod:
 
       bernstein function
 
@@ -92,7 +93,8 @@ Functions
       :rtype: float
 
 
-   .. staticmethod:: bezier(t, points)
+   .. method:: bezier(t, points)
+      :staticmethod:
 
       bezier function
 
@@ -104,7 +106,8 @@ Functions
       :rtype: list
 
 
-   .. staticmethod:: bezierCurveYfromX(inX, points)
+   .. method:: bezierCurveYfromX(inX, points)
+      :staticmethod:
 
       get the y position on the curve by giving the x
       :note: the amount of points used here to generate the curve is 101, this way its easier to get percentage data
@@ -117,7 +120,8 @@ Functions
       :rtype: float
 
 
-   .. staticmethod:: bezier_curve_range(n, points)
+   .. method:: bezier_curve_range(n, points)
+      :staticmethod:
 
       bezier point generator
 
@@ -129,7 +133,8 @@ Functions
       :rtype: list
 
 
-   .. staticmethod:: binomial(i, n)
+   .. method:: binomial(i, n)
+      :staticmethod:
 
       binomial function 
 
@@ -141,7 +146,8 @@ Functions
       :rtype: float
 
 
-   .. staticmethod:: getDataOnPercentage(percentage, npts)
+   .. method:: getDataOnPercentage(percentage, npts)
+      :staticmethod:
 
       get the data of the curve based on the percentage on the curve itself
 
