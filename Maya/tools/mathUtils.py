@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from maya.api.OpenMaya import MVector, MPoint, MMatrix, MQuaternion
 from maya import cmds
 from SkinningTools.Maya.tools import enumerators

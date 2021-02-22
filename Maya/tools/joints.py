@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from SkinningTools.UI.utils import remap
 from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.kdtree import KDTree
@@ -901,3 +902,79 @@ def jointLookat(point, pointAt, normal = None, space = enumerators.Space.Global,
     jnt = cmds.createNode("joint")
     cmds.xform( jnt, ws=1, m = mathUtils.matrixToFloatList(matrix) )
 
+# :Todo: update the setup here using the following methods
+# orient based on every joint
+# orient based on triangles                          * <  use this bone for rotation
+# orient based on average normals                   / \
+# orient last joint based on parent                /   \ 
+#                                                 /     \
+# make sure to orient based on the triangle edge 。       .
+#                                                ^ if this is the first the use the same up as the second! 
+def orientJointChain( average = False, primaryAxis=enumerators.AxisEnumerator.PosAxisX, secondaryAxis = enumerators.AxisEnumerator.PosAxisY, progressBar = None):
+    sel = shared.getHierarchySelection("joint")
+
+    def getWsVec(inObject):
+        return MVector(*cmds.xform(inObject, q=1, ws=1, t=1))
+
+    def getChildMatrix(inObject):
+        _retDict = {}
+        endChildren = cmds.listRelatives(inObject, c=1, f=1) or []
+        for child in endChildren:
+            _retDict[child] = cmds.xform(child, q=1, ws=1, m=1)  
+        return _retDict
+    
+    _infoDict = {}
+    _setupDict = {}
+    for index, jnt in enumerate(sel):
+
+        cur = getWsVec(jnt)
+        if jnt == sel[-1]:
+            aim1, up1, pos1 = _setupDict[sel[index - 1]] 
+            aim = cur + (aim1 - pos1)
+            up = cur + (up1 - pos1)
+        elif jnt == sel[-2]:
+            aim = getWsVec(sel[index + 1])
+            up = getWsVec(sel[index - 1])
+        else:
+            aim = getWsVec(sel[index + 1])
+            up = getWsVec(sel[index + 2])
+
+        _setupDict[jnt] = [aim, up, cur]
+
+        nDict = getChildMatrix(jnt)
+        for key, val in nDict.iteritems():
+            if key in sel:
+                continue
+            _infoDict[key] = val 
+
+    if average:
+        _up = MVector()
+        for _, up, _ in _setupDict.values():
+            _up += up
+        avg = _up / len(_setupDict.keys()) 
+        for key, (aim, up, pos) in _setupDict.iteritems():
+            _setupDict[key]  = [aim, avg, pos]
+    else:
+        _prev = MVector()
+
+        for index, (obj, (aim, up, pos)) in enumerate(_setupDict.iteritems()):
+            if index == -1:
+                _prev = (up - pos).normal()
+                continue
+            _cur = (up - pos).normal()
+            if (_prev * _cur) < 0:
+                up = pos + (_cur * -1)
+            _setupDict[obj] = [aim, up, pos]
+
+    _toSetup = _setupDict.keys()
+    _toSetup.sort(key=len)
+    for index, obj in enumerate(_toSetup):
+        aim, up, pos = _setupDict[obj]
+        cur = (up - pos).normal()
+        aimMatrix = mathUtils.lookAt(pos, aim, up, primaryAxis, secondaryAxis, False)
+        cmds.xform(obj, ws=1, m=mathUtils.matrixToFloatList(aimMatrix))
+
+    _toFix = _infoDict.keys()
+    _toFix.sort(key=len)
+    for obj in _toFix:
+        cmds.xform(obj, ws=1, m=_infoDict[obj])        

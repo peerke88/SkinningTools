@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from SkinningTools.Maya import api, interface
 from SkinningTools.Maya.tools import softSelectWeight, mesh, shared
 from SkinningTools.UI.qt_util import *

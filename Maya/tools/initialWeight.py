@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from SkinningTools.Maya.tools import mathUtils, mesh, shared, joints
 from maya import cmds
 from SkinningTools.UI import utils

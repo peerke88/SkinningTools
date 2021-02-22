@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess, os
 from collections import defaultdict, deque
 from functools import wraps
@@ -994,3 +995,42 @@ def createWeightedMM(transforms, weights, floatPrecision):
         cmds.setAttr('%s.%s' % (addMM, trsNode), lock=True)
 
     return addMM
+
+def getHierarchy(selection1, selection2):
+    long1 = cmds.ls(selection1, l=1)[0]
+    long2 = cmds.ls(selection2, l=1)[0]
+    if selection1 in long2:
+        parent = long1
+        child = long2
+    elif selection2 in long1:
+        parent = long2
+        child = long1
+    else:
+        return [long1, long2]
+    
+    def getParentRecursively(child, stop):
+        parent = cmds.listRelatives(child, parent=1, f=1)[0]
+        parents = [parent]
+        if parent == stop:
+            return parents
+        parents.extend(getParentRecursively(parent, stop))
+        return parents
+    
+    return getParentRecursively(child, parent)[::-1] + [child]
+
+def getHierarchySelection(inType= "transform"):
+    selection = cmds.ls(sl=1, fl=1, l=1 )
+    hierarchy = selection
+    amountSelected = len(selection)
+    if amountSelected == 0:
+        hierarchy = cmds.ls(sl=0, l=1)
+    elif amountSelected == 1:
+        hierarchy = [selection[0]] + cmds.listRelatives(selection[0], ad=1, f=1, type = inType)
+    elif amountSelected == 2:
+        hierarchy = getHierarchy(*cmds.ls(sl=1, fl=1 ))
+    hierarchy.sort(key=len)
+
+    if inType == []:
+        return hierarchy
+
+    return cmds.ls(hierarchy, type = inType, l=1)

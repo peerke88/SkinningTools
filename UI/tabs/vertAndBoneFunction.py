@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
