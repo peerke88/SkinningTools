@@ -8,7 +8,8 @@ class JointLabel(QDialog):
         super(JointLabel, self).__init__(parent)
         self.setWindowTitle(title)
         self.setLayout(nullVBoxLayout())
-
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        
         nameLabel = QLabel("Specify label sides (wildCards '*' can be used!):", self)
         L_txtLabel = QLabel("LeftSide", self)
         self.L_txt = QLineEdit("L_*", self)

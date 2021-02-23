@@ -16,6 +16,7 @@ class RemapDialog(QDialog):
     def __init__(self, leftside, rightSide, parent=None):
         super(RemapDialog, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         self.leftSideList = leftside
         self.rightSideList = rightSide

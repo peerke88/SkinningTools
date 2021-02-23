@@ -9,7 +9,8 @@ class MeshSelector(QDialog):
         _current = inMesh.keys()[0]
         self.setWindowTitle("select mesh to represent %s"%_current)
         self.setLayout(nullVBoxLayout())
-
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        
         nameLabel = QLabel("select mesh to be used instead of: %s"%_current, self)
         txtLabel = QLabel("mesh: ", self)
         self.combo = QComboBox(self)

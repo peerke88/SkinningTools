@@ -737,7 +737,7 @@ def QuickDialog(title):
     :rtype: QDialog
     """
     from SkinningTools.Maya import api
-    myWindow = QDialog(api.get_maya_window())
+    myWindow = QDialog()
     myWindow.setWindowTitle(title)
     myWindow.setLayout(nullVBoxLayout())
     h = nullHBoxLayout()

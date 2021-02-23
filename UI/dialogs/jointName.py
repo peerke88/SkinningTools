@@ -8,6 +8,7 @@ class JointName(QDialog):
         super(JointName, self).__init__(parent)
         self.setWindowTitle(title)
         self.setLayout(nullVBoxLayout())
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         nameLabel = QLabel("give name to the joint to be created:", self)
         txtLabel = QLabel("name:", self)

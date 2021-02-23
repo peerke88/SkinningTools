@@ -169,8 +169,7 @@ def labelJoints(doCheck=True, progressBar=None):
                 _reLabel = True
         if not _reLabel:
             return True
-    from SkinningTools.Maya import api
-    dialog = JointLabel(parent=api.get_maya_window())
+    dialog = JointLabel()
     dialog.exec_()
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
     return result
@@ -182,24 +181,23 @@ def fetch():
     holdFetch.fetch()
 
 def createPolySkeleton(radius = 1):
-    from SkinningTools.Maya import api
-    d = QDialog(api.get_maya_window())
-    d.setLayout(nullVBoxLayout())
-    h = nullVBoxLayout()
-    h.addWidget(QLabel("radius value: "))
-    s = QDoubleSpinBox()
-    s.setValue(1)
-    h.addWidget(s)
-    d.layout().addLayout(h)
+    dlg = QDialog()
+    dlg.setLayout(nullVBoxLayout())
+    hlay = nullVBoxLayout()
+    hlay.addWidget(QLabel("radius value: "))
+    spin = QDoubleSpinBox()
+    spin.setValue(1)
+    hlay.addWidget(spin)
+    dlg.layout().addLayout(hlay)
     btn = pushButton("build poly skeleton")
-    d.layout().addWidget(btn)
-    btn.clicked.connect(d.accept)
-    d.exec_()
+    dlg.layout().addWidget(btn)
+    btn.clicked.connect(dlg.accept)
+    dlg.exec_()
 
-    if d.result() == 0:
+    if dlg.result() == 0:
         return None
 
-    mesh.polySkeleton(s.value())
+    mesh.polySkeleton(spin.value())
     return True
 
 
@@ -236,8 +234,7 @@ def smooth(progressBar=None):
 @shared.dec_repeat
 def convertToJoint(inName=None, progressBar=None):
     if inName == True:
-        from SkinningTools.Maya import api
-        dialog = JointName(parent=api.get_maya_window())
+        dialog = JointName()
         dialog.exec_()
         inName = dialog.txt.text()
 
