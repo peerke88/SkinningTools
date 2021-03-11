@@ -834,7 +834,7 @@ def setWeights(inMesh, weightData):
     for x in range(len(infDags)):
         infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
     
-    if type(weightData) in [list, tuple]:
+    if not isinstance(weightData, OpenMaya.MDoubleArray):
         newWeightData = OpenMaya.MDoubleArray(len(weightData), 0)
         for i, w in enumerate(weightData):
             newWeightData[i]= w
