@@ -34,6 +34,7 @@ if sys.version_info.major == 2:
     range = xrange
 else:
 	unicode = str
+	long = int
 
 try:
     from typing import *
