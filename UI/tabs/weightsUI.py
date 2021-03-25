@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.Maya import api, interface
 from SkinningTools.Maya.tools import weightsManager, shared
+from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from functools import partial
@@ -119,7 +120,7 @@ class WeightsUI(QWidget):
         :param localeDict: the dictionary holding information on how to translate the ui
         :type localeDict: dict
         """
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if key in self.infoLabels.keys():
                 self.infoLabels[key] = value
                 continue
@@ -134,12 +135,12 @@ class WeightsUI(QWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             if isinstance(self.textInfo[key], QGroupBox):
                 _ret[key] = value.title()
             else:    
                 _ret[key] = value.text()
-        for key, value in self.infoLabels.iteritems():
+        for key, value in self.infoLabels.items():
             _ret[key] = value
         return _ret
 
@@ -416,7 +417,7 @@ class WeightsUI(QWidget):
             self.__infoDetails.currentInfo['verts'].type = 'Pos'
             self.__infoDetails.currentInfo['closest'].setEnabled(True)
             
-        for i in xrange(5):
+        for i in range(5):
             _id =  random.randint(0, amount)
             pos = smart_roundVec(verts[currentMesh][_id], 3)
             _fp = cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1)

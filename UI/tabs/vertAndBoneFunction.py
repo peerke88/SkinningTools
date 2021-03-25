@@ -2,6 +2,7 @@
 from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
 from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCommand, _CTX
 from functools import  partial
 import os
@@ -67,16 +68,16 @@ class VertAndBoneFunction(QWidget):
         :param localeDict: the dictionary holding information on how to translate the ui
         :type localeDict: dict
         """
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if isinstance(self._Btn[key], QCheckBox):
                 self._Btn[key].displayText = value
                 self._Btn[key].setToolTip(value)
             else:
                 self._Btn[key].setText(value)
 
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if hasattr(self._Btn[key], "getNameInfo"):
-                for k, v in self._Btn[key].getNameInfo.iteritems():
+                for k, v in self._Btn[key].getNameInfo.items():
                     v.setText(localeDict[self._remp[k]])
 
         
@@ -84,7 +85,7 @@ class VertAndBoneFunction(QWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self._Btn.iteritems():
+        for key, value in self._Btn.items():
             if isinstance(self._Btn[key], QCheckBox):
                 _ret[key] = value.displayText
             else:
@@ -387,7 +388,7 @@ class VertAndBoneFunction(QWidget):
         fullList = []
         for btn in self.checkedButtons:
             checkList = []
-            for key, value in btn.checks.iteritems():
+            for key, value in btn.checks.items():
                 checkList.append([key, value.isChecked()])
             fullList.append(checkList)
         return fullList
@@ -495,7 +496,7 @@ class VertAndBoneFunction(QWidget):
             QApplication.setOverrideCursor(Qt.PointingHandCursor)
         else:
             self.picker.setIcon(QIcon(":/eyeDropper.png"))
-            for btn, value in self._dict.iteritems():
+            for btn, value in self._dict.items():
                 btn.setStyleSheet(value)
             QApplication.restoreOverrideCursor()
 

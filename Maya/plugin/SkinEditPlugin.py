@@ -43,19 +43,19 @@ class SkinEditClass( OpenMaya.MPxCommand ):
 
         if argData.isFlagSet( '-vid'):
             vertAmount = argData.numberOfFlagUses('-vid')
-            for i in xrange(vertAmount):
+            for i in range(vertAmount):
                 self.vertID.append( argData.getFlagArgumentList('-vid', i ).asInt(0) )
         if argData.isFlagSet( '-nw'):
             weightAmount = argData.numberOfFlagUses('-nw')
-            for i in xrange(weightAmount):
+            for i in range(weightAmount):
                 self.newWeights.append( argData.getFlagArgumentList('-nw', i ).asDouble(0) )
         if argData.isFlagSet( '-jid'):
             jntAmount = argData.numberOfFlagUses('-jid')
-            for i in xrange(jntAmount):
+            for i in range(jntAmount):
                 self.jointID.append( argData.getFlagArgumentList('-jid', i ).asInt(0) )
         if argData.isFlagSet( '-ow'):
             weightAmount = argData.numberOfFlagUses('-ow')
-            for i in xrange(weightAmount):
+            for i in range(weightAmount):
                 self.origWeights.append( argData.getFlagArgumentList('-ow', i ).asDouble(0) )
         return True
         

@@ -4,6 +4,7 @@ from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI import utils
 from SkinningTools.Maya.tools import shared, mathUtils, mesh, enumerators
+from SkinningTools.py23 import *
 from maya import cmds, mel
 from maya.api.OpenMaya import MSpace, MFnTransform, MVector, MFnMesh, MObject
 
@@ -942,7 +943,7 @@ def orientJointChain( average = False, primaryAxis=enumerators.AxisEnumerator.Po
         _setupDict[jnt] = [aim, up, cur]
 
         nDict = getChildMatrix(jnt)
-        for key, val in nDict.iteritems():
+        for key, val in nDict.items():
             if key in sel:
                 continue
             _infoDict[key] = val 
@@ -952,12 +953,12 @@ def orientJointChain( average = False, primaryAxis=enumerators.AxisEnumerator.Po
         for _, up, _ in _setupDict.values():
             _up += up
         avg = _up / len(_setupDict.keys()) 
-        for key, (aim, up, pos) in _setupDict.iteritems():
+        for key, (aim, up, pos) in _setupDict.items():
             _setupDict[key]  = [aim, avg, pos]
     else:
         _prev = MVector()
 
-        for index, (obj, (aim, up, pos)) in enumerate(_setupDict.iteritems()):
+        for index, (obj, (aim, up, pos)) in enumerate(_setupDict.items()):
             if index == -1:
                 _prev = (up - pos).normal()
                 continue

@@ -3,6 +3,7 @@ from SkinningTools.Maya.tools import mathUtils, mesh, shared, joints
 from SkinningTools.UI import utils 
 from maya import cmds
 from maya.api import OpenMaya
+from SkinningTools.py23 import *
 
 '''
 based on robert joosten's tool:
@@ -44,7 +45,7 @@ def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar = None
     utils.setProgress(0, progressBar, "building weights for %s"%inMesh )
 
     percentage = len(meshData.keys())/99.0
-    for index, weights in meshData.iteritems():
+    for index, weights in meshData.items():
         vertex = "{0}.vtx[{1}]".format(inMesh, index)
         total = sum(weights.values())
 
@@ -75,10 +76,10 @@ def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar = None
             total = sum(weights.values())
             multiplier = 1/total
 
-            for t, v in weights.iteritems():
+            for t, v in weights.items():
                 weights[t] = v * multiplier
 
-        weights = [(t, v) for t, v in weights.iteritems()]
+        weights = [(t, v) for t, v in weights.items()]
         cmds.skinPercent(skinCluster, vertex, transformValue=weights)
         utils.setProgress(index * percentage, progressBar, "set skinning info: %s"%vertex )
     utils.setProgress(100, progressBar, "build skin info with soft selextion" )

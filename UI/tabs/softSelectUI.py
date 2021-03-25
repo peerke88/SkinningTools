@@ -3,6 +3,7 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.Maya.tools import softSelectWeight, mesh, shared
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
 
 import warnings
 from maya import cmds
@@ -313,7 +314,7 @@ class SoftSelectionToWeightsWidget(QWidget):
             if influence.ssActive not in data.keys():
                 data[influence.ssActive] = {}
 
-            for vertex, weights in soft.iteritems():
+            for vertex, weights in soft.items():
                 if vertex not in data[influence.ssActive].keys():
                     data[influence.ssActive][vertex] = {}
                     
@@ -322,7 +323,7 @@ class SoftSelectionToWeightsWidget(QWidget):
                     
                 data[influence.ssActive][vertex][inf] += weights
 
-        for inMesh, meshData in data.iteritems():
+        for inMesh, meshData in data.items():
             filler = self.filler.influence
             if not shared.skinCluster(inMesh, True) and not filler:
                 warnings.warn("No Filler Influence found for mesh: {0}".format(inMesh ))

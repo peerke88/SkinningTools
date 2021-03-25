@@ -2,6 +2,7 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface, api
+from SkinningTools.py23 import *
 
 #@todo: make sure all cmds modules are moved over to interface/api
 from maya import cmds
@@ -124,7 +125,7 @@ class WeightEditorWindow(QWidget):
         :param localeDict: the dictionary holding information on how to translate the ui
         :type localeDict: dict
         """
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if key in self.actionLabels.keys():
                 self.actionLabels[key] = value
                 continue
@@ -137,12 +138,12 @@ class WeightEditorWindow(QWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 _ret[key] = value.placeholderText()
             else:
                 _ret[key] = value.text()
-        for key, value in self.actionLabels.iteritems():
+        for key, value in self.actionLabels.items():
             _ret[key] = value
         return _ret
 
@@ -875,7 +876,7 @@ class WeightEditorWindow(QWidget):
             
             self.weightTable.overMaxInfDict[row] = amountJoints - nWeight.count(0.0)
         
-        for mesh, vertIds in self.meshIDdict.iteritems():
+        for mesh, vertIds in self.meshIDdict.items():
             sc = self.meshSkinClusters[mesh]
             newWeight = self.meshWeigthDict[mesh]
             jnts = self.meshInfDict[mesh]
@@ -889,7 +890,7 @@ class WeightEditorWindow(QWidget):
         """
         self.view.setFocus()
         header = self.view.verticalHeader()
-        for i in xrange(header.count()):
+        for i in range(header.count()):
             header.updateSection(i)
                 
     def createCallback(self):

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.google_trans_new import google_translator, LANGUAGES
 from SkinningTools.Maya import interface
 
@@ -150,7 +151,7 @@ class TranslatorDialog(QDialog):
         """
         _data = loadLanguageFile( self.getLangValue(), self.widgetName)
         perc = 99.0 / len(_data.values())
-        for index, (key, value) in enumerate(_data.iteritems()):
+        for index, (key, value) in enumerate(_data.items()):
             setProgress(index * perc, None, "getting translation info on : %s"%value)
             h = self.translateConnection(key, value, doTranslate=False)
             self._layouts.append(h)
@@ -164,7 +165,7 @@ class TranslatorDialog(QDialog):
         """
         perc = 99.0 / len(self.__inDict.values())
 
-        for index, (key, value) in enumerate(self.__inDict.iteritems()):
+        for index, (key, value) in enumerate(self.__inDict.items()):
             setProgress(index * perc, None, "getting translation info on : %s"%value)
             h = self.translateConnection(key, value)
             self._layouts.append(h)

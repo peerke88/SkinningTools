@@ -324,10 +324,10 @@ def laplacianSmoothing(vectors, connected, iterations=3):
     length = len(vectors)
     vectors = vectors[:]
 
-    for i in xrange(iterations):
+    for i in range(iterations):
         copy = vectors[:]
 
-        for j in xrange(length):
+        for j in range(length):
             indices = connected.get(j)
             neighbours = [copy[i] for i in indices]
             vectors[j] = getCenterPosition(neighbours)

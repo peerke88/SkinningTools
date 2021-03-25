@@ -3,6 +3,7 @@ from SkinningTools.Maya.tools import mathUtils, mesh, shared, joints
 from maya import cmds
 from SkinningTools.UI import utils
 from maya.api.OpenMaya import MVector
+from SkinningTools.py23 import *
 '''
 based on robert joosten's tool:
 https://github.com/robertjoosten/maya-skinning-tools/tree/master/scripts/skinningTools/initializeWeights
@@ -20,7 +21,7 @@ def closestLineToPoint(lines, point):
     :return: Closest lines and points ordered on distance
     :rtype: tuple
     """
-    names, closestPoints = zip(*[(name, mathUtils.closestPointOnLine(line[0], line[1], point)) for name, line in lines.iteritems()])
+    names, closestPoints = zip(*[(name, mathUtils.closestPointOnLine(line[0], line[1], point)) for name, line in lines.items()])
     return mathUtils.sortByDistance(names, point, closestPoints)
 
 def jointsToLines(inJoints):

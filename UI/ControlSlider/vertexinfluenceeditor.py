@@ -74,7 +74,7 @@ class VertexInfluenceEditor(QGroupBox):
         self._hideZero = state
 
     def showBones(self, inBones):
-        for bone, frame in self.__info.iteritems():
+        for bone, frame in self.__info.items():
             if self._hideZero:
                 if frame.isUsed and bone in inBones:
                     frame.setVisible(True)

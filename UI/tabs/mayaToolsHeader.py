@@ -1,6 +1,7 @@
 from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
 from functools import partial
 import tempfile, os
 from SkinningTools.UI.dialogs.remapDialog import RemapDialog
@@ -43,14 +44,14 @@ class MayaToolsHeader(QWidget):
         :param localeDict: the dictionary holding information on how to translate the ui
         :type localeDict: dict
         """
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             self.textInfo[key].setText(value)
         
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             _ret[key] = value.text()
         return _ret
 

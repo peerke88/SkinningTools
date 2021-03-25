@@ -5,6 +5,7 @@ import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
 from SkinningTools.UI import utils
 from SkinningTools.UI.fallofCurveUI import BezierFunctions
+from SkinningTools.py23 import *
 from collections import OrderedDict, defaultdict
 
 
@@ -494,7 +495,7 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
     utils.setProgress(20, progressBar, "data gathered: %s"%inObject )
 
     percentage = 79.0 / len(indexConns)
-    for index, (shortJointName, val) in enumerate(indexConns.iteritems()):
+    for index, (shortJointName, val) in enumerate(indexConns.items()):
         obj = extractFacesByVertices(val, internal = internal)
         if obj is None:
             continue

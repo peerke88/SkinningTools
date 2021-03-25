@@ -4,6 +4,7 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.Maya.tools import shared
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
 from SkinningTools.UI.dialogs.remapDialog import RemapDialog
 from SkinningTools.UI.dialogs.meshSelector import MeshSelector
@@ -59,7 +60,7 @@ class WeightsManager(object):
         _jsonDict["meshes"] = self.skinInfo.meshNodes
         _jsonDict["weights"] = self.skinInfo.meshWeights
         _vertIDS = {}
-        for key, value in self.skinInfo.meshVerts.iteritems():
+        for key, value in self.skinInfo.meshVerts.items():
             _vertIDS[key] = [x for x in value]
         _jsonDict["vertIds"] = _vertIDS
         _jsonDict["infl"] = self.skinInfo.meshInfluences
@@ -134,7 +135,7 @@ class WeightsManager(object):
             connectionDict = _remap.getConnectionInfo()
         
         # for each mesh we now do the skinning operation
-        for inMesh, toMesh in remapMesh.iteritems():
+        for inMesh, toMesh in remapMesh.items():
             closest = checkNeedsClosestVtxSearch(_data, inMesh, toMesh)
 
             # check if we are uv based and if uv's are available
@@ -172,7 +173,7 @@ class WeightsManager(object):
                 jointWeights = []  
                 for index in _data["vertIds"][inMesh]:
                     _intermediate = [0.0] * len(_data["infl"][inMesh])
-                    for key, value in connectionDict.iteritems():    
+                    for key, value in connectionDict.items():    
                         prevIndex = _data["infl"][inMesh].index[key]
                         outIndex = currentJoints.index[value]
                         _intermediate[outIndex] = closestWeights[index][prevIndex]
@@ -228,7 +229,7 @@ class WeightsManager(object):
         :rtype: bool
         """
         _needsClosest = False
-        for i in xrange(5):
+        for i in range(5):
             _id =  randint(0, (_data["vertIds"][fromMesh][-1] + 1))
             pos = smart_roundVec(_data["vertPos"][fromMesh][_id], 3)
             nPos = smart_roundVec(cmds.xform("%s.vtx[%i]"%(toMesh, _id), q=1, ws=1,t=1), 3)

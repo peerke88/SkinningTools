@@ -632,14 +632,14 @@ class BezierGraph(QMainWindow):
     def translate(self, localeDict = {}):
         """ translate the ui using the language dictionary given
         """
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             self.textInfo[key].setText(value)
         
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             _ret[key] = value.text()
         return _ret
 

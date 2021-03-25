@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 from SkinningTools.UI.utils import *
+from SkinningTools.py23 import *
 from SkinningTools.Maya.tools.shared import *
 from SkinningTools.Maya import interface
 from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget, SoftSkinBuilder
@@ -32,7 +33,7 @@ class TransferWeightsWidget(QWidget):
     
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 self.textInfo[key].setPlaceholderText(value)
             else:
@@ -42,7 +43,7 @@ class TransferWeightsWidget(QWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 _ret[key] = value.placeholderText()
             else:
@@ -249,7 +250,7 @@ class ClosestVertexWeightWidget(QWidget):
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 self.textInfo[key].setPlaceholderText(value)
             else:
@@ -259,7 +260,7 @@ class ClosestVertexWeightWidget(QWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 _ret[key] = value.placeholderText()
             else:
@@ -389,7 +390,7 @@ class TransferUvsWidget(QWidget):
 
     # --------------------------------- translation ----------------------------------
     def translate(self, localeDict = {}):
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 self.textInfo[key].setPlaceholderText(value)
             else:
@@ -399,7 +400,7 @@ class TransferUvsWidget(QWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 _ret[key] = value.placeholderText()
             else:

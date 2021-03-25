@@ -437,7 +437,7 @@ def getComponents(meshDag, component):
             verts.extend(faceVtx)
         [vtxArray.append(i) for i in list(set(verts))]
     else:
-        [vtxArray.append(i) for i in xrange(meshFn.numVertices)]
+        [vtxArray.append(i) for i in range(meshFn.numVertices)]
     return vtxArray 
     
 def selectHierarchy(node):

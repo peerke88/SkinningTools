@@ -2,6 +2,7 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.ThirdParty.kdtree import KDTree
+from SkinningTools.py23 import *
 
 class MeshSelector(QDialog):
     def __init__(self, inMesh='', inBB=[], meshes = {}, parent=None):
@@ -44,7 +45,7 @@ class MeshSelector(QDialog):
         minList = []
         maxList = []
         meshList = []
-        for (mesh, bbox) in otherMeshes.iteritems():
+        for (mesh, bbox) in otherMeshes.items():
             minList.append(bbox[0])
             maxList.append(bbox[1])
             meshList.append(mesh)

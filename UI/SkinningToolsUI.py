@@ -239,7 +239,7 @@ class SkinningToolsUI(interface.DockWidget):
         :param localeDict: the dictionary holding information on how to translate the ui
         :type localeDict: dict
         """
-        for key, value in localeDict.iteritems():
+        for key, value in localeDict.items():
             if hasattr(self.textInfo[key], "tearOffTabName"):
                 self.textInfo[key].tabParent.setTabText(self.textInfo[key].cIndex, value)
             elif isinstance(self.textInfo[key], QMenu):
@@ -251,7 +251,7 @@ class SkinningToolsUI(interface.DockWidget):
         """ convenience function to get the current items that need new locale text
         """
         _ret = {}
-        for key, value in self.textInfo.iteritems():
+        for key, value in self.textInfo.items():
             if hasattr(self.textInfo[key], "tearOffTabName"):
                 _ret[key] = self.textInfo[key].tearOffTabName
             elif isinstance(self.textInfo[key], QMenu):
@@ -377,7 +377,7 @@ class SkinningToolsUI(interface.DockWidget):
         _dict["initial SkinBind"] = [InitWeightUI(self), ":/menuIconPaintEffects.png"]
         _dict["Assign Soft Select"] = [SoftSelectionToWeightsWidget(self), ":/Grab.png"]
         
-        for index, (key, value) in enumerate(_dict.iteritems()):
+        for index, (key, value) in enumerate(_dict.items()):
             self.textInfo["copyTab_%s"%(index)] = self.copyToolsTab.addGraphicsTab(key, useIcon = value[1])
             self.textInfo["copyTab_%s"%(index)].tabParent = self.copyToolsTab
             _vLay = nullVBoxLayout()
@@ -630,7 +630,7 @@ class SkinningToolsUI(interface.DockWidget):
                   "tabs": self.tabs,
                   "copyTls": self.copyToolsTab,
                 }
-        for key, comp in tools.iteritems():
+        for key, comp in tools.items():
             index = self.settings.value(key, 0)
             if index in [None, "None", "0"]:
                 index = 0

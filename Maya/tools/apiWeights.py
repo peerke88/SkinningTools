@@ -176,7 +176,7 @@ class ApiWeights():
             amountInfluences = len(infIndices)
             weights = skinFn.getWeights( meshPath , vertexComp)
             _wght = weights[0]
-            weights = [[_wght[i+j*amountInfluences] for i in xrange(amountInfluences)] for j in xrange(len(_wght)/amountInfluences)]
+            weights = [[_wght[i+j*amountInfluences] for i in range(amountInfluences)] for j in range(len(_wght)/amountInfluences)]
             self.meshWeights[node] = weights
             
             jointInfluences = [infDags[x].fullPathName() for x in range(len(infIndices))]

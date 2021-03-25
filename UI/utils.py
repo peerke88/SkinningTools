@@ -565,7 +565,7 @@ def onContextMenu(buttonObj, popMenu, functions, point):
     :param point: position to spawn the menu on screen
     :type point: Qpos
     """
-    for key, value in buttonObj.checks.iteritems():
+    for key, value in buttonObj.checks.items():
         functions[key].setChecked(value.isChecked())
     popMenu.exec_(buttonObj.mapToGlobal(point))
 
@@ -702,7 +702,7 @@ def gDriveDownload(urlinfo, destination, progressBar = None):
     
     setProgress(10, progressBar, inText="send request")
     percentage = 80.0/len(urlinfo.keys())
-    for index, (fileName, url) in enumerate(urlinfo.iteritems()):
+    for index, (fileName, url) in enumerate(urlinfo.items()):
 
         response = requests.get(url, stream=True)
         saveResponseContent(response, os.path.join( destination, fileName ) )
