@@ -1,7 +1,6 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface
-from SkinningTools.Maya.tools import skinCluster
 from functools import partial
 from math import *
 
@@ -359,7 +358,7 @@ class radialMenu(QMainWindow):
         """
         if operation != 1 and value != 1:
             value = self._value
-        skinCluster.doSkinPercent(self.inputObject, value, operation=operation)
+        interface.doSkinPercent(self.inputObject, value, operation=operation)
 
     def _setCheckState(self, item, *_):
         """ function that will run once the checkbox state has changed

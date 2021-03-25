@@ -32,6 +32,8 @@ if sys.version_info.major == 2:
 
     # Override range with xrange to mimic python3's range
     range = xrange
+else:
+	unicode = str
 
 try:
     from typing import *

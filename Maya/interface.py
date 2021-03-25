@@ -28,7 +28,10 @@ def showToolTip(inBool):
 def getAllJoints(useSelection = False):
     return cmds.ls(sl=useSelection, type="joint")
 
-
+@shared.dec_repeat
+def doSkinPercent(bone, value, operation):
+    skinCluster.doSkinPercent(bone, value, operation)
+    
 # ensure we get ordered selection and all in long names
 def getSelection():
     return cmds.ls(os=1, l=1, fl=1)

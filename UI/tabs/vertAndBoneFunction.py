@@ -469,7 +469,7 @@ class VertAndBoneFunction(QWidget):
         self._clearLayout()
         _rc = int(len(self.__buttons)*.5)
         for index, btn in enumerate(self.__buttons):
-            row = index / _rc
+            row = int(index / _rc)
             self.gridLayout.addWidget(btn, index - (row * _rc), row)
 
     def _convertStyleSheet(self, inStyleSheet):

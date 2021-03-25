@@ -1,6 +1,6 @@
 from maya import cmds
 from maya.api.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList
-from shared import *
+# from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
 from SkinningTools.UI import utils

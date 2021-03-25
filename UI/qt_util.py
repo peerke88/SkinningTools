@@ -23,7 +23,6 @@ except Exception as e:
         from PySide2.QtSvg import *
         from PySide2 import QtGui
         from PySide2.QtUiTools import *
-        import pyside2uic as pysideuic
         import shiboken2 as shiboken
 
         QString = None
@@ -36,7 +35,7 @@ except Exception as e:
             from PyQt4.QtSvg import *
             from PyQt4 import QtGui
             from PyQt4.QtUiTools import *
-            import pysideuic, shiboken
+            import  shiboken
 
             QT_VERSION = "pyqt4"
         except Exception as e:
@@ -55,7 +54,7 @@ def wrapinstance(ptr, base=None):
     if ptr is None:
         return None
     ptr = int(ptr)
-    if globals().has_key('shiboken'):
+    if 'shiboken' in globals().keys():
         if base is None:
             qObj = shiboken.wrapInstance(int(ptr), QObject)
             metaObj = qObj.metaObject()
@@ -68,7 +67,7 @@ def wrapinstance(ptr, base=None):
             else:
                 base = QWidget
         return shiboken.wrapInstance(int(ptr), base)
-    elif globals().has_key('sip'):
+    elif "sip" in globals().keys():
         base = QObject
         return sip.wrapinstance(int(ptr), base)
     else:

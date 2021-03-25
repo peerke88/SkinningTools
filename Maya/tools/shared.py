@@ -101,7 +101,13 @@ def dec_repeat(func):
         try:
             modules = ''
             arguments = args
-            if [x for x in ['cls', 'self'] if x in func.func_code.co_varnames]:
+
+            if sys.version_info.major == 2:
+                varNames = func.func_code.co_varnames
+            else:
+                varNames = func.__code__.co_varnames
+
+            if [x for x in ['cls', 'self'] if x in varNames]:
                 arguments = args[1:]
                 modules = '%s.' % args[0]
 
@@ -109,19 +115,22 @@ def dec_repeat(func):
             for each in arguments:
                 if isinstance(each, QWidget):
                     each = None
+                if each == '':
+                    continue
+                if type(each) in [str, unicode, bytes]:
+                    each = '\'{}\''.format(each)
+                    
                 args_string += '%s, ' % each
-
+            
             kwargs_string = ''
             for key, item in kwargs.items():
                 if isinstance(item, QWidget):
                     item = None
                 kwargs_string = '%s=%s, ' % (key, item)
 
-            repeat_command = '%s%s(%s%s)' % (modules, func.__name__, args_string, kwargs_string)
-            if not '' in [args_string, kwargs_string]:
-                repeat_command = '%s%s(%s, %s)' % (modules, func.__name__, args_string, kwargs_string)
-            print('python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
+            repeat_command = '{0}{1}({2}{3})'.format(modules, func.__name__, args_string, kwargs_string).replace(", ,", ",")
             cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
+        
         except Exception as e:
             if _DEBUG:
                 print("if this is fired the when repeating a command it means it uses MEL")
