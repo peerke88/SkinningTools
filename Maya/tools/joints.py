@@ -307,8 +307,8 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     :rtype: bool
     """
     sc = shared.skinCluster(skin, True)
-    infjnts = getInfluencingJoints(sc)
     addCleanJoint([joint1, joint2], skin)
+    infjnts = list(set(getInfluencingJoints(sc) + [joint1, joint2]))
 
     meshShapeName = cmds.listRelatives(skin, s=True, f=1)[0]
     outInfluencesArray = shared.getWeights(skin)

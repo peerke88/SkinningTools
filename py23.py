@@ -35,6 +35,7 @@ if sys.version_info.major == 2:
 else:
 	unicode = str
 	long = int
+    
 
 try:
     from typing import *

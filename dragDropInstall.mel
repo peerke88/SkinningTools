@@ -29,7 +29,7 @@ global proc placeTools(string $path){
 };
 */
 global proc runPythonTools(string $path){
-	python("import sys; sys.path.insert(0,r'"+$path+"'); import packageInstaller;reload(packageInstaller);packageInstaller.doFunction(True)");
+	python("import sys; sys.path.insert(0,r'"+$path+"'); import packageInstaller;packageInstaller.doFunction(True)");
 };
 
 $place_path=currentFolder("findMe");
