@@ -1,6 +1,7 @@
 import sys
 import os
 from maya import cmds
+from py23 import *
 
 import SkinningTools.Maya.api as api
 reload(api)

@@ -1,5 +1,5 @@
 from maya import cmds
-from maya.api.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList
+from maya.api.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList, MGlobal, MItSelectionList, MFnSingleIndexedComponent
 # from shared import *
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
@@ -368,17 +368,17 @@ def softSelection():
         print("no components selected to get information from, current selection: %s" % _sel)
         return [], []
 
-    richSelection = OpenMaya.MGlobal.getRichSelection()
+    richSelection = MGlobal.getRichSelection()
     selection = richSelection.getSelection()
 
-    iter = OpenMaya.MItSelectionList(selection)
+    iter = MItSelectionList(selection)
 
     elements, weights = [], []
     while not iter.isDone():
         dagPath, component = iter.getComponent()
         node = dagPath.fullPathName()
 
-        fnComp = OpenMaya.MFnSingleIndexedComponent(component)
+        fnComp = MFnSingleIndexedComponent(component)
         selectedIndex = fnComp.getElements()
 
         getWeight = lambda i: fnComp.weight(i).influence if fnComp.hasWeights else 1.0

@@ -485,13 +485,11 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
     :rtype: bool
     """
     
-    if delete:
-        # if we delete the joint but other skinned meshes are not present in the current selection, we search for them anyway to make sure that everything is safely deleted
-        meshes = getMeshesInfluencedByJoint(jointsToRemove)
-        for mesh in meshes:
-            if mesh in skinObjects:
-                continue
-            skinObjects.append(mesh)
+    meshes = getMeshesInfluencedByJoint(jointsToRemove)
+    for mesh in meshes:
+        if mesh in skinObjects:
+            continue
+        skinObjects.append(mesh)
 
     skinClusters = []
     skinPercentage = 100.0 / len(skinObjects)
