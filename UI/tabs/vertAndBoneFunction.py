@@ -221,6 +221,7 @@ class VertAndBoneFunction(QWidget):
 
         # -- add extra functionality to buttons
         addChecks(self, self._Btn["AvgWght_Btn"], ["use distance"])
+        addChecks(self, self._Btn["shellUn_btn"], ["use vtx polyShell"])
         addChecks(self, self._Btn["trsfrSK_Btn"], ["smooth", "uvSpace"])
         addChecks(self, self._Btn["trsfrPS_Btn"], ["smooth", "uvSpace"])
         addChecks(self, self._Btn["nghbors_Btn"], ["growing", "full"])
@@ -270,6 +271,7 @@ class VertAndBoneFunction(QWidget):
         self._Btn["trsfrPS_Btn"].clicked.connect( partial( self._trsfrSK_func, self._Btn["trsfrPS_Btn"], True ) )
 
         self._Btn["AvgWght_Btn"].clicked.connect( partial( self._AvgWght_func, self._Btn["AvgWght_Btn"] ) )
+        self._Btn["shellUn_btn"].clicked.connect( partial( self._Unify_func)) #interface.unifyShells, self.progressBar ) )
         self._Btn["nghbors_Btn"].clicked.connect( partial( self._nghbors_func, self._Btn["nghbors_Btn"] ) )
         self._Btn["smthBrs_Btn"].clicked.connect( partial( self._smoothBrs_func, self._Btn["smthBrs_Btn"] ) )
         self._Btn["toJoint_Btn"].clicked.connect( partial( self._convertToJoint_func, self._Btn["toJoint_Btn"] ) )
@@ -288,7 +290,6 @@ class VertAndBoneFunction(QWidget):
 
         self._Btn["cpyWght_Btn"].clicked.connect( partial( interface.copyVtx, self.progressBar ) )
         self._Btn["swchVtx_Btn"].clicked.connect( partial( interface.switchVtx, self.progressBar ) )
-        self._Btn["shellUn_btn"].clicked.connect( partial( interface.unifyShells, self.progressBar ) )
         self._Btn["rstPose_Btn"].clicked.connect( partial( interface.resetPose, self.progressBar ) )
         self._Btn["hammerV_Btn"].clicked.connect( partial( interface.hammerVerts, self.progressBar ) )
         self._Btn["showInf_Btn"].clicked.connect( partial( interface.showInfVerts, self.progressBar ) )
@@ -538,6 +539,12 @@ class VertAndBoneFunction(QWidget):
         :type sender: QPushButton
         """
         interface.avgVtx(sender.checks["use distance"].isChecked(), self.BezierGraph.curveAsPoints(), self.progressBar)
+
+    def _Unify_func(self, sender):
+        if sender.checks["use vtx polyShell"].isChecked():
+            interface.setHardShellWeight(self.progressbar)
+            return
+        interface.unifyShells(self.progressbar)
 
     def _trsfrSK_func(self, sender, inPlace):
         """ transfer skin connection function using the extra attributes

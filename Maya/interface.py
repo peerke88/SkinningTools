@@ -540,14 +540,44 @@ def initBpBrush():
     sc = shared.skinCluster(selection[0])
     cmds.SBR_cache_manager(buildCache = sc)
 
+def setHardShellWeight(inProgressBar = None):
+    _copy = vertexWeight()
+    selection = shared.convertToCompList(getSelection())
+    amount = len(selection)
+    precentage = 99.0/ amount
+    utils.setProgress(0, progressBar, "start creating hard shells" )
+    processed = []
+    for index, vert in selection:
+        if vert in processed:
+            continue
+
+        _copy.getVtxWeight(vert)
+        
+        face = cmds.polyListComponentConversion(vert, tf=1)
+        moreFaces = cmds.filterExpand(face, sm=34, fp=1)
+        mesh = face[0].split('.')[0]
+        idx = shared.convertToIndexList(moreFaces)[0]
+        faces = cmds.polySelect(q=1, extendToShell=idx)
+        shell = shared.convertToCompList(faces, mesh, "f")
+        processed.extend( shared.convertToVertexList(shell) )
+        
+        _copy.setVtxWeight(shell)
+        utils.setProgress(precentage*index, progressBar, "converting hard shell" )
+
+    utils.setProgress(100, progressBar, "processed all shells in selection")
+
+
 class vertexWeight(object):
     def __init__(self, inProgressBar=None):
         self.vertexWeightInfo = None
         self.boneInfo = None
         self.__progressBar = inProgressBar
 
-    def getVtxWeight(self):
+    def getVtxWeight(self, inSelection=None):
         selection = getSelection()
+        if inSelection:
+            selection = inSelection
+
         if not selection:
             cmds.error("nothing selected")
 
@@ -564,8 +594,11 @@ class vertexWeight(object):
         return index
 
     @shared.dec_undo
-    def setVtxWeight(self):
+    def setVtxWeight(self, inSelection = None):
         selection = getSelection()
+        if inSelection:
+            selection = inSelection
+
         if not selection:
             cmds.error("nothing selected")
 
