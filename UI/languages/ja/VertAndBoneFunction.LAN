@@ -7,6 +7,7 @@
   "hammerV_Btn": "\u30a6\u30a7\u30a4\u30c8\u30cf\u30f3\u30de\u30fc ", 
   "smooth1": "\u30b9\u30e0\u30fc\u30ba ", 
   "swchVtx_Btn": "vtx\u3092\u5207\u308a\u66ff\u3048\u307e\u3059 ", 
+  "polyShell": "use vtx polyShell",
   "b2bSwch_Btn": "\u9aa8\u306e\u5f71\u97ff\u3092\u4ea4\u63db\u3057\u307e\u3059\u3002 ", 
   "smthBrs_Btn": "\u30b9\u30e0\u30fc\u30ba ", 
   "sepMesh_Btn": "\u30b9\u30ad\u30f3\u30e1\u30c3\u30b7\u30e5\u3092\u62bd\u51fa\u3057\u307e\u3059 ", 

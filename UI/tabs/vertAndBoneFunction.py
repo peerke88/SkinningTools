@@ -234,6 +234,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, self._Btn["smthBrs_Btn"], ["relax", "volume"])
         
         self._Btn["dist"] = self._Btn["AvgWght_Btn"].checks["use distance"]
+        self._Btn["polyShell"] = self._Btn["shellUn_btn"].checks["use vtx polyShell"]
         self._Btn["smooth"] = self._Btn["trsfrSK_Btn"].checks["smooth"]
         self._Btn["uvSpace"] = self._Btn["trsfrSK_Btn"].checks["uvSpace"]
         self._Btn["smooth1"] = self._Btn["trsfrPS_Btn"].checks["smooth"]
@@ -253,13 +254,13 @@ class VertAndBoneFunction(QWidget):
         self._Btn["relax"] = self._Btn["smthBrs_Btn"].checks["relax"]
         self._Btn["volume"] = self._Btn["smthBrs_Btn"].checks["volume"]
 
-        self._remp = {"use distance" : "dist", "smooth" : "smooth", "uvSpace" : "uvSpace", "smooth" : "smooth1",
+        self._remp = {"use distance" : "dist", "use vtx polyShell": "polyShell", "smooth" : "smooth", "uvSpace" : "uvSpace", "smooth" : "smooth1",
                       "uvSpace" : "uvSpace1", "growing" : "growing", "full" : "full", "specify name" : "specify name",
                       "internal" : "internal", "use opm" : "use opm", "use parent" : "use parent", "delete" : "delete",
                       "fast" : "fast", "query" : "query", "invert" : "invert", "model only" : "model only",
                       "in Pose" : "in Pose", "relax" : "relax", "volume" : "volume"}
 
-        self.checkedButtons = [self._Btn["AvgWght_Btn"], self._Btn["trsfrSK_Btn"], self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], self._Btn["toJoint_Btn"], 
+        self.checkedButtons = [self._Btn["AvgWght_Btn"], self._Btn["shellUn_btn"], self._Btn["trsfrSK_Btn"], self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], self._Btn["toJoint_Btn"], 
                                self._Btn["cutMesh_Btn"], self._Btn["delBone_Btn"], self._Btn["unifyBn_Btn"], self._Btn["onlySel_Btn"], self._Btn["BindFix_Btn"], self._Btn["smthBrs_Btn"]]
 
         # -- singal connections                     

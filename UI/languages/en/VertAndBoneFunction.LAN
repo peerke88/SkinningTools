@@ -4,6 +4,7 @@
   "showInf_Btn": "influenced vtx", 
   "delBone_Btn": "remove joint", 
   "dist": "use distance", 
+  "polyShell": "use vtx polyShell",
   "hammerV_Btn": "weight hammer", 
   "smooth1": "smooth", 
   "swchVtx_Btn": "switch vtx", 
