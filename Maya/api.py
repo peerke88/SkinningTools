@@ -73,7 +73,13 @@ def selectedSkinnedShapes():
 
     return result
 
+def loadPlugin(plugin):
+    loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
+    registered = cmds.pluginInfo(plugin, q=True, registered=True)
 
+    if not registered or not loaded:
+        cmds.loadPlugin(plugin)
+        
 def getMayaVersion():
     """ get the current general mayaversion in which this tool is launched
     

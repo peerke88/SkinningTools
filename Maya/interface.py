@@ -658,9 +658,8 @@ class skinWeight(object):
 
         sc = shared.skinCluster(mesh, True)
         if sc is None:
-            sc = cmds.skinCluster(mesh, self.boneInfo, tsb=1)
-        else:
-            boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
+            sc = cmds.skinCluster(mesh, self.boneInfo, tsb=1)[0]
+        boneInfo = cmds.listConnections("%s.matrix" % sc, source=True)
 
         missingJoints = list(set(self.boneInfo) - set(boneInfo))
         joints.addCleanJoint(missingJoints, mesh, self.__progressBar)

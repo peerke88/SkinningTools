@@ -25,6 +25,10 @@ class SkinningToolsSliderList(QWidget):
             widget.deleteLater()
 
     def update(self):
+        hasSkin = api.selectedSkinnedShapes()
+        if not hasSkin or hasSkin == []:
+            return
+
         self.clear()
         vertices = api.selectedObjectVertexList(True)
         if not vertices:

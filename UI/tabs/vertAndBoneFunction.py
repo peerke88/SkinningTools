@@ -3,7 +3,7 @@ from SkinningTools.Maya import api, interface
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.py23 import *
-from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCommand, _CTX
+from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCommand, _CTX, pathToSmoothBrushPlugin
 from functools import  partial
 import os
 
@@ -13,6 +13,7 @@ _DEBUG = getDebugState()
 # @todo: maybe convert the favourite functionality to a tag system instead of a list based function
 # this could make code easier to read and adjust + more simple to find the objects necessary
 #  ^^^ this now needs to change as language settings broke the favourite functionality
+
 
 class VertAndBoneFunction(QWidget):
     """ the widget that holds all custom single button / buttongroup functions for authoring in the dcc tools
@@ -170,6 +171,8 @@ class VertAndBoneFunction(QWidget):
         self._Btn["vtxOver_Btn"] = svgButton("sel infl. > max", _svgPath("vertOver"), size=self.__IS, toolTipInfo = "getMax")
 
         # -- complex button layout creation
+        api.loadPlugin(pathToSmoothBrushPlugin())
+
         smthBrs_Lay = QWidget()
         smthBrs_Lay.setLayout(nullHBoxLayout())
         self._Btn["initSmt_Btn"] = svgButton("BP", _svgPath("Empty"), size=self.__IS, toolTipInfo = "smoothBrush")
@@ -272,7 +275,7 @@ class VertAndBoneFunction(QWidget):
         self._Btn["trsfrPS_Btn"].clicked.connect( partial( self._trsfrSK_func, self._Btn["trsfrPS_Btn"], True ) )
 
         self._Btn["AvgWght_Btn"].clicked.connect( partial( self._AvgWght_func, self._Btn["AvgWght_Btn"] ) )
-        self._Btn["shellUn_btn"].clicked.connect( partial( self._Unify_func)) #interface.unifyShells, self.progressBar ) )
+        self._Btn["shellUn_btn"].clicked.connect( partial( self._Unify_func, self._Btn["shellUn_btn"])) #interface.unifyShells, self.progressBar ) )
         self._Btn["nghbors_Btn"].clicked.connect( partial( self._nghbors_func, self._Btn["nghbors_Btn"] ) )
         self._Btn["smthBrs_Btn"].clicked.connect( partial( self._smoothBrs_func, self._Btn["smthBrs_Btn"] ) )
         self._Btn["toJoint_Btn"].clicked.connect( partial( self._convertToJoint_func, self._Btn["toJoint_Btn"] ) )
@@ -543,9 +546,9 @@ class VertAndBoneFunction(QWidget):
 
     def _Unify_func(self, sender):
         if sender.checks["use vtx polyShell"].isChecked():
-            interface.setHardShellWeight(self.progressbar)
+            interface.setHardShellWeight(self.progressBar)
             return
-        interface.unifyShells(self.progressbar)
+        interface.unifyShells(self.progressBar)
 
     def _trsfrSK_func(self, sender, inPlace):
         """ transfer skin connection function using the extra attributes
