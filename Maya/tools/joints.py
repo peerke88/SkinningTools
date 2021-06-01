@@ -867,23 +867,40 @@ def localRotateAxis(inSelection, showAxis = False, progressBar = None):
         utils.setProgress(index * percentage, progressBar, "set LRA")
     utils.setProgress(100, progressBar, "set LRA")
 
-def mirrorJoints(inSelection, mirrorAxis = "X", behaviour = True, searchReplace =('L_', 'R_') , progressBar = None):
+def mirrorJoints(inSelection, mirrorAxis = "X", behaviour = True, searchReplace =('L_', 'R_') , worldSpace = True,  progressBar = None):
     if type(mirrorAxis) == int:
         mirrorAxis = "XYZ"[ mirrorAxis ]
     _mirrorSetup = { "X" : [ False, False, True ],
                      "Y" : [ False, True, False ],
                      "Z" : [ True, False, False ]}
 
-    percentage = 99.0 / len(inSelection)
+    percentage = 79.0 / len(inSelection)
+    parentInfo = {}
     for index, jnt in enumerate(inSelection):
         if cmds.objectType(jnt) != "joint":
             continue
+        parent = None
+        if worldSpace:
+            parent = cmds.listRelatives(jnt, p=1, f=1)[0] or None
+        if parent != None:
+            cmds.parent(jnt, w=1)
+        parentInfo[jnt] == parent
+
         cmds.mirrorJoint(jnt, mxy=_mirrorSetup[mirrorAxis.upper()][0], 
                               mxz=_mirrorSetup[mirrorAxis.upper()][1], 
                               myz=_mirrorSetup[mirrorAxis.upper()][2], 
                               mirrorBehavior=behaviour,
                               searchReplace=searchReplace )
         utils.setProgress(index * percentage, progressBar, "mirror joints")
+    
+    percentage = 20.0/len(list(parentInfo.keys()))
+    for key, value in parentInfo.items():
+        _value = value.replace(*searchReplace)
+        if cmds.objExists(_value):
+            value = _value
+        cmds.parent(key.replace(*searchReplace), value)
+        utils.setProgress((index * percentage) + 79,0, progressBar, "reparent mirrored joints")
+
     utils.setProgress(100, progressBar, "mirrored joints")
 
 def jointLookat(point, pointAt, normal = None, space = enumerators.Space.Global,primaryAxis =enumerators.AxisEnumerator.PosAxisX, secondaryAxis = enumerators.AxisEnumerator.PosAxisY, progressBar = None):

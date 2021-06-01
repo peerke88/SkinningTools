@@ -143,7 +143,7 @@ class TransferWeightsWidget(QWidget):
         if not cmds.objExists(source) or not cmds.objExists(target):
             print('Must load an existing source and target skin cluster to copy between')
             return
-        expandedVertices = convertToVertexList(cmds.ls(sl=1, fl=1))
+        expandedVertices = convertToIndexList(convertToVertexList(cmds.ls(sl=1, fl=1)))
         if not expandedVertices:
             print('Must select vertices to copy weights for')
             return
@@ -164,36 +164,31 @@ class TransferWeightsWidget(QWidget):
         numInInf = len(inInfluences)
         numOutInf = len(outInfluences)
 
-        percentage = 1.0
-        if self.__loadBar is not None:
-            percentage = 99.0 / len(expandedVertices)
-            self.__loadBar.message = "transfering weights from %s >> %s" % (source, target)
+        
+        percentage = 99.0 / len(expandedVertices)
+        utils.setProgress(0, self.__loadBar, "transfering weights from %s >> %s" % (source, target) )
 
-        for iteration, vertex in enumerate(expandedVertices):
-            identifier = int(vertex.rsplit('[', 1)[-1].split(']', 1)[0])
+        for iteration, identifier in enumerate(expandedVertices):
             if not self.textInfo["additive"].isChecked():
                 outWeights[identifier * numOutInf: (identifier + 1) * numOutInf] = [0] * numOutInf
+
             for i in range(numInInf):
                 offset = outInfluences.index(inInfluences[i])
-                outWeights[identifier * numOutInf + offset] += inWeights[identifier * numInInf + i]
-            tw = 0
-            for i in range(numOutInf):
-                tw += outWeights[identifier * numOutInf + i]
+                outWeights[(identifier * numOutInf) + offset] += inWeights[(identifier * numInInf) + i]
+            
+            tw = sum(outWeights[(identifier * numOutInf):((identifier+1) * numOutInf)])
+
             if tw == 0:
                 continue
+
             ratio = 1.0 / tw
             for i in range(numOutInf):
                 outWeights[identifier * numOutInf + i] *= ratio
 
-            if self.__loadBar is not None:
-                self.__loadBar.setValue(percentage * (iteration + 1))
-                QApplication.processEvents()
-
-
+            utils.setProgress(percentage * iteration, self.__loadBar, "transfering weights from %s >> %s" % (source, target) )
+            
         setWeights(target, outWeights)
-        if self.__loadBar is not None:
-            self.__loadBar.setValue(100)
-            QApplication.processEvents()
+        utils.setProgress(100, self.__loadBar, "transfered weights from %s >> %s" % (source, target) )
 
     def __addItem(self, name, pyData):
         match = self.list.findItems(name, Qt.MatchExactly)
