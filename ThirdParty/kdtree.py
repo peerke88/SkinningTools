@@ -96,7 +96,7 @@ class KDTree():
             # sort point list and choose median as pivot point,
             # TODO: better selection method, linear-time selection, distribution
             point_list.sort(key=lambda point: point[axis])
-            median = len(point_list) / 2  # choose median
+            median = int(len(point_list) / 2) # choose median
 
             # create node and recursively construct subtrees
             node = KDTreeNode(point=point_list[median],
