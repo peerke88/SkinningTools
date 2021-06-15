@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from SkinningTools.UI.utils import remap
 from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI import utils
 from SkinningTools.Maya.tools import shared, mathUtils, mesh, enumerators
-from SkinningTools.py23 import *
-from maya import cmds, mel
-from maya.api.OpenMaya import MSpace, MFnTransform, MVector, MFnMesh, MObject
+from maya import cmds
+from maya.api.OpenMaya import MVector
 
 
 # @note all functions must have connection with progressbar and sensible progress messages,
@@ -486,10 +484,10 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
     """
     
     meshes = getMeshesInfluencedByJoint(jointsToRemove)
-    for mesh in meshes:
-        if mesh in skinObjects:
+    for _mesh in meshes:
+        if _mesh in skinObjects:
             continue
-        skinObjects.append(mesh)
+        skinObjects.append(_mesh)
 
     skinClusters = []
     skinPercentage = 100.0 / len(skinObjects)
@@ -568,7 +566,6 @@ def comparejointInfluences(skinObjects, query=False, progressBar=None):
     :return: `True` if the function is completed, list of joints in query mode, None if there are no joints to be found in query
     :rtype: bool, list
     """
-    objs = cmds.ls(sl=1)
     jnts = []
     for obj in skinObjects:
         sc = shared.skinCluster(obj, True)
@@ -704,7 +701,7 @@ def convertClusterToJoint(inCluster, jointName=None, progressBar=None):
     sc = shared.skinCluster(inMesh, True)
     cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=jnt)
 
-    expandedVertices = shared.convertToVertexList(inMesh)
+    # expandedVertices = shared.convertToVertexList(inMesh)
     values = cmds.percent(clusterDeformer, inMesh, q=1, v=1)
 
     percentage = 99.0 / len(allConnected)

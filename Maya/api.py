@@ -4,7 +4,7 @@ Maya stub of imports used in the UI library.
 The idea is to make this file as short as possible
 while leaving room for other packages to implement features.
 """
-import functools,os, sys, platform
+import functools, os, sys, platform
 from SkinningTools.Maya.tools import shared, joints
 from SkinningTools.Maya.tools import weightPaintUtils
 from SkinningTools.UI.qt_util import QObject, QApplication
@@ -15,9 +15,10 @@ from SkinningTools.UI.utils import *
 
 _DEBUG = getDebugState()
 
+
 def get_maya_window():
     """ get the current maya window as a qt widget
-    
+
     :return: the widget or none
     :rtype: QWidget
     """
@@ -26,14 +27,14 @@ def get_maya_window():
         if widget.objectName() == "MayaWindow":
             _widget = widget
     if _widget is None:
-        _widget = wrapinstance( long( OpenMayaUI.MQtUtil.mainWindow() ) )
+        _widget = wrapinstance(long(OpenMayaUI.MQtUtil.mainWindow()))
 
     return _widget
 
 
 def selectedObjectVertexList(includeObjects=False):
     """ get the current object/component selection
-    
+
     :param includeObjects: if `True` will return the name of the object from which the vertex comes from, if `False` will only return the vertices
     :type includeObjects: bool
     :return: list of vertices 
@@ -47,6 +48,7 @@ def selectedObjectVertexList(includeObjects=False):
         return [(r.split('.', 1)[0], r) for r in res]
     return res
 
+
 skinPercent = cmds.skinPercent
 meshVertexList = shared.convertToVertexList
 addCleanJoint = joints.addCleanJoint
@@ -54,9 +56,10 @@ skinClusterForObject = shared.skinCluster
 skinClusterForObjectHeadless = functools.partial(shared.skinCluster, silent=True)
 dec_undo = shared.dec_undo
 
+
 def selectedSkinnedShapes():
     """ get the shapes of skinned objects
-    
+
     :return: list of shapes
     :rtype: list
     """
@@ -73,16 +76,18 @@ def selectedSkinnedShapes():
 
     return result
 
+
 def loadPlugin(plugin):
     loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
     registered = cmds.pluginInfo(plugin, q=True, registered=True)
 
     if not registered or not loaded:
         cmds.loadPlugin(plugin)
-        
+
+
 def getMayaVersion():
     """ get the current general mayaversion in which this tool is launched
-    
+
     :return: maya version number as string
     :rtype: string
     """
@@ -96,7 +101,7 @@ def getMayaVersion():
 
 def getPluginSuffix():
     """ get the current plugin suffix based on the os that we are running
-    
+
     :return: suffix for plugin files specific to a particular os
     :rtype: string
     """
@@ -110,20 +115,20 @@ def getPluginSuffix():
 
 def getPlugin():
     """ get the smoothbrush plugin based on information gathered on how maya is run
-    
+
     :return: the path of the plugin to load
     :rtype: string
     """
     mayaVersion = getMayaVersion()
     suffix = getPluginSuffix()
     currentPath = os.path.dirname(__file__)
-    _plugin = os.path.join( currentPath, "plugin/averageWeightPerryCpp/comp/Maya%s/plug-ins/SkinCommands%s"%(mayaVersion, suffix))
+    _plugin = os.path.join(currentPath, "plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/SkinCommands%s" % (mayaVersion, suffix))
     return _plugin
-    
+
 
 def connectSelectionChangedCallback(callback):
     """ connect a callback to a selection changed event
-    
+
     :param callback: the callback to connect
     :type callback: function
     :return: scriptjob that holds the callback
@@ -134,7 +139,7 @@ def connectSelectionChangedCallback(callback):
 
 def disconnectCallback(handle):
     """ disconnect a callback present in the scene
-    
+
     :param handle: the name of the scriptjob to remove
     :type handle: string
     """
@@ -143,9 +148,10 @@ def disconnectCallback(handle):
     else:
         print("Unrecognized handle")
 
+
 def getApiDir():
     """ get the path to the current file
-    
+
     :return: path of the api file
     :rtype: string
     """
@@ -154,17 +160,17 @@ def getApiDir():
 
 def dec_loadPlugin(input):
     """ forwarded decorator function to load plugins
-    
+
     :note: maybe remove this? too many similar functions? combine them all together
     :param input: name of the (python)plugin to load
     :type input: string
     """
-    return shared.dec_loadPlugin(os.path.join(getApiDir(), "plugin/%s"%input))
+    return shared.dec_loadPlugin(os.path.join(getApiDir(), "plugin/%s" % input))
 
 
 def skinClusterInfluences(skinCluster):
     """ forwarded function to get joint information from skincluster
-    
+
     :param skinCluster: skincluster to gather data from
     :type skinCluster: string
     :return: list of all joints(fullpath) connected to the skincluster
@@ -172,9 +178,10 @@ def skinClusterInfluences(skinCluster):
     """
     return cmds.ls(cmds.listConnections("%s.matrix" % skinCluster, source=True), l=1)
 
+
 def getSkinWeights(geometry):
     """ forwarded function to get the skinning data of a mesh
-    
+
     :param geometry: mesh to get data from
     :type geometry: string
     :return: list of all weights on the mesh
@@ -182,9 +189,10 @@ def getSkinWeights(geometry):
     """
     return shared.getWeights(geometry)
 
+
 def setSkinWeights(geometry, skinCluster, weights, influenceIndices=None):
     """ forwarded function to set the skinning data on a mesh
-    
+
     :param geometry: mesh to set data to
     :type geometry: string
     :param skinCluster: skincluster attached to the current geometry
@@ -204,7 +212,7 @@ def getSingleVertexWeight(skinClusterHandle, vertexHandle, influenceHandle):
     """given a skin,  a vertex and a joint, return the weight
     skin cluster can be obtained with skinClusterForObject
     mvertex can be obtained with selectedObjectVertexList(True), joint can be obtained with skinClusterInfluences
-    
+
     :param skinClusterHandle: name of the current skincluster
     :type skinClusterHandle: string
     :param vertexHandle: name of current vertex
@@ -221,7 +229,7 @@ def getSingleVertexWeights(skinClusterHandle, vertexHandle):
     """given a skin and a vertex, return the weight
     skin cluster can be obtained with skinClusterForObject
     vertex can be obtained with selectedObjectVertexList(True)
-    
+
     :param skinClusterHandle: name of the current skincluster
     :type skinClusterHandle: string
     :param vertexHandle: name of current vertex
@@ -230,6 +238,7 @@ def getSingleVertexWeights(skinClusterHandle, vertexHandle):
     :rtype: list
     """
     return cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, v=True)
+
 
 def selectVertices(meshVertexPairs):
     """ select vertices based on given vertex pairs
@@ -241,6 +250,7 @@ def selectVertices(meshVertexPairs):
 
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
     mel.eval('doMenuComponentSelection("%s", "%s");' % (meshVertexPairs[0][0].split('.')[0], "vertex"))
+
 
 def _eventFilterTargets():
     """We must return all widgets that receive strong focus that we want to tap into
@@ -260,6 +270,7 @@ def _eventFilterTargets():
 
     return mainWin, qt_active_view
 
+
 def convertlistToOpenMayaArray(inList, arrayType):
     """convert given list to an openmaya arraytype
 
@@ -275,6 +286,7 @@ def convertlistToOpenMayaArray(inList, arrayType):
         array.append(elem)
     return array
 
+
 class _EventFilter(QObject):
     """ eventfilter class to allow extra functionality to be added to the current maya qt eventfilters
     """
@@ -283,7 +295,7 @@ class _EventFilter(QObject):
     @staticmethod
     def singleton():
         """ singleton of the current class for ease of identifying
-        
+
         :return: the current object singleton
         :rtype: cls
         """
@@ -340,6 +352,7 @@ def getIds(inList):
     :rtype: list
     """
     return shared.convertToIndexList(inList)
+
 
 def textProgressBar(progress, message=''):
     """ set the current progress of a function using test only

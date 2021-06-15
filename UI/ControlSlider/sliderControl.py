@@ -44,7 +44,6 @@ class SliderControl(AbstractControl):
         self.slider.valueChanged.connect(self.evaluateLogic)
 
     def editBegin(self, value):
-        print("editBegin")
         self.editModeRequested.emit()
         self.slider.hide()
         self.lineEdit.setText(value)
@@ -88,16 +87,15 @@ class SliderControl(AbstractControl):
                 self.slider.setPaintLabel(True)
             return False
 
-        if obj != self.lineEdit:
-            return AbstractControl.eventFilter(self, obj, event)
-
-        if not obj.isEnabled():
+        elif obj == self.lineEdit:
+            if obj.isEnabled():
+                if event.type() == QEvent.KeyPress:
+                    if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
+                        self.editEnd()
+                        obj.setStyleSheet('')
+                elif event.type() == QEvent.FocusOut:
+                    self.editEnd()
             return False
 
-        if event.type() == QEvent.KeyPress:
-            if event.key() == Qt.Key_Return:  # return key
-                self.editEnd()
-                obj.setStyleSheet('')
-        elif event.type() == QEvent.FocusOut:
-            self.editEnd()
-        return True
+        else:
+            return AbstractControl.eventFilter(self, obj, event)

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from maya.api.OpenMaya import MVector, MPoint, MMatrix, MQuaternion
+from maya.api.OpenMaya import MVector, MPoint, MMatrix
 from maya import cmds
 from SkinningTools.Maya.tools import enumerators
 import math
+
 
 def toVec3(inObject):
     """ convert a list or tuple to an MVector
@@ -145,6 +146,7 @@ def getCenterPosition(inPositions):
 
     return baseVec / amount
 
+
 def getSceneUp(asIndex=True):
     """function to get current scene up axis
 
@@ -157,6 +159,7 @@ def getSceneUp(asIndex=True):
     if asIndex:
         return "xyz".index(upAxis)
     return upAxis
+
 
 def lookAt(base, aim, up=None, primaryAxis=toVec3((1, 0, 0)), secondaryAxis=toVec3((0, 1, 0)), invertTerz=False):
     """convert a minimal of 2 positions to an aim matrix 
@@ -229,9 +232,11 @@ def lookAt(base, aim, up=None, primaryAxis=toVec3((1, 0, 0)), secondaryAxis=toVe
 
     return vectorsToMatrix(rotations)
 
-def clamp( value, minValue, maxValue ):
-    return max( min( value, maxValue ), minValue )
-    
+
+def clamp(value, minValue, maxValue):
+    return max(min(value, maxValue), minValue)
+
+
 def closestPointOnLine(a, b, point):
     """
     Get the closest point on a line. The line is defined by the provided a
@@ -284,6 +289,7 @@ def parameterOfPointOnLine(a, b, point):
     parameter = ap.length() / ab.length()
     return parameter
 
+
 def sortByDistance(nodes, point, points):
     """
     Sort the provided nodes list based on the distance between the point and
@@ -304,6 +310,7 @@ def sortByDistance(nodes, point, points):
 
     nodes, points = zip(*iter)
     return list(nodes), list(points)
+
 
 def laplacianSmoothing(vectors, connected, iterations=3):
     """ Perform a laplacian smoothing on the provided vectors based on a
@@ -334,6 +341,7 @@ def laplacianSmoothing(vectors, connected, iterations=3):
 
     return vectors
 
+
 def getTweeningMethod(method):
     """Get the tweening method from a string, if the function doesn't exists
     None will be returned.
@@ -351,14 +359,15 @@ def getTweeningMethods():
     :return: Tweening methods
     :rtype: dict
     """
-    _dict = { "easeInOutQuadratic" : easeInOutQuadratic, 
-              "easeInOutCubic" : easeInOutCubic, 
-              "easeInOutQuartic" : easeInOutQuartic, 
-              "easeInOutQuintic" : easeInOutQuintic, 
-              "easeInOutSinusoidal" : easeInOutSinusoidal, 
-              "easeInOutExponential" : easeInOutExponential, 
-              "easeInOutCircular" : easeInOutCircular}
+    _dict = {"easeInOutQuadratic": easeInOutQuadratic,
+             "easeInOutCubic": easeInOutCubic,
+             "easeInOutQuartic": easeInOutQuartic,
+             "easeInOutQuintic": easeInOutQuintic,
+             "easeInOutSinusoidal": easeInOutSinusoidal,
+             "easeInOutExponential": easeInOutExponential,
+             "easeInOutCircular": easeInOutCircular}
     return _dict
+
 
 def easeInOutQuadratic(n):
     n *= 2
@@ -366,7 +375,7 @@ def easeInOutQuadratic(n):
         return 0.5 * n**2
     else:
         n -= 1
-        return -0.5 * (n*(n-2) - 1)
+        return -0.5 * (n * (n - 2) - 1)
 
 
 def easeInOutCubic(n):
@@ -406,7 +415,7 @@ def easeInOutExponential(n):
         return 0.5 * math.pow(2, 10 * (n - 1))
     else:
         n -= 1
-        return -math.pow( 2, -10 * n) + 2
+        return -math.pow(2, -10 * n) + 2
 
 
 def easeInOutCircular(n):

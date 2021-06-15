@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from SkinningTools.Maya.tools import mathUtils, mesh, shared, joints
+from SkinningTools.Maya.tools import mathUtils, shared, joints
 from maya import cmds
 from SkinningTools.UI import utils
 from maya.api.OpenMaya import MVector
-from SkinningTools.py23 import *
 '''
 based on robert joosten's tool:
 https://github.com/robertjoosten/maya-skinning-tools/tree/master/scripts/skinningTools/initializeWeights
 '''
+
 
 def closestLineToPoint(lines, point):
     """Loop over all lines and find the closest point on the line from the
@@ -23,6 +23,7 @@ def closestLineToPoint(lines, point):
     """
     names, closestPoints = zip(*[(name, mathUtils.closestPointOnLine(line[0], line[1], point)) for name, line in lines.items()])
     return mathUtils.sortByDistance(names, point, closestPoints)
+
 
 def jointsToLines(inJoints):
     """Filter the provided joints list and loop its children to generate lines
@@ -40,19 +41,19 @@ def jointsToLines(inJoints):
 
     inJoints = cmds.ls(inJoints, l=True)
 
-    positions = { j: MVector(*cmds.xform(j, query=True, ws=True, t=True)) for j in inJoints }
+    positions = {j: MVector(*cmds.xform(j, query=True, ws=True, t=True)) for j in inJoints}
 
     for j in inJoints:
         point = positions.get(j)
         children = cmds.listRelatives(j, c=True, type="joint", f=True) or []
 
-        childrenData = [ (child, positions.get(child)) for child in children if child in inJoints and (point - positions.get(child)).length() > 0.001 ]
+        childrenData = [(child, positions.get(child)) for child in children if child in inJoints and (point - positions.get(child)).length() > 0.001]
 
         if not childrenData:
             continue
 
         children, childrenPositions = zip(*childrenData)
-        children, childrenPositions = mathUtils.sortByDistance( children, point, childrenPositions)
+        children, childrenPositions = mathUtils.sortByDistance(children, point, childrenPositions)
 
         children.reverse()
         childrenPositions.reverse()
@@ -60,7 +61,7 @@ def jointsToLines(inJoints):
         children.append(j)
         childrenPositions.append(point)
 
-        iter = zip( children[1:], childrenPositions[1:], children[:-1], childrenPositions[:-1] )
+        iter = zip(children[1:], childrenPositions[1:], children[:-1], childrenPositions[:-1])
 
         for p, pPoint, t, tPoint in iter:
             if (pPoint - tPoint).length() < 0.001:
@@ -81,6 +82,7 @@ def jointsToLines(inJoints):
                 lines[name] = [point, tPoint]
 
     return lines
+
 
 def buildSkinCluster(inMesh, inJoints):
     """
@@ -103,7 +105,7 @@ def buildSkinCluster(inMesh, inJoints):
     sk = shared.skinCluster(inMesh, True)
     if not sk:
         # create skin cluster
-        sk = cmds.skinCluster( inJoints, inMesh, dropoffRate=0.1 )[0]
+        sk = cmds.skinCluster(inJoints, inMesh, dropoffRate=0.1)[0]
 
     else:
         # make sure all provided joints are an influence of the skin cluster
@@ -112,7 +114,8 @@ def buildSkinCluster(inMesh, inJoints):
 
     return sk
 
-def setInitialWeights( inMesh, inJoints, iterations=3, projection=0, blend=False, blendMethod=None, progressBar = None):
+
+def setInitialWeights(inMesh, inJoints, iterations=3, projection=0, blend=False, blendMethod=None, progressBar=None):
     """
     The set initial weights function will set the skin weights on a mesh and
     the isolate only the provided components of any. Each vertex will only
@@ -133,7 +136,7 @@ def setInitialWeights( inMesh, inJoints, iterations=3, projection=0, blend=False
     """
     sk = buildSkinCluster(inMesh, inJoints)
     dag = shared.getDagpath(inMesh)
-    projection = mathUtils.clamp( projection, 0.0, 1.0 ) 
+    projection = mathUtils.clamp(projection, 0.0, 1.0)
 
     lines = jointsToLines(inJoints)
     connections = shared.getConnectedVerticesMapper(dag)
@@ -144,11 +147,11 @@ def setInitialWeights( inMesh, inJoints, iterations=3, projection=0, blend=False
     points = mathUtils.laplacianSmoothing(points, connections, iterations)
     normals = mathUtils.laplacianSmoothing(normals, connections, iterations)
     blendMethod = mathUtils.getTweeningMethod(blendMethod) if blendMethod else None
-    percentage = 99.0/len(points)
+    percentage = 99.0 / len(points)
     allJoints = joints.getInfluencingJoints(sk)
     amountJoints = len(allJoints)
 
-    utils.setProgress(0, progressBar, "building weights for %s"%inMesh )
+    utils.setProgress(0, progressBar, "building weights for %s" % inMesh)
     weightData = [0] * (len(allJoints) * len(points))
     for i in components:
         point = points[i]
@@ -168,7 +171,7 @@ def setInitialWeights( inMesh, inJoints, iterations=3, projection=0, blend=False
         influenceName = names[0]
         influenceParent, influenceChild = influenceName.split("@")
 
-        transformValue = [[influenceParent, 1]]
+        # transformValue = [[influenceParent, 1]]
         parameter = 0
         if blend:
             a, b = lines.get(influenceName)
@@ -179,6 +182,6 @@ def setInitialWeights( inMesh, inJoints, iterations=3, projection=0, blend=False
 
         weightData[(i * amountJoints) + allJoints.index(influenceParent)] = 1 - parameter
         weightData[(i * amountJoints) + allJoints.index(influenceChild)] = parameter
-        utils.setProgress(i * percentage, progressBar, "processing: %s"%vertex )
+        utils.setProgress(i * percentage, progressBar, "processing: %s" % vertex)
     shared.setWeights(inMesh, weightData)
-    utils.setProgress(100, progressBar, "build setup for %s"%inMesh )
+    utils.setProgress(100, progressBar, "build setup for %s" % inMesh)

@@ -196,7 +196,7 @@ class radialMenu(QMainWindow):
 
         line = self.mappingPos.x(), self.mappingPos.y(), pos.x() - self.OrigPos.x() + self.mappingPos.x(), pos.y() - self.OrigPos.y() + self.mappingPos.y()
         self.itemToDraw.setLine(*line)
-        old = line
+        # old = line
         line = QLineF(*line)
 
         self.itemToDraw.endCircle.setPos(QPoint(pos.x() - self.OrigPos.x(), pos.y() - self.OrigPos.y()))

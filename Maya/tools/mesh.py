@@ -1,6 +1,5 @@
 from maya import cmds
-from maya.api.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MFloatVector, MSpace, MFloatVectorArray, MColor, MColorArray, MFnMesh, MSelectionList, MGlobal, MItSelectionList, MFnSingleIndexedComponent
-# from shared import *
+from maya.api.OpenMaya import MVector, MFloatPointArray, MFloatPoint, MIntArray, MColor, MColorArray, MFnMesh, MSelectionList, MGlobal, MItSelectionList, MFnSingleIndexedComponent
 import itertools
 from SkinningTools.Maya.tools import shared, mathUtils
 from SkinningTools.UI import utils
@@ -233,7 +232,6 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
     """
     start = selection[0]
     end = selection[-1]
-    surface = start.split('.')[0]
 
     objType = cmds.objectType(start)
     if objType == 'mesh':
@@ -379,7 +377,7 @@ def softSelection():
         node = dagPath.fullPathName()
 
         fnComp = MFnSingleIndexedComponent(component)
-        selectedIndex = fnComp.getElements()
+        # selectedIndex = fnComp.getElements()
 
         getWeight = lambda i: fnComp.weight(i).influence if fnComp.hasWeights else 1.0
 
@@ -468,18 +466,13 @@ def cutCharacterFromSkin( inObject, internal=False, maya2020 = False,  progressB
     :return: group object that holds all the meshes
     :rtype: string
     """  
-    from SkinningTools.Maya.tools import joints
     skinClusterName = shared.skinCluster( inObject, silent=True )
     
     if skinClusterName == None:
         return
     
     utils.setProgress(0, progressBar, "processing: %s"%inObject )
-    objectShape = cmds.listRelatives(inObject, s=1)[0]
-    infArray = shared.getWeights(inObject)
-
     expandedList = shared.convertToVertexList(inObject)
-    attachedJoints = joints.getInfluencingJoints(skinClusterName)
     
     objList = []    
     indexConns = defaultdict(lambda : [])

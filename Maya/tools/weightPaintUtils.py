@@ -1,4 +1,4 @@
-# pickwalk through joints while painting 
+# pickwalk through joints while painting
 # created by ryan porter: https://yantor3d.wordpress.com/
 from maya import cmds, mel
 

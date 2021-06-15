@@ -3,11 +3,8 @@ from functools import partial
 from SkinningTools.UI.utils import *
 from SkinningTools.py23 import *
 from SkinningTools.Maya.tools.shared import *
-from SkinningTools.Maya import interface
-from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget, SoftSkinBuilder
-
-
-
+from SkinningTools.Maya import interface, api
+from SkinningTools.Maya.tools.skinCluster import execCopySourceTarget
 # @TODO: move this over to maya/tools or move the entire file over to maya
 from maya import cmds
 
@@ -15,6 +12,7 @@ from maya import cmds
 class TransferWeightsWidget(QWidget):
     toolName = "TransferWeightsWidget"
 
+    @dec_loadPlugin(interface.getInterfaceDir() + "/plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/skinCommands%s" % (api.getMayaVersion(), api.getPluginSuffix()))
     def __init__(self, parent=None):
         super(TransferWeightsWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
@@ -30,15 +28,15 @@ class TransferWeightsWidget(QWidget):
 
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.__restoreSettings()
-    
+
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+    def translate(self, localeDict={}):
         for key, value in localeDict.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 self.textInfo[key].setPlaceholderText(value)
             else:
                 self.textInfo[key].setText(value)
-        
+
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
@@ -54,10 +52,10 @@ class TransferWeightsWidget(QWidget):
         """ seperate function that calls upon the translate widget to help create a new language
         """
         from SkinningTools.UI import translator
-        _dict = loadLanguageFile("en", self.toolName) 
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
-          
-    # --------------------------------- ui setup ---------------------------------- 
+        _dict = loadLanguageFile("en", self.toolName)
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
+
+    # --------------------------------- ui setup ----------------------------------
     def __defaults(self):
         self.settings = QSettings('TransferWeightsWidget', 'storedSelection')
 
@@ -74,7 +72,7 @@ class TransferWeightsWidget(QWidget):
         self.textInfo["btn1"] = buttonsToAttach('ClearList', self.__clearSelectionCB)
         for w in ["btn", "btn1"]:
             h.addWidget(self.textInfo[w])
-            self.textInfo[w].setWhatsThis("transfer")        
+            self.textInfo[w].setWhatsThis("transfer")
 
         v1.addWidget(self.list)
         v1.addLayout(h)
@@ -111,10 +109,6 @@ class TransferWeightsWidget(QWidget):
 
     def __restoreSettings(self):
         for key in self.settings.allKeys():
-            try:
-                forceString = str(key)
-            except:
-                continue
             if not 'vtxSel/' in str(key):
                 continue
             data = self.settings.value(key, None)
@@ -143,7 +137,7 @@ class TransferWeightsWidget(QWidget):
         if not cmds.objExists(source) or not cmds.objExists(target):
             print('Must load an existing source and target skin cluster to copy between')
             return
-        expandedVertices = convertToIndexList(convertToVertexList(cmds.ls(sl=1, fl=1)))
+        expandedVertices = convertToVertexList(cmds.ls(sl=1, fl=1))
         if not expandedVertices:
             print('Must select vertices to copy weights for')
             return
@@ -157,26 +151,29 @@ class TransferWeightsWidget(QWidget):
         if add:
             cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
 
-        inWeights = getWeights(source)
-        outWeights = getWeights(target)
+        sourceGeo = cmds.skinCluster(source, q=True, g=True)[0]
+        targetGeo = cmds.skinCluster(target, q=True, g=True)[0]
+        inWeights = cmds.SkinWeights(sourceGeo, source, q=True)
+        outWeights = cmds.SkinWeights(targetGeo, target, q=True)
+
         outInfluences = cmds.skinCluster(target, q=True, influence=True)
 
         numInInf = len(inInfluences)
         numOutInf = len(outInfluences)
 
-        
         percentage = 99.0 / len(expandedVertices)
-        utils.setProgress(0, self.__loadBar, "transfering weights from %s >> %s" % (source, target) )
-
-        for iteration, identifier in enumerate(expandedVertices):
-            if not self.textInfo["additive"].isChecked():
+        setProgress(0, self.__loadBar, "transfering weights from %s >> %s" % (source, target))
+        _isChecked = self.textInfo["additive"].isChecked()
+        for iteration, vertex in enumerate(expandedVertices):
+            identifier = int(vertex.rsplit('[', 1)[-1].split(']', 1)[0])
+            if not _isChecked:
                 outWeights[identifier * numOutInf: (identifier + 1) * numOutInf] = [0] * numOutInf
 
             for i in range(numInInf):
                 offset = outInfluences.index(inInfluences[i])
                 outWeights[(identifier * numOutInf) + offset] += inWeights[(identifier * numInInf) + i]
-            
-            tw = sum(outWeights[(identifier * numOutInf):((identifier+1) * numOutInf)])
+
+            tw = sum(outWeights[(identifier * numOutInf):((identifier + 1) * numOutInf)])
 
             if tw == 0:
                 continue
@@ -185,10 +182,11 @@ class TransferWeightsWidget(QWidget):
             for i in range(numOutInf):
                 outWeights[identifier * numOutInf + i] *= ratio
 
-            utils.setProgress(percentage * iteration, self.__loadBar, "transfering weights from %s >> %s" % (source, target) )
-            
-        setWeights(target, outWeights)
-        utils.setProgress(100, self.__loadBar, "transfered weights from %s >> %s" % (source, target) )
+            if iteration % 10 == 0:
+                setProgress(percentage * iteration, self.__loadBar, "transfering weights from %s >> %s" % (source, target))
+
+        cmds.SkinWeights(targetGeo, target, nwt=outWeights)
+        setProgress(100, self.__loadBar, "transfered weights from %s >> %s" % (source, target))
 
     def __addItem(self, name, pyData):
         match = self.list.findItems(name, Qt.MatchExactly)
@@ -233,6 +231,7 @@ class TransferWeightsWidget(QWidget):
             else:
                 cmds.warning('%s does not exist in currentScene' % (selectionItem[0].split('.')[0]))
 
+
 class ClosestVertexWeightWidget(QWidget):
     toolName = "ClosestVertexWeightWidget"
 
@@ -244,13 +243,13 @@ class ClosestVertexWeightWidget(QWidget):
         self.clearUI()
 
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+    def translate(self, localeDict={}):
         for key, value in localeDict.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 self.textInfo[key].setPlaceholderText(value)
             else:
                 self.textInfo[key].setText(value)
-        
+
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
@@ -267,9 +266,9 @@ class ClosestVertexWeightWidget(QWidget):
         """
         from SkinningTools.UI import translator
         _dict = self.getButtonText()
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
-          
-    # --------------------------------- ui setup ---------------------------------- 
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
+
+    # --------------------------------- ui setup ----------------------------------
     def __setButtons(self):
         self.textInfo["label"] = QLabel("look closest Vtx amount:")
         self.spinBox = QSpinBox()
@@ -373,6 +372,7 @@ class ClosestVertexWeightWidget(QWidget):
 
         self.clearUI()
 
+
 class TransferUvsWidget(QWidget):
     toolName = "TransferUvsWidget"
 
@@ -384,13 +384,13 @@ class TransferUvsWidget(QWidget):
         self.clearUI()
 
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+    def translate(self, localeDict={}):
         for key, value in localeDict.items():
             if isinstance(self.textInfo[key], QLineEdit):
                 self.textInfo[key].setPlaceholderText(value)
             else:
                 self.textInfo[key].setText(value)
-        
+
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
@@ -407,9 +407,9 @@ class TransferUvsWidget(QWidget):
         """
         from SkinningTools.UI import translator
         _dict = self.getButtonText()
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
-          
-    # --------------------------------- ui setup ---------------------------------- 
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
+
+    # --------------------------------- ui setup ----------------------------------
     def __setButtons(self):
         label = QLabel("transfer Uv from static to skinned:")
         h0 = nullHBoxLayout()
@@ -420,11 +420,11 @@ class TransferUvsWidget(QWidget):
         self.textInfo["line2"].setPlaceholderText("No Target given...")
         for l in [self.textInfo["line1"], self.textInfo["line2"]]:
             l.setEnabled(0)
-        
+
         self.combo1 = QComboBox()
         self.combo2 = QComboBox()
-        self.textInfo["sourceBtn"] = buttonsToAttach( "Source", partial(self.__setValue, self.textInfo["line1"], self.combo1))
-        self.textInfo["targetBtn"] = buttonsToAttach( "Target", partial(self.__setValue, self.textInfo["line2"], self.combo2))
+        self.textInfo["sourceBtn"] = buttonsToAttach("Source", partial(self.__setValue, self.textInfo["line1"], self.combo1))
+        self.textInfo["targetBtn"] = buttonsToAttach("Target", partial(self.__setValue, self.textInfo["line2"], self.combo2))
 
         h1 = nullHBoxLayout()
         h2 = nullHBoxLayout()
@@ -433,7 +433,7 @@ class TransferUvsWidget(QWidget):
         self.layout().addWidget(label)
         for h in [h0, h1]:
             self.layout().addLayout(h)
-        
+
         for w in [self.textInfo["sourceBtn"], self.textInfo["targetBtn"]]:
             h0.addWidget(w)
             w.setWhatsThis("uvTransfer")
@@ -460,7 +460,6 @@ class TransferUvsWidget(QWidget):
         self.compSetting = [0, 0]
         self.__loadBar = None
 
-    
     def clearUI(self):
         for l in [self.textInfo["line1"], self.textInfo["line2"]]:
             l.setText('')
@@ -470,19 +469,19 @@ class TransferUvsWidget(QWidget):
 
     def __setValue(self, inLineEdit, inCombo):
         sel = interface.getSelection()
-        
+
         if type(sel) in (list, tuple) and sel != []:
             sel = sel[0]
         if "." in sel:
             sel = sel.split('.')[0]
-        
+
         inLineEdit.setText(sel)
         inLineEdit.setStyleSheet('background-color: #17D206;')
 
         uvSets = interface.getUVInfo(sel)
         inCombo.clear()
         inCombo.addItems(uvSets)
-        
+
         self.compSetting[[self.textInfo["line1"], self.textInfo["line2"]].index(inLineEdit)] = 1
 
         self.__checkEnabled()
@@ -499,14 +498,14 @@ class TransferUvsWidget(QWidget):
             cmds.warning('source or target selection is not defined!')
             return
 
-        interface.transferUV(self.textInfo["line1"].text(), self.textInfo["line2"].text(), 
-                             sMap = self.combo1.currentText(), tMap = self.combo2.currentText(), 
-                             progressBar = self.__loadBar)
+        interface.transferUV(self.textInfo["line1"].text(), self.textInfo["line2"].text(),
+                             sMap=self.combo1.currentText(), tMap=self.combo2.currentText(),
+                             progressBar=self.__loadBar)
 
         self.clearUI()
 
 
-def testUI(widgetIndex = 0):
+def testUI(widgetIndex=0):
     """ test the current UI without the need of all the extra functionality
     """
     mainWindow = interface.get_maya_window()
@@ -514,9 +513,9 @@ def testUI(widgetIndex = 0):
                1: ClosestVertexWeightWidget,
                2: TransferUvsWidget}
 
-    mwd  = QMainWindow(mainWindow)
-    mwd.setWindowTitle("%s Test window"%widgets[widgetIndex].toolName)
-    wdw = widgets[widgetIndex](parent = mainWindow)
+    mwd = QMainWindow(mainWindow)
+    mwd.setWindowTitle("%s Test window" % widgets[widgetIndex].toolName)
+    wdw = widgets[widgetIndex](parent=mainWindow)
     mwd.setCentralWidget(wdw)
     mwd.show()
     return wdw

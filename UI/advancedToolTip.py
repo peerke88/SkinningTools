@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from SkinningTools.UI.qt_util import *
-from SkinningTools.Maya import api, interface
+from SkinningTools.Maya import interface
 
 TOOLTIPDIRECTORY = os.path.join(interface.getInterfaceDir(), "tooltips")
 
@@ -10,9 +10,10 @@ class AdvancedToolTip(QWidget):
     """ advanced tooltip window
     allows the text of any language to be displayed together with a gif image to show what the current object could do for the user
     """
+
     def __init__(self, rect, parent=None):
         """ the constructor
-        
+
         :param rect: the size of the widgets
         :type rect: QRect
         :param parent: the parent widget
@@ -28,7 +29,7 @@ class AdvancedToolTip(QWidget):
 
     def leaveEvent(self, event):
         self.close()
-        
+
     def toolTipExists(self, imageName):
         """ check if the image to display exists
 

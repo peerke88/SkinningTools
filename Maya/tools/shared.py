@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess, os
+import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess
 from collections import defaultdict, deque
 from functools import wraps
 from maya import cmds, mel, OpenMaya as oldOpenMaya
@@ -36,13 +36,14 @@ def dec_undo(func):
                 cmds.warning(traceback.format_exc())
         finally:
             cmds.undoInfo(cck=True)
-            
+
     return _undo_func
+
 
 def dec_profile(func):
     """ profiler decorator
     run cprofile on wrapped function 
-    
+
     :param func: function this decorator is attached to 
     :type func: function()
     :return: the result of the given function
@@ -51,14 +52,14 @@ def dec_profile(func):
     @wraps(func)
     def _profile_func(*args, **kwargs):
         if not _DEBUG:
-            print("release: profile decorator lingering in code please remove: %s, %s"%(os.path.basename(inspect.getfile(func)), func.__name__))
+            print("release: profile decorator lingering in code please remove: %s, %s" % (os.path.basename(inspect.getfile(func)), func.__name__))
             return func(*args, **kwargs)
-        
+
         currentBaseFolder = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
         baseLocation = os.path.normpath(os.path.join(currentBaseFolder, "ThirdParty", "qcachegrind"))
         inLocation = os.path.normpath(os.path.join(currentBaseFolder, "Logs"))
-        
+
         executable = os.path.normpath(os.path.join(baseLocation, "qcachegrind.exe"))
         callGrindProf = os.path.normpath(os.path.join(inLocation, 'callgrind.profile'))
         binaryData = os.path.normpath(os.path.join(inLocation, 'profiledRigSystem.profile'))
@@ -79,8 +80,9 @@ def dec_profile(func):
         pyprof2calltree.visualize(pstats.Stats(binaryData))
         subprocess.Popen([executable, callGrindProf])
         return result
-            
+
     return _profile_func
+
 
 def dec_repeat(func):
     """ repeat last decorator
@@ -119,9 +121,9 @@ def dec_repeat(func):
                     continue
                 if type(each) in [str, unicode, bytes]:
                     each = '\'{}\''.format(each)
-                    
+
                 args_string += '%s, ' % each
-            
+
             kwargs_string = ''
             for key, item in kwargs.items():
                 if isinstance(item, QWidget):
@@ -130,7 +132,7 @@ def dec_repeat(func):
 
             repeat_command = '{0}{1}({2}{3})'.format(modules, func.__name__, args_string, kwargs_string).replace(", ,", ",")
             cmds.repeatLast(addCommand='python("from SkinningTools.Maya import interface;interface.%s");' % repeat_command)
-        
+
         except Exception as e:
             if _DEBUG:
                 print("if this is fired the when repeating a command it means it uses MEL")
@@ -142,6 +144,7 @@ def dec_repeat(func):
             return ret
 
     return _repeat_func
+
 
 def dec_loadPlugin(plugin):
     """ load plugin decorator
@@ -156,7 +159,7 @@ def dec_loadPlugin(plugin):
         @wraps(func)
         def inner(*args, **kwargs):
             if not os.path.exists(plugin) and _DEBUG:
-                print("could not locate: %s"%plugin)
+                print("could not locate: %s" % plugin)
                 return None
             loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
             registered = cmds.pluginInfo(plugin, q=True, registered=True)
@@ -172,6 +175,8 @@ def dec_loadPlugin(plugin):
     return _loadPlugin_func
 
 # @note: add this for debugging?
+
+
 def dec_timer(func):
     """ debug timer decorator
     times the function for how long it takes to run everything in the function
@@ -181,16 +186,17 @@ def dec_timer(func):
     :return: the result of the given function
     :rtype: function()
     """
-    
+
     @wraps(func)
     def _timer_func(*args, **kwargs):
         start = time.time()
         result = func(*args, **kwargs)
-        end = time.time()  
+        end = time.time()
         print('Execution time :', func.__name__, end - start)
 
         return result
     return _timer_func
+
 
 class Graph(object):
     """ dijkstra closest path technique (for nurbs and lattice)
@@ -207,7 +213,7 @@ class Graph(object):
 
     def add_node(self, value):
         """ add the node which we will later search for the shortest path
-        
+
         :param value:  key value to identify the node position
         :type value: string
         """
@@ -215,7 +221,7 @@ class Graph(object):
 
     def add_edge(self, from_node, to_node, distance):
         """ add the edge information from which we will later search for the shortest path
-        
+
         :param from_node: node that will be used as a start position on the segment
         :type from_node: string
         :param to_node: node that will be used as the end position on the segment 
@@ -311,12 +317,12 @@ def skinCluster(inObject=None, silent=False):
         inObject = cmds.ls(sl=1, l=1)
     if not inObject:
         return None
-    
+
     if type(inObject) in [list, tuple] and len(inObject) != 0:
-        inObject= inObject[0]
+        inObject = inObject[0]
     if '.' in inObject:
         inObject = inObject.split('.')[0]
-    
+
     inObject = getParentShape(inObject)
     sc = cmds.ls(cmds.listHistory(inObject), type="skinCluster")
     if not sc:
@@ -336,7 +342,7 @@ def getParentShape(inObject):
     """
     if isinstance(object, list):
         inObject = inObject[0]
-    
+
     objType = cmds.objectType(inObject)
     if objType in ['mesh', "nurbsCurve", "lattice"]:
         inObject = cmds.listRelatives(inObject, p=True, f=True)[0]
@@ -414,9 +420,10 @@ def convertToVertexList(inObject):
             return cmds.filterExpand('%s.pt[*]' % inObject, sm=46, fp=1)
     return []
 
+
 def getComponents(meshDag, component):
     """ convert the given input to a list of component indices
-    
+
     :param meshDag: the object to search through
     :type meshDag: OpenMaya.MDagPath
     :param component: the depend node to check for component flags
@@ -447,11 +454,12 @@ def getComponents(meshDag, component):
         [vtxArray.append(i) for i in list(set(verts))]
     else:
         [vtxArray.append(i) for i in range(meshFn.numVertices)]
-    return vtxArray 
-    
+    return vtxArray
+
+
 def selectHierarchy(node):
     """ get the hierarchy of the current given object
-    
+
     :param node: the object to search through
     :type node: string
     :return: list of the objects children and current object included
@@ -464,7 +472,7 @@ def selectHierarchy(node):
 
 def getJointIndexMap(inSkinCluster):
     """ get a map of how the joints are connected to the skincluster at which index
-    
+
     :param inSkinCluster: the skincluster to use as base
     :type inSkinCluster: string
     :return: map of all the joints and how they are conencted to the skincluster
@@ -482,7 +490,7 @@ def getJointIndexMap(inSkinCluster):
 
 def convertToIndexList(vertList):
     """ convert components given to a list of indices
-    
+
     :param vertList: list of components
     :type vertList: list
     :return: list of integers representing the components values
@@ -497,7 +505,7 @@ def convertToIndexList(vertList):
 
 def convertToCompList(indices, inMesh, comp="vtx"):
     """ convert indices to a list of the given component
-    
+
     :param indices: list of integers representing the components values
     :type indices: list
     :param inMesh: the name of the mesh
@@ -517,7 +525,7 @@ def convertToCompList(indices, inMesh, comp="vtx"):
 
 def toToEdgeNumber(vtx):
     """ convert vertex to a list of connected edge numbers
-    
+
     :param vtx: the vertex to gather data from
     :type vtx: string
     :return: list of all connected edges
@@ -533,7 +541,7 @@ def toToEdgeNumber(vtx):
 
 def checkEdgeLoop(inMesh, vtx1, vtx2, first=True, maxLength=40):
     """ check relations between 2 vertices if they are on the same loop
-    
+
     :param inMesh: the mesh on which the vertices are placed
     :type inMesh: string
     :param vtx1: the first vertex to gather data from
@@ -549,7 +557,6 @@ def checkEdgeLoop(inMesh, vtx1, vtx2, first=True, maxLength=40):
     """
     e1n = toToEdgeNumber(vtx1)
     e2n = toToEdgeNumber(vtx2)
-    found = []
     combinations = list(itertools.product(e1n, e2n))
     for e1, e2 in combinations:
         edgeSel = cmds.polySelect(inMesh, elp=[e1, e2], ns=True)
@@ -563,7 +570,7 @@ def checkEdgeLoop(inMesh, vtx1, vtx2, first=True, maxLength=40):
 
 def getDagpath(node, extendToShape=False):
     """ get openmaya data from given object
-    
+
     :param node: the object to get the openmaya data from
     :type node: string
     :param extendToShape: if `True` will return the path of the shape, if `False` it will return the path of the transform
@@ -582,7 +589,7 @@ def getDagpath(node, extendToShape=False):
 
 def getMfnSkinCluster(mDag):
     """ get openmaya skincluster data from given object
-    
+
     :param node: the object to get the skinclusterdata from
     :type node: MDagPath
     :return: the skincluster object
@@ -597,7 +604,7 @@ def getMfnSkinCluster(mDag):
 
 def traverseHierarchy(inObject):
     """ traverse the hierarchy of the current object to gahter all mesh nodes
-    
+
     :param inObject: the topnode to search from
     :type inObject: string
     :return: list of all transforms holding mesh shape data
@@ -606,7 +613,7 @@ def traverseHierarchy(inObject):
     if not isinstance(inObject, list):
         inObject = [inObject]
     polygonMesh = []
-    
+
     parentNodes = inObject
     for node in parentNodes:
         nodes = cmds.listRelatives(node, ad=True, c=True, typ='transform', fullPath=True, s=False) or None
@@ -617,14 +624,15 @@ def traverseHierarchy(inObject):
         meshnode = cmds.listRelatives(node, s=True, pa=True, type='mesh', fullPath=True) or None
         if meshnode:
             polygonMesh.append(node)
-        
+
     return polygonMesh
 
 # --- vertex island functions ---
 
+
 def getConnectedVerts(inMesh, vtxSelectionSet):
     """ get seperate groups of vertices that are connected by edges
-    
+
     :param inMesh: the mesh to use for gathering data
     :type inMesh: string
     :param vtxSelectionSet: list of all vertices in our current selection to convert to island groups
@@ -664,7 +672,7 @@ def getConnectedVerts(inMesh, vtxSelectionSet):
 
 def getNeighbours(mVtxItter, index):
     """ get the direct neighbors of current vertex index connected by edge
-    
+
     :param mVtxItter: the iterator that goes over all vertices
     :type mVtxItter: MItMeshVertex
     :param index: index of the vertex to get neighbor data from
@@ -696,7 +704,7 @@ def getNormals(meshName):
     """Get the average normal in world space of each vertex on the provided mesh.
     The reason why OpenMaya.MItMeshVertex function has to be used is that the
     MFnMesh class returns incorrect normal results.
-    
+
     :note: using old open maya here as maya 2019.3.1 has a hard crash when gathering normals with new openmaya
     :param dag:
     :type dag: MDagPath
@@ -721,6 +729,7 @@ def getNormals(meshName):
 
     return normals
 
+
 def getConnectedVerticesMapper(dag):
     """Create a dictionary where the keys are the indices of the vertices and the
     values a list of indices of the connected vertices.
@@ -741,9 +750,10 @@ def getConnectedVerticesMapper(dag):
 
     return data
 
+
 def growLatticePoints(points):
     """ get all neighbours of a point on a lattice
-    
+
     :param points: point on a lattice
     :type points: string
     :return: list of neighbouring points
@@ -774,7 +784,7 @@ def growLatticePoints(points):
 def getWeights(inMesh):
     """ get the complete weight data of a given mesh 
     weightData = [[value]* joints] * vertices
-    
+
     :param inMesh: the object to get the data from
     :type inMesh: string
     :return: list of all weights
@@ -782,13 +792,13 @@ def getWeights(inMesh):
     """
     if cmds.objectType(inMesh) == "skinCluster":
         sc = inMesh
-        inMesh = cmds.listConnections(inMesh, s=0, d=1, type = "shape")
+        inMesh = cmds.listConnections(inMesh, s=0, d=1, type="shape")
     else:
         sc = skinCluster(inMesh)
     inMesh = getParentShape(inMesh)
-    
+
     shape = cmds.listRelatives(inMesh, s=1)[0]
-    
+
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
     meshPath = getDagpath(shape)
@@ -812,7 +822,7 @@ def getWeights(inMesh):
 
 def setWeights(inMesh, weightData):
     """ set the complete weight data of a given mesh 
-    
+
     :param inMesh: the object to set the data to
     :type inMesh: string
     :param weightData: full list of weight data [[value]* joints] * vertices
@@ -820,12 +830,12 @@ def setWeights(inMesh, weightData):
     """
     if cmds.objectType(inMesh) == "skinCluster":
         sc = inMesh
-        inMesh = cmds.listConnections(inMesh, s=0, d=1, type = "shape")
+        inMesh = cmds.listConnections(inMesh, s=0, d=1, type="shape")
     else:
         sc = skinCluster(inMesh)
     inMesh = getParentShape(inMesh)
     shape = cmds.listRelatives(inMesh, s=1)[0]
-    
+
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
     meshPath = getDagpath(shape)
@@ -842,11 +852,11 @@ def setWeights(inMesh, weightData):
     infIndexes = OpenMaya.MIntArray(len(infDags), 0)
     for x in range(len(infDags)):
         infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
-    
+
     if not isinstance(weightData, OpenMaya.MDoubleArray):
         newWeightData = OpenMaya.MDoubleArray(len(weightData), 0)
         for i, w in enumerate(weightData):
-            newWeightData[i]= w
+            newWeightData[i] = w
     else:
         newWeightData = weightData
 
@@ -857,7 +867,7 @@ def setWeights(inMesh, weightData):
 
 def getPolyOnMesh(point, inMesh):
     """ sget polygonal mesh data of a point on the surface 
-    
+
     :param point: point in space
     :type point: list
     :param inMesh: the object to get the data form
@@ -879,7 +889,7 @@ def getPolyOnMesh(point, inMesh):
 
 def getTriIndex(inMesh, polygonIndex, triangleIndex):
     """ get the points that create the current triangle
-    
+
     :param inMesh: the object to get the data form
     :type inMesh: string
     :param polygonIndex: index of the current polygon( quad / ngon)
@@ -892,7 +902,7 @@ def getTriIndex(inMesh, polygonIndex, triangleIndex):
     meshDag = getDagpath(inMesh, extendToShape=True)
     polyIt = OpenMaya.MItMeshPolygon(meshDag)
 
-    prevIndexPTR = polyIt.setIndex(polygonIndex)
+    polyIt.setIndex(polygonIndex)
     points, verts = polyIt.getTriangle(triangleIndex, OpenMaya.MSpace.kWorld)
 
     return (verts[0], verts[1], verts[2])
@@ -900,7 +910,7 @@ def getTriIndex(inMesh, polygonIndex, triangleIndex):
 
 def getTriWeight(inMesh, polygonIndex, triangleIndex, u, v):
     """ get the weight of the current coordinate based on the triangles position
-    
+
     :param inMesh: the object to get the data form
     :type inMesh: string
     :param polygonIndex: index of the current polygon( quad / ngon)
@@ -930,7 +940,7 @@ def getTriWeight(inMesh, polygonIndex, triangleIndex, u, v):
 
 def skinConstraint(inMesh, transform, floatPrecision=3):
     """ attach a transform to mesh based on the transforms position
-    
+
     :param inMesh: the object to get the data form
     :type inMesh: string
     :param transform: transorm object to attach to the skincluster
@@ -958,14 +968,14 @@ def skinConstraint(inMesh, transform, floatPrecision=3):
 
     cmds.connectAttr('%s.matrixSum' % matrixNode, '%s.matrix' % vec1)
     cmds.connectAttr('%s.matrixSum' % matrixNode, '%s.inputMatrix' % decNode)
-    
+
     cmds.connectAttr('%s.output' % vec2, '%s.translate' % transform, force=True)
     cmds.connectAttr('%s.outputRotate' % decNode, '%s.rotate' % transform, force=True)
 
 
 def createWeightedMM(transforms, weights, floatPrecision):
     """ creat matrix multiple based on the weights of the current triangle
-    
+
     :param transforms: list of joints that will drive the matrix
     :type transforms: list
     :param weights: list of weights on how much the matrix needs to be driven
@@ -1005,6 +1015,7 @@ def createWeightedMM(transforms, weights, floatPrecision):
 
     return addMM
 
+
 def getHierarchy(selection1, selection2):
     long1 = cmds.ls(selection1, l=1)[0]
     long2 = cmds.ls(selection2, l=1)[0]
@@ -1016,7 +1027,7 @@ def getHierarchy(selection1, selection2):
         child = long1
     else:
         return [long1, long2]
-    
+
     def getParentRecursively(child, stop):
         parent = cmds.listRelatives(child, parent=1, f=1)[0]
         parents = [parent]
@@ -1024,22 +1035,23 @@ def getHierarchy(selection1, selection2):
             return parents
         parents.extend(getParentRecursively(parent, stop))
         return parents
-    
+
     return getParentRecursively(child, parent)[::-1] + [child]
 
-def getHierarchySelection(inType= "transform"):
-    selection = cmds.ls(sl=1, fl=1, l=1 )
+
+def getHierarchySelection(inType="transform"):
+    selection = cmds.ls(sl=1, fl=1, l=1)
     hierarchy = selection
     amountSelected = len(selection)
     if amountSelected == 0:
         hierarchy = cmds.ls(sl=0, l=1)
     elif amountSelected == 1:
-        hierarchy = [selection[0]] + cmds.listRelatives(selection[0], ad=1, f=1, type = inType)
+        hierarchy = [selection[0]] + cmds.listRelatives(selection[0], ad=1, f=1, type=inType)
     elif amountSelected == 2:
-        hierarchy = getHierarchy(*cmds.ls(sl=1, fl=1 ))
+        hierarchy = getHierarchy(*cmds.ls(sl=1, fl=1))
     hierarchy.sort(key=len)
 
     if inType == []:
         return hierarchy
 
-    return cmds.ls(hierarchy, type = inType, l=1)
+    return cmds.ls(hierarchy, type=inType, l=1)

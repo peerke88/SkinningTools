@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import math, itertools
-from decimal import Decimal
 from heapq import nsmallest
 
 from SkinningTools.py23 import *
@@ -119,14 +118,6 @@ def setMaxJointInfluences(inObject=None, maxInfValue=8, progressBar=None):
 
     inObject = shared.getParentShape(inObject)
     sc = shared.skinCluster(inObject, True)
-    shape = cmds.listRelatives(inObject, s=True)[0]
-
-    outInfluencesArray = shared.getWeights(inObject)
-
-    infjnts = joints.getInfluencingJoints(sc)  # cmds.listConnections("%s.matrix"%sc, source=True)
-    infLengt = len(infjnts)
-
-    lenOutInfArray = len(outInfluencesArray)
 
     percentage = 99.0 / len(toMuchinfls)
     for index, vertex in enumerate(toMuchinfls):
@@ -180,8 +171,7 @@ def execCopySourceTarget(TargetSkinCluster, SourceSkinCluster, TargetSelection, 
     targetJoints = joints.getInfluencingJoints(targetMesh)
     sourceJoints = joints.getInfluencingJoints(sourceMesh)
     jointAmount = len(sourceJoints)
-    skinClusterName = shared.skinCluster(targetMesh, True)
-
+    
     targetInflArray = shared.getWeights(targetMesh)
     sourceInflArray = shared.getWeights(sourceMesh)
 
@@ -405,7 +395,7 @@ def hammerVerts(inSelection, needsReturn=True, progressBar=None):
     setProgress(0, progressBar, "start Hammer")
     currentMesh = inSelection[0].split('.')[0]
     sc = shared.skinCluster(currentMesh, True)
-    maxInfls = cmds.skinCluster(sc, q=True, mi=True)
+    # maxInfls = cmds.skinCluster(sc, q=True, mi=True)
     setProgress(50, progressBar, "gather data")
 
     cmds.skinCluster(sc, e=1, sw=0.0, swi=5, omi=True, forceNormalizeWeights=True)
@@ -731,7 +721,6 @@ def avgVertex(vertices, lastSelected, progressBar=None):
             _weights[joint] += pointWeights
         setProgress(index * percentage, progressBar, "gather smooth data")
 
-    amountPts = len(pointList)
     transformValueList = []
     for key, value in _weights.items():
         transformValueList.append([key, value])
@@ -766,7 +755,7 @@ def freezeSkinnedMesh(inMesh, progressBar=None):
     cmds.makeIdentity(inMesh, apply=True)
 
     setProgress(75, progressBar, "re-apply skin")
-    nsc = cmds.skinCluster(attachedJoints, inMesh, tsb=True, bm=0, nw=1)
+    cmds.skinCluster(attachedJoints, inMesh, tsb=True, bm=0, nw=1)
     shared.setWeights(inMesh, outInfluencesArray)
     setProgress(100, progressBar, "freeze skinned mesh")
     return True
@@ -936,7 +925,6 @@ def doSkinPercent(bone, value, operation=0):
     :return: `True` if the function is completed
     :rtype: bool
     """
-    _sel = cmds.ls(sl=1, fl=1)
     _softSelect = cmds.softSelect(q=True, softSelectEnabled=1)
     if _softSelect:
         vertices, weights = mesh.softSelection()
@@ -967,10 +955,10 @@ def doSkinPercent(bone, value, operation=0):
     if _softSelect:
         for index, vert in enumerate(vertices):
             newVal = weights[index] * _mult[operation]# * value
-            cmds.skinPercent(sc, vert, r = _rel, tv=[bone, weights[index]], normalize=True)
+            cmds.skinPercent(sc, vert, r = _rel, tv=[bone, newVal], normalize=True)
     else:
         newVal = value * _mult[operation]
-        cmds.skinPercent(sc, vertices, r = _rel, tv=[bone, value * _mult[operation]], normalize=True)
+        cmds.skinPercent(sc, vertices, r = _rel, tv=[bone, newVal], normalize=True)
     shared.doCorrectSelectionVisualization(inMesh)
     cmds.select(vertices, r=1)
     return True
@@ -1081,7 +1069,7 @@ class SoftSkinBuilder(object):
         self.analyzeSkin(inMesh, False)
 
         _origWeights = []
-        _weigths = []
+        # _weigths = []
         for bone in self.__weightInfo.meshInfluences[inMesh]:
             verts, weights = self._newWeights[bone]
             indices = shared.convertToIndexList(verts)

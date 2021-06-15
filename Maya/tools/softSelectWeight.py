@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-from SkinningTools.Maya.tools import mathUtils, mesh, shared, joints
-from SkinningTools.UI import utils 
+from SkinningTools.Maya.tools import shared, joints
+from SkinningTools.UI import utils
 from maya import cmds
-from maya.api import OpenMaya
-from SkinningTools.py23 import *
 
 '''
 based on robert joosten's tool:
 https://github.com/robertjoosten/maya-skinning-tools/tree/master/scripts/skinningTools/softSelectionToWeights
 '''
 
-def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar = None):
+
+def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar=None):
     """Calculate and set the new skin weights. If no skin cluster is attached to
     the mesh, one will be created and all weights will be set to 1 with the 
     filler influence. If a skin cluster does exist, the current weights will
@@ -31,33 +30,33 @@ def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar = None
     skinCluster = shared.skinCluster(inMesh, True)
 
     if not skinCluster:
-        skinCluster = cmds.skinCluster( inMesh, filler, omi=True, mi=4, tsb=True )[0]
+        skinCluster = cmds.skinCluster(inMesh, filler, omi=True, mi=4, tsb=True)[0]
         joints.addCleanJoint(influences, inMesh, progressBar=None)
         influences.append(filler)
     else:
         filler = None
         joints.addCleanJoint(influences, inMesh, progressBar=None)
 
-    normalizeWeights = cmds.getAttr( "{0}.normalizeWeights".format(skinCluster) )
-    maxInfluences = cmds.getAttr( "{0}.maxInfluences".format(skinCluster) )
-    maintainMaxInfluences = cmds.getAttr( "{0}.maintainMaxInfluences".format(skinCluster) )
+    normalizeWeights = cmds.getAttr("{0}.normalizeWeights".format(skinCluster))
+    maxInfluences = cmds.getAttr("{0}.maxInfluences".format(skinCluster))
+    maintainMaxInfluences = cmds.getAttr("{0}.maintainMaxInfluences".format(skinCluster))
 
-    utils.setProgress(0, progressBar, "building weights for %s"%inMesh )
+    utils.setProgress(0, progressBar, "building weights for %s" % inMesh)
 
-    percentage = len(meshData.keys())/99.0
+    percentage = len(meshData.keys()) / 99.0
     for index, weights in meshData.items():
         vertex = "{0}.vtx[{1}]".format(inMesh, index)
         total = sum(weights.values())
 
         if filler and total < 1:
-            weights[filler] = 1-total
+            weights[filler] = 1 - total
         elif not filler and total < 1:
-            multiplier = 1-total
+            multiplier = 1 - total
 
-            transforms = cmds.skinPercent( skinCluster, vertex, query=True, transform=None )
+            transforms = cmds.skinPercent(skinCluster, vertex, query=True, transform=None)
             transforms = cmds.ls(transforms, l=True)
 
-            values = cmds.skinPercent( skinCluster, vertex, query=True, value=True )
+            values = cmds.skinPercent(skinCluster, vertex, query=True, value=True)
 
             for t, v in zip(transforms, values):
                 if t not in weights.keys():
@@ -74,12 +73,12 @@ def setSkinWeights(inMesh, meshData, influences, filler=None, progressBar = None
 
         if normalizeWeights == 1:
             total = sum(weights.values())
-            multiplier = 1/total
+            multiplier = 1 / total
 
             for t, v in weights.items():
                 weights[t] = v * multiplier
 
         weights = [(t, v) for t, v in weights.items()]
         cmds.skinPercent(skinCluster, vertex, transformValue=weights)
-        utils.setProgress(index * percentage, progressBar, "set skinning info: %s"%vertex )
-    utils.setProgress(100, progressBar, "build skin info with soft selextion" )
+        utils.setProgress(index * percentage, progressBar, "set skinning info: %s" % vertex)
+    utils.setProgress(100, progressBar, "build skin info with soft selextion")

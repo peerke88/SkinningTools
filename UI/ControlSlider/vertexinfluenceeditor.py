@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import functools, re
+import functools
 from SkinningTools.Maya import api
 from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
+
 
 class VertexInfluenceEditor(QGroupBox):
     lockIcon = QIcon(':/nodeGrapherUnlocked.png')
@@ -14,7 +15,6 @@ class VertexInfluenceEditor(QGroupBox):
         self.sender().setStyleSheet('')
         if set(self.sender().displayText()).difference(set(".0123456789")):
             self.sender().setStyleSheet('background-color: #f00;')
-      
 
     def __init__(self, skinCluster, vtxLName, skinBones, weights, parent=None):
         super(VertexInfluenceEditor, self).__init__(parent=None)
@@ -59,7 +59,7 @@ class VertexInfluenceEditor(QGroupBox):
 
             lockButton = QPushButton(lbl, '')
             lockButton.clicked.connect(functools.partial(self.__toggleLock, i))
-            
+
             lockButton.setStyleSheet("")
             if lbl == VertexInfluenceEditor.unlockIcon:
                 lockButton.setStyleSheet("background-color: lightred")

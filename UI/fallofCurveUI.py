@@ -2,9 +2,10 @@
 from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
-import math, re
+import math
 
 _DIR = os.path.dirname(__file__)
+
 
 class BezierFunctions(object):
     """ collection object for all functions that help create bezier curves
@@ -79,7 +80,7 @@ class BezierFunctions(object):
         if inX in fullList.keys():
             return fullList[inX]
 
-        takeClosest = lambda num, collection: min(collection, key=lambda x: abs(x - num))
+        def takeClosest(num, collection): return min(collection, key=lambda x: abs(x - num))
         nv = takeClosest(inX, fullList.keys())
         return fullList[nv]
 
@@ -162,6 +163,7 @@ class BezierCurve(QGraphicsPathItem):
 class NodeMoveCommand(QUndoCommand):
     """ simple undo override to help with undoing movement in the qt window
     """
+
     def __init__(self, scene, node, oldPosition, newPosition, description=None, parent=None):
         """ the constructor
 
@@ -202,6 +204,7 @@ class NodeMoveCommand(QUndoCommand):
 class NodeSwitchCommand(QUndoCommand):
     """ simple undo override to help with undoing curve style switch in the qt window
     """
+
     def __init__(self, scene, oldPositions, newPositions, description=None, parent=None):
         """ the constructor
 
@@ -242,7 +245,7 @@ class NodeItem(QGraphicsItem):
     width = 10
     gradient = QRadialGradient(width * .75, width * .75, width * .75, width * .75, width * .75)
     gradient.setColorAt(0, QColor.fromRgbF(1, .5, .01, 1))
-    gradient.setColorAt(1, QColor.fromRgbF(1, .6, .06, 1));
+    gradient.setColorAt(1, QColor.fromRgbF(1, .6, .06, 1))
 
     brush = QBrush(gradient)
     brush.setStyle(Qt.RadialGradientPattern)
@@ -369,6 +372,7 @@ class NodeItem(QGraphicsItem):
 class NodeScene(QGraphicsScene):
     """ the graphics scene in which we draw everything
     """
+
     def __init__(self, baseRect):
         """ the constructor
 
@@ -536,6 +540,7 @@ class NodeScene(QGraphicsScene):
 class NodeView(QGraphicsView):
     """ simple graphics view with some default settings
     """
+
     def __init__(self, parent=None):
         """ the constructor
 
@@ -559,15 +564,16 @@ class BezierGraph(QMainWindow):
     toolName = "BezierGraph"
 
     closed = pyqtSignal()
-    def __init__(self, settings = None, parent =None):
+
+    def __init__(self, settings=None, parent=None):
         """ the constructor
-        
+
         :param settings: settings information to load data from
         :type settings: QSettings
         :param parent: the parent widget
         :type parent: QWidget
         """
-        super(BezierGraph, self).__init__(parent = parent)
+        super(BezierGraph, self).__init__(parent=parent)
         self.widget = QWidget()
         self.setWindowTitle(self.toolName)
         self.setCentralWidget(self.widget)
@@ -629,12 +635,12 @@ class BezierGraph(QMainWindow):
         self._loadCBox()
 
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+    def translate(self, localeDict={}):
         """ translate the ui using the language dictionary given
         """
         for key, value in localeDict.items():
             self.textInfo[key].setText(value)
-        
+
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
@@ -649,7 +655,7 @@ class BezierGraph(QMainWindow):
         """
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName)
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
 
     # --------------------------------- ui setup ----------------------------------
 
@@ -773,7 +779,7 @@ class BezierGraph(QMainWindow):
 
     def getDataOnPoints(self, inList=(0.0, 0.2, 0.25, 0.5, 0.6, 0.66, 0.8, 1.0)):
         """ get the data of the curve based on different parameters
-        
+
         :param inList: points on the curve based on parameters
         :type inList: list
         :return: positions on the curve based on the different parameters
@@ -796,11 +802,12 @@ class BezierGraph(QMainWindow):
         self.closed.emit()
         super(BezierGraph, self).hideEvent(event)
 
+
 def testUI():
     """ test the current UI without the need of all the extra functionality
     """
     from SkinningTools.Maya import interface
     mainWindow = interface.get_maya_window()
-    wdw = BezierGraph(settings = QSettings(os.path.join(_DIR, 'settings.ini'), QSettings.IniFormat), parent = mainWindow)
+    wdw = BezierGraph(settings=QSettings(os.path.join(_DIR, 'settings.ini'), QSettings.IniFormat), parent=mainWindow)
     wdw.show()
-    return wdw 
+    return wdw
