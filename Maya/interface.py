@@ -446,11 +446,16 @@ def cutMesh(internal, maya2020, progressBar= None ):
         selection = [selection[0].split(".")[0]]
     
     meshes = []
+    _toDelete = []
     for obj in selection:
+        _fix = cmds.duplicate(obj)[0]
+        _toDelete.append(_fix)
+        skinCluster.transferSkinning(obj, _fix, True, True, False, None)
+
         msh = mesh.cutCharacterFromSkin(obj, internal, maya2020, progressBar)
         meshes.append(msh)
     cmds.group(meshes, n = "lowRez")
-
+    cmds.delete(_toDelete)
 
 def pinToSurface():
     selection = getSelection()

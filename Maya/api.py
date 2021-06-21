@@ -249,7 +249,18 @@ def selectVertices(meshVertexPairs):
     cmds.select([v for m, v in meshVertexPairs])
 
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
-    mel.eval('doMenuComponentSelection("%s", "%s");' % (meshVertexPairs[0][0].split('.')[0], "vertex"))
+    skinMesh = meshVertexPairs[0][0]
+    objType = cmds.objectType(skinMesh)
+    if objType == "transform":
+        shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
+        objType = cmds.objectType(shape)
+
+    if objType == "nurbsSurface" or objType == "nurbsCurve":
+        mel.eval('doMenuNURBComponentSelection("%s", "controlVertex");' % skinMesh)
+    elif objType == "lattice":
+        mel.eval('doMenuLatticeComponentSelection("%s", "latticePoint");' % skinMesh)
+    elif objType == "mesh":
+        mel.eval('doMenuComponentSelection("%s", "vertex");' % skinMesh)
 
 
 def _eventFilterTargets():

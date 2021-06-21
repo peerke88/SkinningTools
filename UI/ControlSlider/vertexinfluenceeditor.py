@@ -26,7 +26,10 @@ class VertexInfluenceEditor(QGroupBox):
 
         if len(vtxLName) > 1:
             self.setTitle("Multi Slider")
-            self.setToolTip(str(api.getIds(vtxLName)))
+            try:
+                self.setToolTip(str(api.getIds(vtxLName)))
+            except:
+                pass
         else:
             self.setTitle(vtxLName[0].rsplit('|', 1)[-1])
             self.setToolTip(str(vtxLName))

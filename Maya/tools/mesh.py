@@ -107,7 +107,7 @@ def shortestPathVertex(start, end):
     return [start] + inOrder + [end]
 
 
-def shortestPathNurbsSurface(start, end, diagonal=False):
+def shortestPathNurbsSurface(start, end):
     """ get the shortest path walking over the edges between 2 selected control vertices
 
     :param start: control vertex to start from
@@ -120,7 +120,7 @@ def shortestPathNurbsSurface(start, end, diagonal=False):
     :rtype: list
     """
     surface = start.split('.')[0]
-    allCvs = cmds.filterExpand("%s.cv[*][*]" % surface, sm=28, fp=1)
+    allCvs = cmds.ls("%s.cv[*][*]" % surface, l=1, fl=1)
     graph = shared.Graph()
 
     recomputeDict = {}
@@ -132,16 +132,8 @@ def shortestPathNurbsSurface(start, end, diagonal=False):
     for node in allCvs:
         cmds.select(cl=1)
         cmds.nurbsSelect(node, gs=1)
-        gro = cmds.ls(sl=1, l=1)[0]
-
-        if diagonal == False:
-            # rough implementation to not cross U and V at the same time (2 implementation only)
-            workString = node.split("][")
-            groString = gro.split("][")
-            gro = ["%s][%s" % (workString[0], groString[-1]), "%s][%s" % (groString[0], workString[-1])]
-
-        gro = cmds.filterExpand(gro, sm=28, fp=1)
-
+        gro = cmds.ls(sl=1, l=1, fl=1)
+        
         gro.remove(node)
         basePos = MVector(*cmds.xform(node, q=1, ws=1, t=1))
         for f in gro:
@@ -191,7 +183,9 @@ def shortestPathLattice(start, end):
     :return: list of points to walk in order
     :rtype: list
     """
-    allCvs = cmds.filterExpand("%s.pt[*]" % surface, sm=46, fp=1)
+    surface = start.split('.')[0]
+    allCvs = cmds.ls("%s.pt[*]" % surface, l=1, fl=1)
+    
     graph = shared.Graph()
     recomputeDict = {}
     for node in allCvs:
@@ -202,6 +196,7 @@ def shortestPathLattice(start, end):
     for node in allCvs:
         gro = shared.growLatticePoints([node])
         gro.remove(node)
+        
         basePos = MVector(*cmds.xform(node, q=1, ws=1, t=1))
         for f in gro:
             fPos = MVector(*cmds.xform(f, q=1, ws=1, t=1))
@@ -216,7 +211,7 @@ def shortestPathLattice(start, end):
     return inOrder
 
 
-def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=None):
+def componentPathFinding(selection, useDistance, weightWindow=None):
     """ use the component selection for pathfinding, to make sure that any skinnable mesh can be walked over
 
     :param selection: 2 component objects that indicate the start and end of a possible path
@@ -237,7 +232,7 @@ def componentPathFinding(selection, useDistance, diagonal=False, weightWindow=No
     if objType == 'mesh':
         inOrder = shortestPathVertex(start, end)
     elif objType == "nurbsSurface":
-        inOrder = shortestPathNurbsSurface(start, end, diagonal)
+        inOrder = shortestPathNurbsSurface(start, end)
     elif objType == "lattice":
         inOrder = shortestPathLattice(start, end)
     else:

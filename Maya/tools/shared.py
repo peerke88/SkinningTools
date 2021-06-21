@@ -760,7 +760,7 @@ def growLatticePoints(points):
     :rtype: list
     """
     base = points[0].split('.')[0]
-    allPoints = cmds.filterExpand("%s.pt[*]" % base, sm=46, fp=1)
+    allPoints = cmds.ls("%s.pt[*]" % base, l=1, fl=1)
 
     extras = []
     for j in points:

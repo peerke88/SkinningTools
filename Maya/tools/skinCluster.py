@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import math, itertools
+import math, itertools, traceback
 from heapq import nsmallest
 
 from SkinningTools.py23 import *
@@ -361,12 +361,11 @@ def Copy2MultVertex(selection, lastSelected, progressBar=None):
     :rtype: bool
     """
     setProgress(0, progressBar, "start copy vertex")
-    index = int(lastSelected.split("[")[-1].split("]")[0])
     currentMesh = lastSelected.split('.')[0]
     sc = shared.skinCluster(currentMesh, True)
 
-    infJoints = joints.getInfluencingJoints(sc)  # cmds.listConnections("%s.matrix"%sc, source=True)
-    currentValues = cmds.skinPercent(sc, "%s.vtx[%i]" % (currentMesh, index), q=1, value=1)
+    infJoints = joints.getInfluencingJoints(sc)
+    currentValues = cmds.skinPercent(sc, lastSelected, q=1, value=1)
 
     percentage = 99.0 / len(infJoints)
     transformValueList = []
