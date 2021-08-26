@@ -11,6 +11,17 @@ from maya import cmds
 
 class TransferWeightsWidget(QWidget):
     """
+    the way this works:
+    copy infrmation from object a to b
+    we can use the current object information as scuch when the vertex indces are the same 
+    (this is the current use of the tool)
+    if the objects are not the same we can maybe use the closest vertices we can find using kdtree
+    then we have information on the closest vectors and we use the copySkinWeights to transfer the data necessary
+    zthe way we locate the closest vertices could be based on random integers and looking if they are in the exact smae locaiton
+
+    no need for copy skinweights in this case :)
+
+    # ----------------
     from maya import cmds
 
     sphere1 = cmds.polySphere()[0]
