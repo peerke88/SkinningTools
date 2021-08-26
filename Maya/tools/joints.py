@@ -397,9 +397,8 @@ def ShowInfluencedVerts(inMesh, jnts, progressBar=None):
             toSelect.append("%s.vtx[%i]" % (inMesh, i))
         utils.setProgress(percentage * index, progressBar, "gather weight information")
 
-    cmds.select(toSelect, r=1)
     utils.setProgress(100, progressBar, "show influenced vertices")
-    return True
+    return toSelect
 
 
 @shared.dec_undo

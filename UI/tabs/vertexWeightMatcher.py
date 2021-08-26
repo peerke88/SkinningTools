@@ -10,6 +10,14 @@ from maya import cmds
 
 
 class TransferWeightsWidget(QWidget):
+    """
+    ##Check for this and add the information!
+    import pymel.core as pm
+
+    source = pm.selected()
+    target = pm.selected()
+
+    pm.copySkinWeights(source, target, noMirror=True, surfaceAssociation='closestPoint', ia=['oneToOne','name'])"""
     toolName = "TransferWeightsWidget"
 
     @dec_loadPlugin(interface.getInterfaceDir() + "/plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/skinCommands%s" % (api.getMayaVersion(), api.getPluginSuffix()))

@@ -143,7 +143,7 @@ def dccToolButtons(progressBar = None):
 def avgVtx(useDistance=True, weightAverageWindow=None, progressBar=None):
     selection = getSelection()
     result = skinCluster.AvarageVertex(selection, useDistance, weightAverageWindow, progressBar)
-    cmds.select(selection, r=1)
+    doSelect(selection, True)
     return result
 
 
@@ -299,6 +299,7 @@ def showInfVerts(progressBar=None):
         mesh = obj
 
     result = joints.ShowInfluencedVerts(mesh, jnts, progressBar)
+    doSelect(result, True)
     return result
 
 
@@ -547,12 +548,12 @@ def initBpBrush():
 
 def setHardShellWeight(inProgressBar = None):
     _copy = vertexWeight()
-    selection = shared.convertToCompList(getSelection())
+    selection = shared.convertToVertexList(getSelection())
     amount = len(selection)
     precentage = 99.0/ amount
-    utils.setProgress(0, progressBar, "start creating hard shells" )
+    setProgress(0, inProgressBar, "start creating hard shells" )
     processed = []
-    for index, vert in selection:
+    for index, vert in enumerate(selection):
         if vert in processed:
             continue
 
@@ -567,9 +568,9 @@ def setHardShellWeight(inProgressBar = None):
         processed.extend( shared.convertToVertexList(shell) )
         
         _copy.setVtxWeight(shell)
-        utils.setProgress(precentage*index, progressBar, "converting hard shell" )
+        setProgress(precentage*index, inProgressBar, "converting hard shell" )
 
-    utils.setProgress(100, progressBar, "processed all shells in selection")
+    setProgress(100, inProgressBar, "processed all shells in selection")
 
 
 class vertexWeight(object):
