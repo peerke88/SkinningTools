@@ -98,7 +98,7 @@ def syntaxCreator():
 
 
 def initializePlugin(mobject):
-    mplugin = OpenMaya.MFnPlugin(mobject)
+    mplugin = OpenMaya.MFnPlugin(mobject, "Perry Leijten", "1.0", "any")
     try:
         mplugin.registerCommand(kPluginCmdName, cmdCreator, syntaxCreator)
     except:

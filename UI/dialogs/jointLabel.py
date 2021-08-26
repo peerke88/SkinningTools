@@ -2,6 +2,9 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 
+# add function to label joints left and right based on center position of character (use error margin to determine center joints)
+# try to figure out joints on the same position and how they would convey the naming
+
 
 class JointLabel(QDialog):
     def __init__(self, title="label joints", parent=None):
