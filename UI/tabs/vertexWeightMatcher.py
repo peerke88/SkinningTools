@@ -11,13 +11,30 @@ from maya import cmds
 
 class TransferWeightsWidget(QWidget):
     """
-    ##Check for this and add the information!
-    import pymel.core as pm
+    from maya import cmds
 
-    source = pm.selected()
-    target = pm.selected()
+    sphere1 = cmds.polySphere()[0]
+    sphere2 = cmds.polySphere()[0]
 
-    pm.copySkinWeights(source, target, noMirror=True, surfaceAssociation='closestPoint', ia=['oneToOne','name'])"""
+    cmds.select(cl=1)
+    jnt1 = cmds.joint(p=(0,0,1))
+    jnt2 = cmds.createNode("joint")
+    cmds.xform(jnt2, ws=1, t=(0,0,-1))
+
+    cmds.skinCluster(sphere1, [jnt1, jnt2], tsb=1)
+    cmds.parent(jnt2, jnt1)
+    cmds.skinCluster(sphere2, [jnt1, jnt2], tsb=1)
+
+    sel = cmds.ls('pSphere1.vtx[228:310]', fl=1)
+    cmds.select(sel, r=1)
+    indexList = [int(vtx.split("[")[-1][:-1]) for vtx in sel]
+
+
+    source  = ["%s.vtx[%s]"%(sphere1, index) for index in indexList]
+
+    target  = ["%s.vtx[%s]"%(sphere2, index) for index in indexList]
+    cmds.copySkinWeights(source, target, noMirror=True, surfaceAssociation='closestPoint', ia=['oneToOne','name'])
+        """
     toolName = "TransferWeightsWidget"
 
     @dec_loadPlugin(interface.getInterfaceDir() + "/plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/skinCommands%s" % (api.getMayaVersion(), api.getPluginSuffix()))
