@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess
+import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess, random
 from collections import defaultdict, deque
 from functools import wraps
 from maya import cmds, mel, OpenMaya as oldOpenMaya
@@ -515,12 +515,7 @@ def convertToCompList(indices, inMesh, comp="vtx"):
     :return: list of components
     :rtype: list
     """
-    vertices = []
-    for i in list(indices):
-        vrt = "%s.%s[%s]" % (inMesh, comp, i)
-
-        vertices.append(vrt)
-    return vertices
+    return ["%s.%s[%s]" % (inMesh, comp, i) for i in list(indices)]
 
 
 def toToEdgeNumber(vtx):
@@ -1055,3 +1050,31 @@ def getHierarchySelection(inType="transform"):
         return hierarchy
 
     return cmds.ls(hierarchy, type=inType, l=1)
+
+
+def closestPosCheck(sourceVerts, targetVerts):
+    #convert this to openmaya!
+    sourcePos = [cmds.xform(vert,q=1,ws=1,t=1) for vert in sourceVerts]
+    targetPos = [cmds.xform(vert,q=1,ws=1,t=1) for vert in targetVerts]
+    amount = len(sourcePos)
+    positions = True
+    for i in range(5):
+        _id =  random.randint(0, amount)
+        pos = smart_roundVec(sourcePos[_id], 3)
+        nPos = smart_roundVec(targetPos[_id], 3)
+        if pos == nPos:
+            continue
+        positions = False
+
+    if not positions:
+        nTargetVerts = convertToVertexList(targetVerts[0].split('.')[0])
+        nTargetPos = [cmds.xform(vert,q=1,ws=1,t=1) for vert in nTargetVerts]
+
+        # double check this!
+        _dict = remapClosestPoints(nTargetPos, sourcePos, 1)
+        _targetVerts = [''] * len(sourcePos)
+        for key, val in _dict.items():
+            _targetVerts[val] = nTargetVerts[nTargetPos.index(key)]
+
+        return sourceVerts, _targetVerts
+    return sourceVerts, targetVerts

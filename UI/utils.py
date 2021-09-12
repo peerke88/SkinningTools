@@ -480,7 +480,7 @@ def veclength(inVec):
     :return: length of a vector
     :rtype: float
     """    
-    return math.sqrt(sum(i**2 for i in x))
+    return math.sqrt(sum(i**2 for i in inVec))
     
 def widgetsAt(pos):
     """ Qt convenience function to get the widget at given screen position
@@ -638,10 +638,11 @@ def remapClosestPoints(sourceList, targetList, amount):
             distances.append(_curDist)
             total += _curDist
 
-        wght = []
+        
+        wght = 1.0
         for w in distances:
             # smallest value has heighest weight
-            wght = 1.0 - (w/total)
+            wght = 1.0 if total == 0.0 else 1.0 - (w/total)
         remap[target] = indices
         weights[target] = wght
     return remap, weights
