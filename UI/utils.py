@@ -9,6 +9,7 @@ from functools import partial
 
 UIDIRECTORY = os.path.dirname(__file__)
 
+
 def getDebugState():
     """ convenience function to work with debug mode 
     this gets turned to False when packaged using the package creator
@@ -19,7 +20,7 @@ def getDebugState():
     isDebug = True
     return isDebug
 
-    
+
 def nullVBoxLayout(parent=None, size=0):
     """ convenience function for the QVBoxLayout
 
@@ -67,7 +68,7 @@ def nullGridLayout(parent=None, size=0):
 
 def pushButton(text=''):
     """ simple button command with correct stylesheet
-    
+
     :param text: text to add to the button
     :type text: string
     :return: the button  
@@ -77,9 +78,10 @@ def pushButton(text=''):
     btn.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
     return btn
 
+
 def buttonsToAttach(name, command, *_):
     """ convenience function to attach signal command to qpushbutton on creation
-    
+
     :param name: text to add to the button
     :type name: string
     :param command: python command to attach to the current button on clicked signal
@@ -97,9 +99,9 @@ def buttonsToAttach(name, command, *_):
     return button
 
 
-def svgButton(name='', pixmap='', size=None, toolTipInfo = None):
+def svgButton(name='', pixmap='', size=None, toolTipInfo=None):
     """ toolbutton function with image from svg file
-    
+
     :param name: text to add to the button
     :type name: string
     :param pixmap: location of the svg file
@@ -132,7 +134,7 @@ def svgButton(name='', pixmap='', size=None, toolTipInfo = None):
 
 def toolButton(pixmap='', orientation=0, size=None):
     """ toolbutton function with image
-    
+
     :param pixmap: location of the image
     :type pixmap: string
     :param orientation: rotation in degrees clockwise
@@ -160,9 +162,10 @@ def toolButton(pixmap='', orientation=0, size=None):
             btn.setIconSize(size)
     return btn
 
-def arrowButton(arrowType, sizePolicy ):
+
+def arrowButton(arrowType, sizePolicy):
     """ toolbutton function with arrows
-    
+
     :param arrowType: Arrow, arrow type to add to the button
     :type arrowType: Qt.Arrow
     :param sizePolicy: list of sizepolicy information for width and height
@@ -175,10 +178,11 @@ def arrowButton(arrowType, sizePolicy ):
     if arrowType in [Qt.LeftArrow, Qt.RightArrow]:
         btn.setMaximumWidth(12)
     else:
-        btn.setMaximumHeight(12) 
+        btn.setMaximumHeight(12)
     btn.setSizePolicy(*sizePolicy)
     btn.setStyleSheet('border: 0px;')
     return btn
+
 
 def findMissingItems(inList):
     """ find the numbers in the list that are not identified
@@ -193,6 +197,7 @@ def findMissingItems(inList):
     largest = max(origSet)
     fullSet = set(range(smallest, largest + 1))
     return sorted(list(fullSet - origSet))
+
 
 def getNumericName(text, names):
     """ get unique identifiers for names that are created
@@ -267,6 +272,7 @@ def checkStringForBadChars(self, inText, button, option=1, *args):
         return False
     return True
 
+
 def storeLanguageFile(inDict, language, widgetName):
     """ store the language file based on given inputs
 
@@ -281,10 +287,11 @@ def storeLanguageFile(inDict, language, widgetName):
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
         os.makedirs(curLangDir)
-    
-    widgetLanguageFile = os.path.join(curLangDir, "%s.LAN"%widgetName)
+
+    widgetLanguageFile = os.path.join(curLangDir, "%s.LAN" % widgetName)
     with open(widgetLanguageFile, 'w+') as f:
         json.dump(inDict, f, indent=2)
+
 
 def loadLanguageFile(language, widgetName):
     """ load the language file based on given inputs
@@ -299,17 +306,18 @@ def loadLanguageFile(language, widgetName):
     languagesDir = os.path.join(UIDIRECTORY, "languages")
     curLangDir = os.path.join(languagesDir, language)
     if not os.path.exists(curLangDir):
-        print("no language (%s) folder found for widget <%s>!"%(language, widgetName))
+        print("no language (%s) folder found for widget <%s>!" % (language, widgetName))
         return False
 
-    widgetLanguageFile = os.path.join(curLangDir, "%s.LAN"%widgetName)
+    widgetLanguageFile = os.path.join(curLangDir, "%s.LAN" % widgetName)
     if not os.path.exists(widgetLanguageFile):
-        print("no language (%s) file found for widget <%s>!"%(language, widgetName))
+        print("no language (%s) file found for widget <%s>!" % (language, widgetName))
         return False
 
     with open(widgetLanguageFile) as f:
         _data = json.load(f)
     return _data
+
 
 def setProgress(inValue, progressBar=None, inText=''):
     """ convenience function to set the progress bar value even when a qProgressbar does not exist
@@ -343,6 +351,7 @@ def smart_round(value, ndigits):
     :rtype: float
     """
     return int(value * (10 ** ndigits)) / (10. ** ndigits)
+
 
 def smart_roundVec(inVector, nDigits):
     """ function to cap the decimals of a vector
@@ -394,7 +403,8 @@ def compare_vec3(a, b, epsilon=1e-5):
     """
     return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2]) < epsilon
 
-def clamp(val, minVal =0.0, maxVal = 1.0):
+
+def clamp(val, minVal=0.0, maxVal=1.0):
     """ clamp value between min and max
 
     :param val: value to clamp
@@ -407,7 +417,8 @@ def clamp(val, minVal =0.0, maxVal = 1.0):
     :rtype: float
     """
     return max(minVal, min(val, maxVal))
-    
+
+
 def lerp(a, b, t):
     """ blend the value from start to end based on the weight
 
@@ -468,9 +479,10 @@ def remap(iMin, iMax, oMin, oMax, v):
     :type v: float
     :return: remapped value
     :rtype: float
-    """    
+    """
     t = invLerp(iMin, iMax, v)
     return lerp(oMin, oMax, t)
+
 
 def veclength(inVec):
     """ get the length of a vector
@@ -479,9 +491,10 @@ def veclength(inVec):
     :type inVec: list 
     :return: length of a vector
     :rtype: float
-    """    
+    """
     return math.sqrt(sum(i**2 for i in inVec))
-    
+
+
 def widgetsAt(pos):
     """ Qt convenience function to get the widget at given screen position
 
@@ -523,10 +536,11 @@ def addChecks(cls, button, checks=None):
 
     functions, popup = addContextToMenu(cls, checks, button)
     button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
-    
+
     button.getNameInfo = {}
     for check in checks:
         button.getNameInfo[check] = functions[check]
+
 
 def addContextToMenu(cls, actionNames, btn):
     """ add context menu to button based on the checkboxes
@@ -586,14 +600,17 @@ def similarString(inString, inList):
         if matches:
             return matches[0]
 
+
 class LineEdit(QLineEdit):
     """override the focus steal on the lineedit"""
+
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key.Key_Control or key == Qt.Key.Key_Shift:
             return
         else:
             super(self.__class__, self).keyPressEvent(event)
+
 
 def getClosestVector(inList, currentPos, amountTosearch=1):
     """ get the closest position in the given list from current position
@@ -611,6 +628,7 @@ def getClosestVector(inList, currentPos, amountTosearch=1):
     foundPoints = sourceKDTree.query(query_point=currentPos, t=amountTosearch)
     return foundPoints
 
+
 def remapClosestPoints(sourceList, targetList, amount):
     """ map given positions to the closest positions
 
@@ -623,29 +641,29 @@ def remapClosestPoints(sourceList, targetList, amount):
     :return: closest positions, weight values
     :rtype: list
     """
-    sourceKDTree = KDTree.construct_from_data( sourceList )
+    sourceKDTree = KDTree.construct_from_data(sourceList)
 
     remap = OrderedDict()
     weights = OrderedDict()
     for target in targetList:
-        closestPoints = sourceKDTree.query(query_point = target, t = amount)
+        closestPoints = sourceKDTree.query(query_point=target, t=amount)
         indices = []
         distances = []
         total = 0.0
         for pt in closestPoints:
-            indices.append( sourceList.index(pt) )
+            indices.append(sourceList.index(pt))
             _curDist = veclength(pt) - veclength(target)
             distances.append(_curDist)
             total += _curDist
 
-        
         wght = 1.0
         for w in distances:
             # smallest value has heighest weight
-            wght = 1.0 if total == 0.0 else 1.0 - (w/total)
+            wght = 1.0 if total == 0.0 else 1.0 - (w / total)
         remap[target] = indices
         weights[target] = wght
     return remap, weights
+
 
 def incrementName(name):
     """ simple version of adding new trailing number
@@ -659,8 +677,9 @@ def incrementName(name):
     m = trailingNumber.search(name)
     if m:
         i = m.group(0)
-        return "%s%s"%( name[:-len(i)], int(i) + 1)
+        return "%s%s" % (name[:-len(i)], int(i) + 1)
     return name + '1'
+
 
 def convertImageToString(inPath):
     """ convenience function to save an image as a string format so the image does not have to be placed with the file
@@ -674,6 +693,7 @@ def convertImageToString(inPath):
         _str = base64.b64encode(imageFile.read())
     return [_str, os.path.splitext(inPath)[-1]]
 
+
 def convertStringToImage(inString):
     """ convenience function to restore an image from an encoded string
 
@@ -682,16 +702,17 @@ def convertStringToImage(inString):
     :return: the path the the image
     :rtype: string
     """
-    filePath = os.path.join(tempfile.gettempdir(), "img%s"%inString[-1])
+    filePath = os.path.join(tempfile.gettempdir(), "img%s" % inString[-1])
     with open(filePath, "wb") as fh:
         fh.write(inString[0].decode('base64'))
     return filePath
 
 # ----------- google drive functionality --------
 
-def gDriveDownload(urlinfo, destination, progressBar = None):
+
+def gDriveDownload(urlinfo, destination, progressBar=None):
     """ google download functionality
-    
+
     :param urlinfo: dict of  filenames and corresponding files to download 
     :type urlinfo: dict
     :param destination: the folder to place downloaded files
@@ -700,20 +721,21 @@ def gDriveDownload(urlinfo, destination, progressBar = None):
     :type progressBar: QProgressbar
     """
     setProgress(0, progressBar, inText="start download information")
-    
+
     setProgress(10, progressBar, inText="send request")
-    percentage = 80.0/len(urlinfo.keys())
+    percentage = 80.0 / len(urlinfo.keys())
     for index, (fileName, url) in enumerate(urlinfo.items()):
 
         response = requests.get(url, stream=True)
-        saveResponseContent(response, os.path.join( destination, fileName ) )
+        saveResponseContent(response, os.path.join(destination, fileName))
         setProgress(10 + (index * percentage), progressBar, inText="checking response")
-    
+
     setProgress(100, progressBar, inText="downloaded information")
+
 
 def saveResponseContent(response, destination):
     """ save the chunks of data into a file
-    
+
     :param response: the information gathered from the website
     :type response: <response>
     :param destination: the folder to place downloaded files
@@ -722,16 +744,17 @@ def saveResponseContent(response, destination):
     if response.status_code == 200:
         with open(destination, "wb") as f:
             for chunk in response:
-                if chunk: 
+                if chunk:
                     f.write(chunk)
     else:
-        print(response.status_code) 
+        print(response.status_code)
 
 # ------------------ google drive end -------------------------------
 
+
 def QuickDialog(title):
     """ convenience Quick dialog for simple accept and reject functions
-    
+
     :param title: title for the dialog
     :type title: string
     :return: the window to be created
@@ -751,12 +774,13 @@ def QuickDialog(title):
     h.addWidget(btn)
     return myWindow
 
+
 class SimplePopupSpinBox(QDialog):
     """ spinbox delegate that is able to display as its own window
     """
     closed = pyqtSignal()
 
-    def __init__(self, parent = None, value=0.5):
+    def __init__(self, parent=None, value=0.5):
         """ the constructor
 
         :param parent: the parent widget for this object
@@ -765,10 +789,10 @@ class SimplePopupSpinBox(QDialog):
         :type value: float
         """
         super(SimplePopupSpinBox, self).__init__(parent)
-        self.setWindowFlags( Qt.Window|Qt.FramelessWindowHint )
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
 
         self.setAttribute(Qt.WA_TranslucentBackground)
-        
+
         self.input = QDoubleSpinBox(self)
         self.input.setButtonSymbols(QAbstractSpinBox.NoButtons)
         self.input.setDecimals(3)
@@ -776,14 +800,14 @@ class SimplePopupSpinBox(QDialog):
         self.input.setSingleStep(.1)
         self.input.setValue(value)
         self.input.selectAll()
-        
+
         pos = QCursor.pos()
-        self.setGeometry(pos.x()-25, pos.y()-23, 50, 23)
+        self.setGeometry(pos.x() - 25, pos.y() - 23, 50, 23)
         self.input.editingFinished.connect(self.close)
-            
+
         self.input.setFocus()
         self.activateWindow()
         self.exec_()
-        
+
     def closeEvent(self, e):
         self.closed.emit()

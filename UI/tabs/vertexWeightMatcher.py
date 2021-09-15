@@ -10,42 +10,6 @@ from maya import cmds
 
 
 class TransferWeightsWidget(QWidget):
-    """
-    the way this works:
-    copy infrmation from object a to b
-    we can use the current object information as scuch when the vertex indces are the same 
-    (this is the current use of the tool)
-    if the objects are not the same we can maybe use the closest vertices we can find using kdtree
-    then we have information on the closest vectors and we use the copySkinWeights to transfer the data necessary
-    zthe way we locate the closest vertices could be based on random integers and looking if they are in the exact smae locaiton
-
-    no need for copy skinweights in this case :)
-
-    # ----------------
-    from maya import cmds
-
-    sphere1 = cmds.polySphere()[0]
-    sphere2 = cmds.polySphere()[0]
-
-    cmds.select(cl=1)
-    jnt1 = cmds.joint(p=(0,0,1))
-    jnt2 = cmds.createNode("joint")
-    cmds.xform(jnt2, ws=1, t=(0,0,-1))
-
-    cmds.skinCluster(sphere1, [jnt1, jnt2], tsb=1)
-    cmds.parent(jnt2, jnt1)
-    cmds.skinCluster(sphere2, [jnt1, jnt2], tsb=1)
-
-    sel = cmds.ls('pSphere1.vtx[228:310]', fl=1)
-    cmds.select(sel, r=1)
-    indexList = [int(vtx.split("[")[-1][:-1]) for vtx in sel]
-
-
-    source  = ["%s.vtx[%s]"%(sphere1, index) for index in indexList]
-
-    target  = ["%s.vtx[%s]"%(sphere2, index) for index in indexList]
-    cmds.copySkinWeights(source, target, noMirror=True, surfaceAssociation='closestPoint', ia=['oneToOne','name'])
-        """
     toolName = "TransferWeightsWidget"
 
     @dec_loadPlugin(interface.getInterfaceDir() + "/plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/skinCommands%s" % (api.getMayaVersion(), api.getPluginSuffix()))
@@ -54,7 +18,7 @@ class TransferWeightsWidget(QWidget):
         self.setLayout(nullVBoxLayout())
         self.__defaults()
 
-        self.textInfo = {}
+        self.__defaults()
 
         v1 = self.__vertexFunc()
         v2 = self.__skinClusterFunc()
@@ -92,8 +56,16 @@ class TransferWeightsWidget(QWidget):
         _trs = translator.showUI(_dict, widgetName=self.toolName)
 
     # --------------------------------- ui setup ----------------------------------
+
     def __defaults(self):
         self.settings = QSettings('TransferWeightsWidget', 'storedSelection')
+        self.textInfo = {}
+        self.__loadBar = None
+        self._toSelect = {"sources": [],
+                          "targets": []}
+
+    def addLoadingBar(self, loadingBar):
+        self.__loadBar = loadingBar
 
     def __vertexFunc(self, ):
         v1 = nullVBoxLayout()
@@ -114,35 +86,6 @@ class TransferWeightsWidget(QWidget):
         v1.addLayout(h)
         return v1
 
-    def __skinClusterFunc(self):
-        v2 = nullVBoxLayout()
-        grid = nullGridLayout()
-        self.textInfo["source"] = QLineEdit()
-        self.textInfo["source"].setPlaceholderText("No source given...")
-        self.textInfo["target"] = QLineEdit()
-        self.textInfo["target"].setPlaceholderText("No target given...")
-        self.textInfo["btn2"] = buttonsToAttach("Grab Source", partial(self.__grabSkinCl, self.textInfo["source"]))
-        self.textInfo["btn3"] = buttonsToAttach("Grab Target", partial(self.__grabSkinCl, self.textInfo["target"]))
-
-        for l in [self.textInfo["source"], self.textInfo["target"]]:
-            l.setText('')
-            l.setStyleSheet('color:#000; background-color: #ad4c4c;')
-            l.setEnabled(False)
-
-        for i, w in enumerate([self.textInfo["source"], self.textInfo["target"], self.textInfo["btn2"], self.textInfo["btn3"]]):
-            row = i / 2
-            grid.addWidget(w, i - (row * 2), row)
-
-        self.textInfo["btn4"] = buttonsToAttach('Copy selected vertices', self.__copySkinDataCB)
-        self.textInfo["additive"] = QCheckBox('Additive')
-        v2.addLayout(grid)
-        v2.addWidget(self.textInfo["btn4"])
-        v2.addWidget(self.textInfo["additive"])
-        v2.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding))
-
-        self.__loadBar = None
-        return v2
-
     def __restoreSettings(self):
         for key in self.settings.allKeys():
             if not 'vtxSel/' in str(key):
@@ -155,74 +98,61 @@ class TransferWeightsWidget(QWidget):
             else:
                 self.__addItem(key.split('/', 1)[1], data)
 
-    def __grabSkinCl(self, toSet=None):
+    def selVert(self, toSel):
+        cmds.select(self._toSelect[toSel], r=1)
+
+    def __grabSkinCl(self, toSet, toEnable, selectSet):
         sc = skinCluster()
         if sc is None:
             toSet.setText('')
             toSet.setStyleSheet('color:#000; background-color: #ad4c4c;')
+            toEnable.setEnabled(False)
             return
         toSet.setText(sc)
         toSet.setStyleSheet('background-color: #17D206;')
+        selection = interface.getSelection()
+        if "." in selection[0]:
+            selection = convertToVertexList(selection)
+        self._toSelect[selectSet] = selection
+        toEnable.setEnabled(True)
 
-    def addLoadingBar(self, loadingBar):
-        self.__loadBar = loadingBar
+    def __skinClusterFunc(self):
+        v2 = nullVBoxLayout()
+        grid = nullGridLayout()
+        self.textInfo["source"] = QLineEdit()
+        self.textInfo["source"].setPlaceholderText("No source given...")
+        self.textInfo["source1"] = buttonsToAttach("select source vertices", partial(self.selVert, "sources"))
+        self.textInfo["target"] = QLineEdit()
+        self.textInfo["target"].setPlaceholderText("No target given...")
+        self.textInfo["target1"] = buttonsToAttach("select target vertices", partial(self.selVert, "targets"))
+        self.textInfo["btn2"] = buttonsToAttach("Grab Source", partial(self.__grabSkinCl, self.textInfo["source"], self.textInfo["source1"], "sources"))
+        self.textInfo["btn3"] = buttonsToAttach("Grab Target", partial(self.__grabSkinCl, self.textInfo["target"], self.textInfo["target1"], "targets"))
 
-    def __copySkinDataCB(self):
-        source = str(self.textInfo["source"].text())
-        target = str(self.textInfo["target"].text())
-        if not cmds.objExists(source) or not cmds.objExists(target):
-            print('Must load an existing source and target skin cluster to copy between')
-            return
-        expandedVertices = convertToVertexList(cmds.ls(sl=1, fl=1))
-        if not expandedVertices:
-            print('Must select vertices to copy weights for')
-            return
-        outInfluences = cmds.skinCluster(target, q=True, influence=True)
-        inInfluences = cmds.skinCluster(source, q=True, influence=True)
+        for l in [self.textInfo["source"], self.textInfo["target"],
+                  self.textInfo["source1"], self.textInfo["target1"]]:
+            if not isinstance(l, QPushButton):
+                l.setText('')
+                l.setStyleSheet('color:#000; background-color: #ad4c4c;')
+            l.setEnabled(False)
 
-        add = []
-        for influence in inInfluences:
-            if influence not in outInfluences:
-                add.append(influence)
-        if add:
-            cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
+        for i, w in enumerate([self.textInfo["source"], self.textInfo["target"],
+                               self.textInfo["source1"], self.textInfo["target1"],
+                               self.textInfo["btn2"], self.textInfo["btn3"]]):
+            row = int(i / 2)
+            grid.addWidget(w, i - (row * 2), row)
 
-        sourceGeo = cmds.skinCluster(source, q=True, g=True)[0]
-        targetGeo = cmds.skinCluster(target, q=True, g=True)[0]
-        inWeights = cmds.SkinWeights(sourceGeo, source, q=True)
-        outWeights = cmds.SkinWeights(targetGeo, target, q=True)
+        hbox = nullHBoxLayout()
+        self.textInfo["btn4"] = buttonsToAttach('Copy selected vertices', partial(self.__copySkinDataCB, True))
+        self.textInfo["btn5"] = buttonsToAttach('Copy stored vertices', partial(self.__copySkinDataCB, False))
+        self.textInfo["additive"] = QCheckBox('Additive')
 
-        outInfluences = cmds.skinCluster(target, q=True, influence=True)
-
-        numInInf = len(inInfluences)
-        numOutInf = len(outInfluences)
-
-        percentage = 99.0 / len(expandedVertices)
-        setProgress(0, self.__loadBar, "transfering weights from %s >> %s" % (source, target))
-        _isChecked = self.textInfo["additive"].isChecked()
-        for iteration, vertex in enumerate(expandedVertices):
-            identifier = int(vertex.rsplit('[', 1)[-1].split(']', 1)[0])
-            if not _isChecked:
-                outWeights[identifier * numOutInf: (identifier + 1) * numOutInf] = [0] * numOutInf
-
-            for i in range(numInInf):
-                offset = outInfluences.index(inInfluences[i])
-                outWeights[(identifier * numOutInf) + offset] += inWeights[(identifier * numInInf) + i]
-
-            tw = sum(outWeights[(identifier * numOutInf):((identifier + 1) * numOutInf)])
-
-            if tw == 0:
-                continue
-
-            ratio = 1.0 / tw
-            for i in range(numOutInf):
-                outWeights[identifier * numOutInf + i] *= ratio
-
-            if iteration % 10 == 0:
-                setProgress(percentage * iteration, self.__loadBar, "transfering weights from %s >> %s" % (source, target))
-
-        cmds.SkinWeights(targetGeo, target, nwt=outWeights)
-        setProgress(100, self.__loadBar, "transfered weights from %s >> %s" % (source, target))
+        v2.addLayout(grid)
+        hbox.addWidget(self.textInfo["btn4"])
+        hbox.addWidget(self.textInfo["btn5"])
+        v2.addLayout(hbox)
+        v2.addWidget(self.textInfo["additive"])
+        v2.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding))
+        return v2
 
     def __addItem(self, name, pyData):
         match = self.list.findItems(name, Qt.MatchExactly)
@@ -266,6 +196,92 @@ class TransferWeightsWidget(QWidget):
                 cmds.select(selectionItem, add=True)
             else:
                 cmds.warning('%s does not exist in currentScene' % (selectionItem[0].split('.')[0]))
+
+    def __copySkinDataCB(self, oneToOne=True):
+        source = str(self.textInfo["source"].text())
+        target = str(self.textInfo["target"].text())
+        if not cmds.objExists(source) or not cmds.objExists(target):
+            print('Must load an existing source and target skin cluster to copy between')
+            return
+        expandedVertices = convertToVertexList(cmds.ls(sl=1, fl=1))
+
+        outInfluences = cmds.skinCluster(target, q=True, influence=True)
+        inInfluences = cmds.skinCluster(source, q=True, influence=True)
+
+        add = []
+        for influence in inInfluences:
+            if influence not in outInfluences:
+                add.append(influence)
+        if add:
+            cmds.skinCluster(target, addInfluence=add, wt=0, e=True)
+
+        sourceGeo = cmds.ls(cmds.skinCluster(source, q=True, g=True)[0], sl=0, fl=1, l=1)[0]
+        targetGeo = cmds.ls(cmds.skinCluster(target, q=True, g=True)[0], sl=0, fl=1, l=1)[0]
+
+        outInfluences = cmds.skinCluster(target, q=True, influence=True)
+
+        numInInf = len(inInfluences)
+        numOutInf = len(outInfluences)
+
+        _isChecked = self.textInfo["additive"].isChecked()
+        if _isChecked and oneToOne:
+            if not expandedVertices:
+                print('Must select vertices to copy weights for')
+                return
+            if len(convertToVertexList(sourceGeo)) != len(convertToVertexList(targetGeo)):
+                print('meshes are not identical!')
+
+            inWeights = cmds.SkinWeights(sourceGeo, source, q=True)
+            outWeights = cmds.SkinWeights(targetGeo, target, q=True)
+            percentage = 99.0 / len(expandedVertices)
+            setProgress(0, self.__loadBar, "transfering weights from %s >> %s" % (source, target))
+            # use the old way for additions
+            for iteration, vertex in enumerate(expandedVertices):
+                identifier = int(vertex.rsplit('[', 1)[-1].split(']', 1)[0])
+                outWeights[identifier * numOutInf: (identifier + 1) * numOutInf] = [0] * numOutInf
+
+                for i in range(numInInf):
+                    offset = outInfluences.index(inInfluences[i])
+                    outWeights[(identifier * numOutInf) + offset] += inWeights[(identifier * numInInf) + i]
+
+                tw = sum(outWeights[(identifier * numOutInf):((identifier + 1) * numOutInf)])
+
+                if tw == 0:
+                    continue
+
+                ratio = 1.0 / tw
+                for i in range(numOutInf):
+                    outWeights[identifier * numOutInf + i] *= ratio
+
+                if iteration % 10 == 0:
+                    setProgress(percentage * iteration, self.__loadBar, "transfering weights from %s >> %s" % (source, target))
+
+            cmds.SkinWeights(targetGeo, target, nwt=outWeights)
+            setProgress(100, self.__loadBar, "transfered weights from %s >> %s" % (source, target))
+            return
+
+        #  additive no longer possible
+        if oneToOne and expandedVertices:
+            if sourceGeo in expandedVertices[0]:
+                _targetVerts = convertToVertexList(targetGeo)
+            else:
+                _targetVerts = convertToVertexList(sourceGeo)
+
+            sourceVerts = closestPosCheck(expandedVertices, _targetVerts, self.__loadBar)
+            targetVerts = expandedVertices
+
+        elif not oneToOne:
+            # use the stored values
+            if [] in self._toSelect.values():
+                print('no valid entrys found')
+                return
+            sourceVerts = self._toSelect["sources"]
+            targetVerts = self._toSelect["targets"]
+        else:
+            print('Must select vertices to copy weights, or copy with the stored weights')
+
+        cmds.copySkinWeights(sourceVerts, targetVerts, noMirror=True, surfaceAssociation='closestPoint', ia=['oneToOne', 'name'])
+        setProgress(100, self.__loadBar, "transfered weights from %s >> %s" % (source, target))
 
 
 class ClosestVertexWeightWidget(QWidget):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess, random
+import sys, traceback, collections, itertools, cProfile, inspect, os, pstats, subprocess, random, json
 from collections import defaultdict, deque
 from functools import wraps
 from maya import cmds, mel, OpenMaya as oldOpenMaya
@@ -7,18 +7,19 @@ from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.ThirdParty import pyprof2calltree
+from SkinningTools.ThirdParty.kdtree import KDTree
 
 _DEBUG = getDebugState()
 
 
 def dec_undo(func):
     """ undo decorator
-    will allow the objects created and changed in maya to be part of a single chunk where possible 
+    will allow the objects created and changed in maya to be part of a single chunk where possible
     the decorators is wrapped within a try except finally function to make sure everything is always undoable
     :note: object created with the use of OpenMaya will not be part of this
 
 
-    :param func: function this decorator is attached to 
+    :param func: function this decorator is attached to
     :type func: function()
     :return: the result of the given function
     :rtype: function()
@@ -42,9 +43,9 @@ def dec_undo(func):
 
 def dec_profile(func):
     """ profiler decorator
-    run cprofile on wrapped function 
+    run cprofile on wrapped function
 
-    :param func: function this decorator is attached to 
+    :param func: function this decorator is attached to
     :type func: function()
     :return: the result of the given function
     :rtype: function()
@@ -90,7 +91,7 @@ def dec_repeat(func):
     the arguments given are parsed and converted into a string that is added to a mel command.
     :todo: double check the functionality
 
-    :param func: function this decorator is attached to 
+    :param func: function this decorator is attached to
     :type func: function()
     :return: the result of the given function
     :rtype: function()
@@ -150,7 +151,7 @@ def dec_loadPlugin(plugin):
     """ load plugin decorator
     loads the given plugin in the current maya scene, should be attached to functions that rely on plugins
 
-    :param func: plugin this decorator is attached to 
+    :param func: plugin this decorator is attached to
     :type func: string
     :return: the result of the given function
     :rtype: function()
@@ -181,7 +182,7 @@ def dec_timer(func):
     """ debug timer decorator
     times the function for how long it takes to run everything in the function
 
-    :param func: plugin this decorator is attached to 
+    :param func: plugin this decorator is attached to
     :type func: string
     :return: the result of the given function
     :rtype: function()
@@ -200,7 +201,7 @@ def dec_timer(func):
 
 class Graph(object):
     """ dijkstra closest path technique (for nurbs and lattice)
-    implemented from: https://gist.github.com/econchick/4666413  
+    implemented from: https://gist.github.com/econchick/4666413
     basic idea: http://www.redblobgames.com/pathfinding/a-star/introduction.html
     """
 
@@ -224,7 +225,7 @@ class Graph(object):
 
         :param from_node: node that will be used as a start position on the segment
         :type from_node: string
-        :param to_node: node that will be used as the end position on the segment 
+        :param to_node: node that will be used as the end position on the segment
         :type to_node: string
         :param distance: length between the given nodes
         :type distance: float
@@ -777,7 +778,7 @@ def growLatticePoints(points):
 
 
 def getWeights(inMesh):
-    """ get the complete weight data of a given mesh 
+    """ get the complete weight data of a given mesh
     weightData = [[value]* joints] * vertices
 
     :param inMesh: the object to get the data from
@@ -816,7 +817,7 @@ def getWeights(inMesh):
 
 
 def setWeights(inMesh, weightData):
-    """ set the complete weight data of a given mesh 
+    """ set the complete weight data of a given mesh
 
     :param inMesh: the object to set the data to
     :type inMesh: string
@@ -861,7 +862,7 @@ def setWeights(inMesh, weightData):
 # -------------
 
 def getPolyOnMesh(point, inMesh):
-    """ sget polygonal mesh data of a point on the surface 
+    """ sget polygonal mesh data of a point on the surface
 
     :param point: point in space
     :type point: list
@@ -1052,29 +1053,24 @@ def getHierarchySelection(inType="transform"):
     return cmds.ls(hierarchy, type=inType, l=1)
 
 
-def closestPosCheck(sourceVerts, targetVerts):
-    #convert this to openmaya!
-    sourcePos = [cmds.xform(vert,q=1,ws=1,t=1) for vert in sourceVerts]
-    targetPos = [cmds.xform(vert,q=1,ws=1,t=1) for vert in targetVerts]
-    amount = len(sourcePos)
-    positions = True
-    for i in range(5):
-        _id =  random.randint(0, amount)
-        pos = smart_roundVec(sourcePos[_id], 3)
-        nPos = smart_roundVec(targetPos[_id], 3)
-        if pos == nPos:
-            continue
-        positions = False
+def closestPosCheck(sourceVerts, targetVerts, progressBar=None):
+    sourcePoints = []
+    sourcePointPos = []
+    for sourceVert in targetVerts:
+        pos = cmds.xform(sourceVert, q=True, ws=True, t=True)
+        sourcePoints.append(pos)
+        sourcePointPos.append([sourceVert, pos])
 
-    if not positions:
-        nTargetVerts = convertToVertexList(targetVerts[0].split('.')[0])
-        nTargetPos = [cmds.xform(vert,q=1,ws=1,t=1) for vert in nTargetVerts]
+    _targetVerts = []
+    sourceKDTree = KDTree.construct_from_data(sourcePoints)
 
-        # double check this!
-        _dict = remapClosestPoints(nTargetPos, sourcePos, 1)
-        _targetVerts = [''] * len(sourcePos)
-        for key, val in _dict.items():
-            _targetVerts[val] = nTargetVerts[nTargetPos.index(key)]
-
-        return sourceVerts, _targetVerts
-    return sourceVerts, targetVerts
+    percentage = 99.0 / len(sourceVerts)
+    for iteration, source in enumerate(sourceVerts):
+        pos = cmds.xform(source, q=1, ws=1, t=1)
+        val = sourceKDTree.query(query_point=pos, t=1)[0]
+        for positionList in sourcePointPos:
+            if val != positionList[1]:
+                continue
+            _targetVerts.append(positionList[0])
+        setProgress(percentage * iteration, progressBar, "gathering closest vertex data")
+    return _targetVerts

@@ -3,6 +3,7 @@
   "target": "No target given...", 
   "source": "No source given...", 
   "btn4": "Copy selected vertices", 
+  "btn5": "Copy stored vertices", 
   "btn": "StoreSelection", 
   "btn1": "ClearList", 
   "btn2": "Grab Source", 
