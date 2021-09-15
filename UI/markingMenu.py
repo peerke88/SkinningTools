@@ -6,6 +6,7 @@ from math import *
 
 _DEBUG = getDebugState()
 
+
 class MarkingMenuFilter(QObject):
     """ the marking menu filter
     this eventfilter will grab mouse inputs and when the conditions are met it will spawn a popup window at the mouse location
@@ -14,7 +15,7 @@ class MarkingMenuFilter(QObject):
 
     def __init__(self, name="MarkingMenu", isDebug=False, parent=None):
         """ the constructor
-        
+
         :param name: name for the object to be spawned
         :type name: string
         :param isDebug: if `True` will act as if most conditions are met, if `False` will work as intended
@@ -23,7 +24,7 @@ class MarkingMenuFilter(QObject):
         :type parent: QWidget
         """
         super(MarkingMenuFilter, self).__init__(parent)
-        
+
         self.MMenu = radialMenu(interface.get_maya_window())
         self.__debug = isDebug
         self._storedValue = .5
@@ -45,13 +46,16 @@ class MarkingMenuFilter(QObject):
         """
         if MarkingMenuFilter is None:
             return False
-        super(MarkingMenuFilter, self).eventFilter(obj, event) 
+        super(MarkingMenuFilter, self).eventFilter(obj, event)
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.AltModifier:
             self.getBoneUnderMouse = False
             return False
 
         if event.type() == QEvent.MouseButtonPress and event.button() == 4:
+            sel = interface.getSelection()
+            if sel == [] or not '.' in sel[0]:
+                return False
             foundObjects = interface.objectUnderMouse()
             if self.__debug:
                 foundObjects = (True, "testBone")
@@ -113,7 +117,7 @@ class radialMenu(QMainWindow):
         self.__ActiveItem = None
         self.setFixedSize(self.__geoSize, self.__geoSize)
         self.checkState = interface.getSmoothAware()
-        self.inputObject = '' 
+        self.inputObject = ''
         self._value = .5
 
         self.scene = QGraphicsScene()
@@ -137,7 +141,7 @@ class radialMenu(QMainWindow):
         self._value = value
         self.remitem.setText("rem weight: %s" % self._value)
         self.additem.setText("add weight: %s" % self._value)
-        
+
     def _getValue(self):
         return self._value
 
@@ -225,7 +229,7 @@ class radialMenu(QMainWindow):
     @staticmethod
     def rotateVec(origin, point, angle):
         """ angular math to get the correct positions on a circle based on center, length and angle
-        
+
         :param origin: center of the circle
         :type origin: QPos
         :param point: top point of the circle (12 o`clock)
@@ -250,7 +254,7 @@ class radialMenu(QMainWindow):
 
     def __MMButton(self, inText, position, inValue=None, inFunction=None, operation=1):
         """ single marking menu button
-        
+
         :param inText: the text to display
         :type inText: string
         :param position: position on the circle
@@ -276,7 +280,7 @@ class radialMenu(QMainWindow):
 
     def __MMCheck(self, inText, position, inValue=True, inFunction=None):
         """ single marking menu checkbox 
-        
+
         :param inText: the text to display
         :type inText: string
         :param position: position on the circle
@@ -343,19 +347,25 @@ class radialMenu(QMainWindow):
 
         return True
 
-    def _changeVal(self, item, value, operation=0 ):
-        _popup = SimplePopupSpinBox(parent = interface.get_maya_window(), value = self._value)
-        self._setValue( _popup.input.value() )
+    def _changeVal(self, item, value, operation=0):
+        _popup = SimplePopupSpinBox(parent=interface.get_maya_window(), value=self._value)
+        self._setValue(_popup.input.value())
 
     def __funcPressed(self, _, value, operation=0):
         """ function that will run when a button is clicked
-        
+
         :param value: the value that will be set on the selection
         :type value: float
         :param operation: the operation on how to treat the weight
         :type operation: int
         :note operation: { 0:removes the values, 1:sets the values, 2: adds the values}
+        :note: we check for selection again just to make sure it only works on the component level
         """
+
+        sel = interface.getSelection()
+        if sel == [] or not '.' in sel[0]:
+            return False
+
         if operation != 1 and value != 1:
             value = self._value
         interface.doSkinPercent(self.inputObject, value, operation=operation)
@@ -363,7 +373,7 @@ class radialMenu(QMainWindow):
     def _setCheckState(self, item, *_):
         """ function that will run once the checkbox state has changed
         in this case it will change soft selection settings 
-        
+
         :param item: the checkbox
         :type item: QCheckbox
         """
@@ -384,6 +394,7 @@ class testWidget(QMainWindow):
     """simple widget to install the eventfilter on to test the markingmenu
     this will not use the dcc application but a seperate window, where debug is forced so it will always draw the popup window
     """
+
     def __init__(self, parent=None):
         super(testWidget, self).__init__(parent)
         mainWidget = QWidget()
