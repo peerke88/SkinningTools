@@ -5,12 +5,6 @@ package creator
 this file will place everything that is relevant to the current skinningtools in a subdirectory usin the same folderstructure
 currently we glob all necessary files together and place them accordingly
 
-@Todo:
- - zip and upload tooltips to firebasestorage when building (update the link if necessary)
-
-@Todo eventually:
- - add unit tests 
- - update documentation (this should be added to www.perryleijten.com)
 """
 
 import os, errno, datetime, fileinput, subprocess, zipfile

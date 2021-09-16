@@ -270,14 +270,14 @@ def _eventFilterTargets():
     :return: the maya window and the active 3d viewport
     :rtype: list
     """
-    from SkinningTools.UI.qt_util import wrapinstance, QMainWindow, QObject
+    from SkinningTools.UI.qt_util import wrapinstance, QMainWindow, QWidget
     from maya.OpenMayaUI import MQtUtil, M3dView
 
     mainWin = wrapinstance(int(MQtUtil.mainWindow()), QMainWindow)
 
     active_view = M3dView.active3dView()
     active_view_ptr = active_view.widget()
-    qt_active_view = wrapinstance(int(active_view_ptr), QObject)
+    qt_active_view = wrapinstance(int(active_view_ptr), QWidget)
 
     return mainWin, qt_active_view
 
