@@ -123,6 +123,9 @@ class SkinningToolsUI(interface.DockWidget):
         helpAction = QMenu('', self)
         helpAction.setIcon(QIcon(":/QR_help.png"))
 
+        settingsMenu = QAction("", self)
+        settingsMenu.setIcon(QIcon(":/QR_settings.png"))
+
         self.textInfo["holdAction"] = QAction("hold Model", self)
         self.textInfo["fetchAction"] = QAction("fetch Model", self)
         self.textInfo["objSkeletonAction"] = QAction("skeleton -> obj", self)
@@ -151,11 +154,16 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["docAction"].triggered.connect(self._openDocHelp)
         self.textInfo["mmAction"].triggered.connect(partial(self._openDocHelp, True))
         self.textInfo["tooltipAction"].triggered.connect(self._tooltipsCheck)
+        settingsMenu.triggered.connect(self._openSettings)
 
         self.menuBar.addMenu(helpAction)
+        self.menuBar.addAction(settingsMenu)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
         self.menuBar.addMenu(self.changeLN)
         self.layout().setMenuBar(self.menuBar)
+
+    def _openSettings(self):
+        print("open settings")
 
     def _tooltipsCheck(self):
         if not self.textInfo["tooltipAction"].isChecked():
