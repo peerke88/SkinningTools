@@ -5,9 +5,11 @@ from SkinningTools.py23 import *
 from SkinningTools.ThirdParty.google_trans_new import google_translator, LANGUAGES
 from SkinningTools.Maya import interface
 
+
 class SearchableComboBox(QComboBox):
     """ combobox that adds functionality to search for the object necessary out of the list of items
     """
+
     def __init__(self, parent=None):
         """ the constructor
 
@@ -34,12 +36,14 @@ class SearchableComboBox(QComboBox):
         if opt != text:
             self.setCurrentText(opt)
 
+
 class TranslatorDialog(QDialog):
     """ simple dialog with google translate connections
     making sure that we can translate any given text to any language
     the items displayed will always have the english text to the left to compare
     """
-    def __init__(self, inDict = None, defaultLanguage = "japanese", widgetName = None, parent = None):
+
+    def __init__(self, inDict=None, defaultLanguage="japanese", widgetName=None, parent=None):
         """ the constructor
 
         :param inDict: the base dictionary to translate from
@@ -54,7 +58,7 @@ class TranslatorDialog(QDialog):
         if widgetName is None:
             print("widgetName cannot be None")
             return
-                
+
         super(TranslatorDialog, self).__init__(parent)
         self.setWindowTitle("translator")
         self.setLayout(nullVBoxLayout())
@@ -82,7 +86,7 @@ class TranslatorDialog(QDialog):
         self.combo.setCurrentIndex(_id)
         self.__inDict = inDict
         if inDict is None:
-        	self.__inDict = loadLanguageFile("en", widgetName)
+            self.__inDict = loadLanguageFile("en", widgetName)
         self._layouts = []
 
         scrollArea = QScrollArea()
@@ -93,7 +97,7 @@ class TranslatorDialog(QDialog):
         self.frameLayout = nullVBoxLayout()
         _frame.setLayout(self.frameLayout)
         self.layout().addWidget(scrollArea)
-        _outPath = os.path.join(os.path.dirname(__file__), "languages", self.getLangValue(), "%s.LAN"%self.widgetName )
+        _outPath = os.path.join(os.path.dirname(__file__), "languages", self.getLangValue(), "%s.LAN" % self.widgetName)
         if os.path.exists(_outPath):
             self._recreateDialog()
         else:
@@ -117,9 +121,9 @@ class TranslatorDialog(QDialog):
         _id = _valList.index(_txt)
         return _keyList[_id]
 
-    def translateConnection(self, key, inText, doTranslate = True):
+    def translateConnection(self, key, inText, doTranslate=True):
         """ create layout with the setup using a label and a lineedit to make sure we can change the translation if necessary
- 
+
         :param key: key value of the original dictionary to use for later
         :type key: string
         :param inText: the text to translate or use as the input to change
@@ -133,32 +137,32 @@ class TranslatorDialog(QDialog):
         if doTranslate:
             label = QLabel(inText)
         else:
-        	label = QLabel(self.__inDict[key])
+            label = QLabel(self.__inDict[key])
         txt = inText
+        print inText, self.getLangValue()
         if doTranslate:
-            txt = self._translator.translate(inText,lang_tgt=self.getLangValue())
+            txt = self._translator.translate(inText, lang_tgt=self.getLangValue())
 
         if type(txt) in [list, tuple]:
             txt = txt[0]
         line = QPlainTextEdit(txt)
         for w in [label, line]:
             h.addWidget(w)
-        h._info = [key, inText, line]    
+        h._info = [key, inText, line]
         return h
 
     def _recreateDialog(self):
         """ create the dialog with all the information of the given dictionary
         """
-        _data = loadLanguageFile( self.getLangValue(), self.widgetName)
+        _data = loadLanguageFile(self.getLangValue(), self.widgetName)
         perc = 99.0 / len(_data.values())
         for index, (key, value) in enumerate(_data.items()):
-            setProgress(index * perc, None, "getting translation info on : %s"%value)
+            setProgress(index * perc, None, "getting translation info on : %s" % value)
             h = self.translateConnection(key, value, doTranslate=False)
             self._layouts.append(h)
             self.frameLayout.addLayout(h)
 
         setProgress(100, None, "grabbed all info")
-
 
     def _populateDialog(self):
         """ populate the dialog using the given dictionary and auto translate the necessary pieces of information
@@ -166,13 +170,13 @@ class TranslatorDialog(QDialog):
         perc = 99.0 / len(self.__inDict.values())
 
         for index, (key, value) in enumerate(self.__inDict.items()):
-            setProgress(index * perc, None, "getting translation info on : %s"%value)
+            setProgress(index * perc, None, "getting translation info on : %s" % value)
             h = self.translateConnection(key, value)
             self._layouts.append(h)
             self.frameLayout.addLayout(h)
 
         setProgress(100, None, "translated info")
-    
+
     def _doTranslate(self):
         """ seperate function to translate elements when the dialog is already build
         """
@@ -180,13 +184,13 @@ class TranslatorDialog(QDialog):
 
         for index, h in enumerate(self._layouts):
             key, base, lineEdit = h._info
-            setProgress(index * perc, self.progressBar, "getting translation info on : %s"%base)
-            txt = self._translator.translate(self.__inDict[key] ,lang_tgt=self.getLangValue())
+            setProgress(index * perc, self.progressBar, "getting translation info on : %s" % base)
+            txt = self._translator.translate(self.__inDict[key], lang_tgt=self.getLangValue())
             if type(txt) in [list, tuple]:
                 txt = txt[0]
             lineEdit.setPlainText(txt)
             self.update()
-        
+
         setProgress(100, self.progressBar, "translated info")
 
     def _createDict(self):
@@ -210,6 +214,7 @@ class TranslatorDialog(QDialog):
         storeLanguageFile(outDict, language, self.widgetName)
         self.close()
 
+
 def testUI(inDict, widgetName):
     """ convenience function to show the current widget without it being part of the system
 
@@ -221,13 +226,14 @@ def testUI(inDict, widgetName):
     :rtype: QWidget
     """
     mainWindow = interface.get_maya_window()
-    wdw = TranslatorDialog(inDict, widgetName=widgetName, parent = mainWindow)
+    wdw = TranslatorDialog(inDict, widgetName=widgetName, parent=mainWindow)
     wdw.show()
     return wdw
 
+
 def showUI(inDict, widgetName):
     """ function to show the widget blocking other functionality
-    
+
     :param inDict: the dictionary to translate
     :type inDict: dict
     :param widgetName: the name of the widget to use to store the file
@@ -236,6 +242,6 @@ def showUI(inDict, widgetName):
     :rtype: QWidget
     """
     mainWindow = interface.get_maya_window()
-    wdw = TranslatorDialog(inDict, widgetName=widgetName, parent = mainWindow)
+    wdw = TranslatorDialog(inDict, widgetName=widgetName, parent=mainWindow)
     wdw.exec_()
     return wdw

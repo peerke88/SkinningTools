@@ -144,17 +144,17 @@ class VertAndBoneFunction(QWidget):
     # ------------------------------- size adjustment -------------------------------
 
     def _setIconSize(self, iconSize):
-        self.__IS = iconSize
+        self.__IS = int(iconSize)
         if self._Btn == {}:
             return
 
         for name, button in self._Btn.items():
-            button.setIconSize(QSize(iconSize, iconSize))
+            button.setIconSize(QSize(self.__IS, self.__IS))
 
-        self._smthSpin.setFixedSize(int(50 * self.__scaleFactor), 23 if iconSize < 13 else iconSize + 10)
-        self._maxSpin.setFixedSize(int(40 * self.__scaleFactor), 23 if iconSize < 13 else iconSize + 10)
-        self.shrinks_Btn.setIconSize(QSize(iconSize, iconSize))
-        self.growsel_Btn.setIconSize(QSize(iconSize, iconSize))
+        self._smthSpin.setFixedSize(int(50 * self.__scaleFactor), 23 if self.__IS < 13 else self.__IS + 10)
+        self._maxSpin.setFixedSize(int(40 * self.__scaleFactor), 23 if self.__IS < 13 else self.__IS + 10)
+        self.shrinks_Btn.setIconSize(QSize(self.__IS, self.__IS))
+        self.growsel_Btn.setIconSize(QSize(self.__IS, self.__IS))
 
     def _getIconSize(self):
         return self.__IS

@@ -9,9 +9,11 @@ _DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, title="Settings", parentWidget=None, parent=None):
+    toolName = "skintoolSettings"
+
+    def __init__(self, parentWidget=None, parent=None):
         super(SettingsDialog, self).__init__(parent)
-        self.setWindowTitle(title)
+        self.setWindowTitle(self.toolName)
         self.setLayout(nullVBoxLayout())
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
@@ -21,8 +23,46 @@ class SettingsDialog(QDialog):
         self.__populate()
         self.__connections()
 
+        self.setLanguage(self.parentWidget.language)
+
     def __defaults(self, *args):
         self.textInfo = OrderedDict()
+
+    # --------------------------------- translation ----------------------------------
+    def translate(self, localeDict={}):
+        """ translate the ui based on given dictionary
+
+        :param localeDict: the dictionary holding information on how to translate the ui
+        :type localeDict: dict
+        """
+        for key, value in localeDict.items():
+            if key not in self.textInfo.keys():
+                continue
+            if isinstance(self.textInfo[key], SliderControl):
+                self.textInfo[key].label.setText(value)
+                continue
+            self.textInfo[key].setText(value)
+
+    def getButtonText(self):
+        """ convenience function to get the current items that need new locale text
+        """
+        _ret = {}
+        for key, value in self.textInfo.items():
+            if isinstance(self.textInfo[key], SliderControl):
+                _ret[key] = value.label.text()
+                continue
+            _ret[key] = value.text()
+        return _ret
+
+    def doTranslate(self):
+        """ seperate function that calls upon the translate widget to help create a new language
+        we use the english language to translate from to make sure that translation doesnt get lost
+        """
+        from SkinningTools.UI import translator
+        _dict = loadLanguageFile("en", self.toolName)
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
+
+    # --------------------------------------------------------------------------
 
     def __populate(self, *args):
         # -- tooltip
@@ -45,7 +85,9 @@ class SettingsDialog(QDialog):
         self.comboBox = QComboBox()
         languages = os.listdir(os.path.join(_DIR, "languages"))
         self.comboBox.addItems(languages)
+
         self.comboBox.setCurrentIndex(languages.index(self.parentWidget.language))
+
         for w in [self.comboBox, self.textInfo["language"]]:
             layout1.addWidget(w)
 
@@ -57,9 +99,13 @@ class SettingsDialog(QDialog):
         layout3 = nullHBoxLayout()
         layout3.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.mmDisplay = mmSearchDisplay.MmSearchDisplay()
-        layout3.addWidget(self.mmDisplay)  # this needs to become the visualiser!
+        self.mmDisplay.changeCircleSize(self.parentWidget.mmMargin)
+        layout3.addWidget(self.mmDisplay)
         layout2.addWidget(self.textInfo["MMsearch"])
         layout2.addLayout(layout3)
+
+        # --defaults
+        self.textInfo["default"] = buttonsToAttach("reset settings", self.setDefault)
 
         for key in self.textInfo.keys():
             if key == "language":
@@ -72,19 +118,36 @@ class SettingsDialog(QDialog):
 
     def setToolTipInfo(self, value):
         self.parentWidget.showToolTips = value
+        self.parentWidget.saveUIState()
 
     def setIconInfo(self, value):
         self.parentWidget.vnbfWidget.iconSize = int(value)
+        self.parentWidget.saveUIState()
 
     def setFontInfo(self, value):
         self.parentWidget.fontSize = int(value)
+        self.parentWidget.saveUIState()
 
-    def setLanguage(self):
-        self.parentWidget._changeLanguage(self.sender().currentText())
+    def setLanguage(self, language="en"):
+        if self.sender() is not None:
+            self.parentWidget._changeLanguage(self.sender().currentText())
+            _dict = loadLanguageFile(self.sender().currentText(), self.toolName)
+        else:
+            _dict = loadLanguageFile(language, self.toolName)
+        self.translate(_dict)
+        self.parentWidget.saveUIState()
 
     def setSearchRadius(self, value):
         self.mmDisplay.changeCircleSize(value)
         self.parentWidget.mmMargin = value
+        self.parentWidget.saveUIState()
+
+    def setDefault(self):
+        self.textInfo["tooltip"].setChecked(False)
+        self.textInfo["iconSize"].slider.setValue(40)
+        self.textInfo["fontSize"].slider.setValue(12)
+        self.comboBox.setCurrentIndex(0)
+        self.textInfo["MMsearch"].slider.setValue(4)
 
     def __connections(self):
         self.textInfo["tooltip"].toggled.connect(self.setToolTipInfo)
@@ -92,3 +155,17 @@ class SettingsDialog(QDialog):
         self.textInfo["fontSize"].slider.valueChanged.connect(self.setFontInfo)
         self.comboBox.currentIndexChanged.connect(self.setLanguage)
         self.textInfo["MMsearch"].slider.valueChanged.connect(self.setSearchRadius)
+
+
+def testUI():
+    """ test the current UI without the need of all the extra functionality
+    """
+    from SkinningTools.Maya import interface
+    from SkinningTools.UI import SkinningToolsUI
+    mainWindow = interface.get_maya_window()
+    mwd = QMainWindow(mainWindow)
+    mwd.setWindowTitle("settings Test window")
+    wdw = SettingsDialog(parentWidget=SkinningToolsUI.SkinningToolsUI(), parent=mainWindow)
+    mwd.setCentralWidget(wdw)
+    mwd.show()
+    return wdw

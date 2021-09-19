@@ -137,20 +137,11 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["apiAction"] = QAction("API documentation", self)
         self.textInfo["docAction"] = QAction("UI documentation", self)
         self.textInfo["mmAction"] = QAction("Marking Menu doc", self)
-        # self.textInfo["tooltipAction"] = QAction("Enhanced ToolTip", self)
-        # self.textInfo["tooltipAction"].setCheckable(True)
 
         for act in [self.textInfo["holdAction"], self.textInfo["fetchAction"], self.textInfo["objSkeletonAction"]]:
             self.textInfo["extraMenu"].addAction(act)
         for act in [self.textInfo["apiAction"], self.textInfo["docAction"], self.textInfo["mmAction"]]:  # , self.textInfo["tooltipAction"]]:
             helpAction.addAction(act)
-
-        # self.changeLN = QMenu("en", self)
-        # languageFiles = os.listdir(os.path.join(_DIR, "languages"))
-        # for language in languageFiles:
-        #     ac = QAction(language, self)
-        #     self.changeLN.addAction(ac)
-        #     ac.triggered.connect(self._changeLanguage)
 
         self.textInfo["holdAction"].triggered.connect(interface.hold)
         self.textInfo["fetchAction"].triggered.connect(interface.fetch)
@@ -158,17 +149,14 @@ class SkinningToolsUI(interface.DockWidget):
         self.textInfo["apiAction"].triggered.connect(self._openApiHelp)
         self.textInfo["docAction"].triggered.connect(self._openDocHelp)
         self.textInfo["mmAction"].triggered.connect(partial(self._openDocHelp, True))
-        # self.showToolTips.triggered.connect(self._tooltipsCheck)
         settingsMenu.triggered.connect(self._openSettings)
 
         self.menuBar.addMenu(helpAction)
         self.menuBar.addAction(settingsMenu)
         self.menuBar.addMenu(self.textInfo["extraMenu"])
-        # self.menuBar.addMenu(self.changeLN)
         self.layout().setMenuBar(self.menuBar)
 
     def _openSettings(self):
-        print("openSettings")
         _setting = SettingsDialog(parentWidget=self)
         _setting.exec_()
 
@@ -284,6 +272,7 @@ class SkinningToolsUI(interface.DockWidget):
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName.split(":")[0])
         _trs = translator.showUI(_dict, widgetName=self.toolName.split(":")[0])
+        return _trs
 
     def _changeLanguage(self, lang=None):
         """ change the ui language
@@ -316,6 +305,7 @@ class SkinningToolsUI(interface.DockWidget):
         return self.__fontSize
 
     def _setFontSize(self, value):
+        self.__fontSize = int(value)
         self.setStyleSheet('font-size: %ipx;' % int(value))
         try:
             self.vnbfWidget.adjustSize(int(value))
@@ -662,6 +652,8 @@ class SkinningToolsUI(interface.DockWidget):
         self.settings.setValue("copyTls", self.copyToolsTab.currentIndex())
         self.settings.setValue("toolTips", self.showToolTips)
         self.settings.setValue("dialogsInfo", self.__dialogGeo)
+        self.settings.setValue("iconSize", self.vnbfWidget.iconSize)
+        self.settings.setValue("fontSize", self.fontSize)
 
     def loadUIState(self):
         """ load the previous set information from the ini file where possible, if the ini file is not there it will start with default settings
@@ -695,7 +687,10 @@ class SkinningToolsUI(interface.DockWidget):
         self.showToolTips = bool(_toolTipSetting)
 
         self.__dialogGeo = self.settings.value("dialogsInfo", {})
-        self.mmMargin = self.settings.value("mm_margin", 4)
+        self.mmMargin = int(self.settings.value("mm_margin", 4))
+
+        self.vnbfWidget.iconSize = int(self.settings.value("iconSize", 40))
+        self.fontSize = int(self.settings.value("fontSize", -1))
 
     def hideEvent(self, event):
         """ the hide event is something that is triggered at the same time as close,

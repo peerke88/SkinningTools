@@ -1,0 +1,8 @@
+{
+  "iconSize": "set icon size", 
+  "MMsearch": "set MM search distance", 
+  "fontSize": "set font size", 
+  "language": "language", 
+  "tooltip": "show enhanced tooltips",
+  "default": "reset settings"
+}

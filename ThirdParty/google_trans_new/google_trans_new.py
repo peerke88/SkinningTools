@@ -150,7 +150,7 @@ class google_translator:
                 decoded_line = line.decode('utf-8')
                 if "MkEWBc" in decoded_line:
                     try:
-                        response = (decoded_line + ']')
+                        response = decoded_line
                         response = json.loads(response)
                         response = list(response)
                         response = json.loads(response[0][2])
@@ -159,12 +159,12 @@ class google_translator:
                         if len(response) == 1:
                             if len(response[0]) > 5:
                                 sentences = response[0][5]
-                            else: ## only url
+                            else:  # only url
                                 sentences = response[0][0]
                                 if pronounce == False:
                                     return sentences
                                 elif pronounce == True:
-                                    return [sentences,None,None]
+                                    return [sentences, None, None]
                             translate_text = ""
                             for sentence in sentences:
                                 sentence = sentence[0]
