@@ -4,7 +4,7 @@ from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.py23 import *
 from SkinningTools.UI.tabs.skinBrushes import rodPaintSmoothBrush, updateBrushCommand, _CTX, pathToSmoothBrushPlugin
-from functools import  partial
+from functools import partial
 import os
 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,23 +33,14 @@ class VertAndBoneFunction(QWidget):
         super(VertAndBoneFunction, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
 
-        self.__IS = 40
-        self.__editMode = False
-        self.noAction = False
-        self._dict = {}
-        self.style = "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #a69c83);"
-        self.favourited = []
-        self.individualBtns = []
-        self.__favSettings = []
-        self._Btn = {}
-        self._remp = {}
+        self.__defaults()
 
         self.progressBar = inProgressBar
         self.BezierGraph = inGraph
         self.borderSelection = interface.NeighborSelection()
-        
+
         self.toolFrame = QFrame()
-        self.toggleBtn = arrowButton(Qt.UpArrow, [QSizePolicy.Expanding, QSizePolicy.Minimum] )
+        self.toggleBtn = arrowButton(Qt.UpArrow, [QSizePolicy.Expanding, QSizePolicy.Minimum])
         self.layout().addWidget(self.toolFrame)
         self.layout().addWidget(self.toggleBtn)
         self.toggleBtn.clicked.connect(self.showTools)
@@ -62,8 +53,26 @@ class VertAndBoneFunction(QWidget):
 
         self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+    def __defaults(self):
+        self.__IS = 40
+
+        self.__scaleFactor = 1
+        self.__editMode = False
+        self.noAction = False
+
+        self._dict = {}
+        self._Btn = {}
+        self._remp = {}
+
+        self.favourited = []
+        self.individualBtns = []
+        self.__favSettings = []
+
+        self.style = "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #a69c83);"
+
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+
+    def translate(self, localeDict={}):
         """ translate the ui based on given dictionary
 
         :param localeDict: the dictionary holding information on how to translate the ui
@@ -81,7 +90,6 @@ class VertAndBoneFunction(QWidget):
                 for k, v in self._Btn[key].getNameInfo.items():
                     v.setText(localeDict[self._remp[k]])
 
-        
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
@@ -98,10 +106,11 @@ class VertAndBoneFunction(QWidget):
         we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
-        _dict = loadLanguageFile("en", self.toolName) 
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
-          
-    # ------------------------------- visibility tools ------------------------------- 
+        _dict = loadLanguageFile("en", self.toolName)
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
+
+    # ------------------------------- visibility tools -------------------------------
+
     def showTools(self):
         """ switch function to show or hide elements
         """
@@ -112,7 +121,7 @@ class VertAndBoneFunction(QWidget):
         else:
             self.toolFrame.show()
             self.toggleBtn.setArrowType(Qt.UpArrow)
-    
+
     def __favTools(self):
         """ favourite tools button, this button will allow the user to choose their favourite tools and display them
         """
@@ -123,7 +132,7 @@ class VertAndBoneFunction(QWidget):
         self.toolFrame.setLayout(nullHBoxLayout())
         self.toolFrame.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.toolFrame.layout().addWidget(self.picker)
-        self.toolFrame.layout().addWidget(self.setFavcheck) #< convert this to a button with a * for favourites
+        self.toolFrame.layout().addWidget(self.setFavcheck)  # < convert this to a button with a * for favourites
         self.toolFrame.layout().addItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Minimum))
 
     def _connections(self):
@@ -132,7 +141,36 @@ class VertAndBoneFunction(QWidget):
         self.picker.clicked.connect(self.active)
         self.setFavcheck.toggled.connect(self.changeLayout)
 
-    # ------------------------------- button creation ------------------------------- 
+    # ------------------------------- size adjustment -------------------------------
+
+    def _setIconSize(self, iconSize):
+        self.__IS = iconSize
+        if self._Btn == {}:
+            return
+
+        for name, button in self._Btn.items():
+            button.setIconSize(QSize(iconSize, iconSize))
+
+        self._smthSpin.setFixedSize(int(50 * self.__scaleFactor), 23 if iconSize < 13 else iconSize + 10)
+        self._maxSpin.setFixedSize(int(40 * self.__scaleFactor), 23 if iconSize < 13 else iconSize + 10)
+        self.shrinks_Btn.setIconSize(QSize(iconSize, iconSize))
+        self.growsel_Btn.setIconSize(QSize(iconSize, iconSize))
+
+    def _getIconSize(self):
+        return self.__IS
+
+    iconSize = property(_getIconSize, _setIconSize)
+
+    def adjustSize(self, fontSize):
+
+        self.__scaleFactor = 1.0 if fontSize / 12.0 < 1.0 else fontSize / 12.0
+        if self._Btn == {}:
+            return
+        self._smthSpin.setFixedSize(int(50 * self.__scaleFactor), 23 if self.__IS < 13 else self.__IS + 10)
+        self._maxSpin.setFixedSize(int(40 * self.__scaleFactor), 23 if self.__IS < 13 else self.__IS + 10)
+
+    # ------------------------------- button creation -------------------------------
+
     def __addVertNBoneFunc(self):
         """ here we will create and modify all the seperate buttons that work with the dcc tool
         """
@@ -140,46 +178,46 @@ class VertAndBoneFunction(QWidget):
         self.layout().addLayout(self.gridLayout)
 
         def _svgPath(svg):
-            return os.path.join(_DIR, "Icons/%s.svg"%svg)
+            return os.path.join(_DIR, "Icons/%s.svg" % svg)
 
         # -- button creation
-        self._Btn["AvgWght_Btn"] = svgButton("average vtx", _svgPath("AvarageVerts"), size=self.__IS, toolTipInfo = "Averagevtx")
-        self._Btn["cpyWght_Btn"] = svgButton("copy vtx", _svgPath("copy2Mult"), size=self.__IS, toolTipInfo = "Copyvtx")
-        self._Btn["swchVtx_Btn"] = svgButton("switch vtx", _svgPath("vert2vert"), size=self.__IS, toolTipInfo = "Switchvtx")
-        self._Btn["BoneLbl_Btn"] = svgButton("label joints", _svgPath("jointLabel"), size=self.__IS, toolTipInfo = "Labeljoints")
-        self._Btn["shellUn_btn"] = svgButton("unify shells", _svgPath("shellUnify"), size=self.__IS, toolTipInfo = "Unifyshells")
-        self._Btn["trsfrSK_Btn"] = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS, toolTipInfo = "Skin2skin")
-        self._Btn["trsfrPS_Btn"] = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS, toolTipInfo = "Skin2Pose")
-        self._Btn["nghbors_Btn"] = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS, toolTipInfo = "neighbors")
-        self._Btn["hammerV_Btn"] = svgButton("weight hammer", _svgPath("hammer"), size=self.__IS, toolTipInfo = "weightHammer")
-        self._Btn["toJoint_Btn"] = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS, toolTipInfo = "convert")
-        self._Btn["rstPose_Btn"] = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS, toolTipInfo = "recalcBind")
-        self._Btn["cutMesh_Btn"] = svgButton("create proxy", _svgPath("proxy"), size=self.__IS, toolTipInfo = "proxy")
-        self._Btn["SurfPin_Btn"] = svgButton("add Surface pin", _svgPath("meshPin"), size=self.__IS, toolTipInfo = "surfacePin")
-        self._Btn["copy2bn_Btn"] = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS, toolTipInfo = "boneMove")
-        self._Btn["b2bSwch_Btn"] = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS, toolTipInfo = "boneMove")
-        self._Btn["showInf_Btn"] = svgButton("influenced vtx", _svgPath("selectinfl"), size=self.__IS, toolTipInfo = "selInfl")
-        self._Btn["delBone_Btn"] = svgButton("remove joint", _svgPath("jointDelete"), size=self.__IS, toolTipInfo = "delJoint")
-        self._Btn["addinfl_Btn"] = svgButton("add joint", _svgPath("addJoint"), size=self.__IS, toolTipInfo = "addJoint")
-        self._Btn["unifyBn_Btn"] = svgButton("unify bind map", _svgPath("unify"), size=self.__IS, toolTipInfo = "unifyJoint")
-        self._Btn["seltInf_Btn"] = svgButton("attached joints", _svgPath("selectJnts"), size=self.__IS, toolTipInfo = "selJoints")
-        self._Btn["sepMesh_Btn"] = svgButton("extract skinned mesh", _svgPath("seperate"), size=self.__IS, toolTipInfo = "seperate")
-        self._Btn["onlySel_Btn"] = svgButton("prune excluded infl.", _svgPath("onlySel"), size=self.__IS, toolTipInfo = "prune")
-        self._Btn["infMesh_Btn"] = svgButton("influenced meshes", _svgPath("infMesh"), size=self.__IS, toolTipInfo = "getMesh")
-        self._Btn["BindFix_Btn"] = svgButton("fix bind mesh", _svgPath("fixBind"), size=self.__IS, toolTipInfo = "fixBind")
-        self._Btn["delBind_Btn"] = svgButton("del bindPose", _svgPath("delbind"), size=self.__IS, toolTipInfo = "delBp")
-        self._Btn["vtxOver_Btn"] = svgButton("sel infl. > max", _svgPath("vertOver"), size=self.__IS, toolTipInfo = "getMax")
+        self._Btn["AvgWght_Btn"] = svgButton("average vtx", _svgPath("AvarageVerts"), size=self.__IS, toolTipInfo="Averagevtx")
+        self._Btn["cpyWght_Btn"] = svgButton("copy vtx", _svgPath("copy2Mult"), size=self.__IS, toolTipInfo="Copyvtx")
+        self._Btn["swchVtx_Btn"] = svgButton("switch vtx", _svgPath("vert2vert"), size=self.__IS, toolTipInfo="Switchvtx")
+        self._Btn["BoneLbl_Btn"] = svgButton("label joints", _svgPath("jointLabel"), size=self.__IS, toolTipInfo="Labeljoints")
+        self._Btn["shellUn_btn"] = svgButton("unify shells", _svgPath("shellUnify"), size=self.__IS, toolTipInfo="Unifyshells")
+        self._Btn["trsfrSK_Btn"] = svgButton("skin to skin", _svgPath("skinToSkin"), size=self.__IS, toolTipInfo="Skin2skin")
+        self._Btn["trsfrPS_Btn"] = svgButton("skin to pose", _svgPath("skinToPose"), size=self.__IS, toolTipInfo="Skin2Pose")
+        self._Btn["nghbors_Btn"] = svgButton("neighbors", _svgPath("neighbors"), size=self.__IS, toolTipInfo="neighbors")
+        self._Btn["hammerV_Btn"] = svgButton("weight hammer", _svgPath("hammer"), size=self.__IS, toolTipInfo="weightHammer")
+        self._Btn["toJoint_Btn"] = svgButton("convert to joint", _svgPath("toJoints"), size=self.__IS, toolTipInfo="convert")
+        self._Btn["rstPose_Btn"] = svgButton("recalc bind", _svgPath("resetJoint"), size=self.__IS, toolTipInfo="recalcBind")
+        self._Btn["cutMesh_Btn"] = svgButton("create proxy", _svgPath("proxy"), size=self.__IS, toolTipInfo="proxy")
+        self._Btn["SurfPin_Btn"] = svgButton("add Surface pin", _svgPath("meshPin"), size=self.__IS, toolTipInfo="surfacePin")
+        self._Btn["copy2bn_Btn"] = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS, toolTipInfo="boneMove")
+        self._Btn["b2bSwch_Btn"] = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS, toolTipInfo="boneMove")
+        self._Btn["showInf_Btn"] = svgButton("influenced vtx", _svgPath("selectinfl"), size=self.__IS, toolTipInfo="selInfl")
+        self._Btn["delBone_Btn"] = svgButton("remove joint", _svgPath("jointDelete"), size=self.__IS, toolTipInfo="delJoint")
+        self._Btn["addinfl_Btn"] = svgButton("add joint", _svgPath("addJoint"), size=self.__IS, toolTipInfo="addJoint")
+        self._Btn["unifyBn_Btn"] = svgButton("unify bind map", _svgPath("unify"), size=self.__IS, toolTipInfo="unifyJoint")
+        self._Btn["seltInf_Btn"] = svgButton("attached joints", _svgPath("selectJnts"), size=self.__IS, toolTipInfo="selJoints")
+        self._Btn["sepMesh_Btn"] = svgButton("extract skinned mesh", _svgPath("seperate"), size=self.__IS, toolTipInfo="seperate")
+        self._Btn["onlySel_Btn"] = svgButton("prune excluded infl.", _svgPath("onlySel"), size=self.__IS, toolTipInfo="prune")
+        self._Btn["infMesh_Btn"] = svgButton("influenced meshes", _svgPath("infMesh"), size=self.__IS, toolTipInfo="getMesh")
+        self._Btn["BindFix_Btn"] = svgButton("fix bind mesh", _svgPath("fixBind"), size=self.__IS, toolTipInfo="fixBind")
+        self._Btn["delBind_Btn"] = svgButton("del bindPose", _svgPath("delbind"), size=self.__IS, toolTipInfo="delBp")
+        self._Btn["vtxOver_Btn"] = svgButton("sel infl. > max", _svgPath("vertOver"), size=self.__IS, toolTipInfo="getMax")
 
         # -- complex button layout creation
         api.loadPlugin(pathToSmoothBrushPlugin())
 
         smthBrs_Lay = QWidget()
         smthBrs_Lay.setLayout(nullHBoxLayout())
-        self._Btn["initSmt_Btn"] = svgButton("BP", _svgPath("Empty"), size=self.__IS, toolTipInfo = "smoothBrush")
+        self._Btn["initSmt_Btn"] = svgButton("BP", _svgPath("Empty"), size=self.__IS, toolTipInfo="smoothBrush")
         self._Btn["initSmt_Btn"].setMaximumWidth(35)
-        self._Btn["smthBrs_Btn"] = svgButton("smooth", _svgPath("brush"), size=self.__IS, toolTipInfo = "smoothBrush")
+        self._Btn["smthBrs_Btn"] = svgButton("smooth", _svgPath("brush"), size=self.__IS, toolTipInfo="smoothBrush")
         self._smthSpin = QDoubleSpinBox()
-        self._smthSpin.setFixedSize(self.__IS + 10, self.__IS + 10)
+        self._smthSpin.setFixedSize(int(50 * self.__scaleFactor), self.__IS)
         self._smthSpin.setEnabled(False)
         self._smthSpin.setSingleStep(.05)
         self._smthSpin.setWhatsThis("smoothBrush")
@@ -191,12 +229,12 @@ class VertAndBoneFunction(QWidget):
         max_Lay = QWidget()
         max_Lay.setLayout(nullHBoxLayout())
         self._maxSpin = QSpinBox()
-        self._maxSpin.setFixedSize(self.__IS, self.__IS + 10)
+        self._maxSpin.setFixedSize(int(40 * self.__scaleFactor), self.__IS)
         self._maxSpin.setMinimum(1)
         self._maxSpin.setValue(4)
         self._maxSpin.setWhatsThis("setMax")
-        self._Btn["vtexMax_Btn"] = svgButton("force max infl.", _svgPath("Empty"), size=self.__IS, toolTipInfo = "setMax")
-        self._Btn["frzBone_Btn"] = svgButton("freeze joints", _svgPath("FreezeJoint"), size=self.__IS, toolTipInfo = "freezeJoint")
+        self._Btn["vtexMax_Btn"] = svgButton("force max infl.", _svgPath("Empty"), size=self.__IS, toolTipInfo="setMax")
+        self._Btn["frzBone_Btn"] = svgButton("freeze joints", _svgPath("FreezeJoint"), size=self.__IS, toolTipInfo="freezeJoint")
         max_Lay.attached = [self._Btn["vtexMax_Btn"]]
         self._Btn["vtexMax_Btn"].grp = max_Lay
         for w in [self._maxSpin, self._Btn["vtexMax_Btn"]]:
@@ -204,9 +242,9 @@ class VertAndBoneFunction(QWidget):
 
         grow_Lay = QWidget()
         grow_Lay.setLayout(nullHBoxLayout())
-        self._Btn["storsel_Btn"] = svgButton("store internal", _svgPath("Empty"), size=self.__IS, toolTipInfo = "extend")
-        self.shrinks_Btn = svgButton("", _svgPath("shrink"), size=self.__IS, toolTipInfo = "extend")
-        self.growsel_Btn = svgButton("", _svgPath("grow"), size=self.__IS, toolTipInfo = "extend")
+        self._Btn["storsel_Btn"] = svgButton("store internal", _svgPath("Empty"), size=self.__IS, toolTipInfo="extend")
+        self.shrinks_Btn = svgButton("", _svgPath("shrink"), size=self.__IS, toolTipInfo="extend")
+        self.growsel_Btn = svgButton("", _svgPath("grow"), size=self.__IS, toolTipInfo="extend")
         grow_Lay.attached = [self.shrinks_Btn, self._Btn["storsel_Btn"], self.growsel_Btn]
         for i, w in enumerate(grow_Lay.attached):
             w.grp = grow_Lay
@@ -218,7 +256,7 @@ class VertAndBoneFunction(QWidget):
         self.__buttons = [self._Btn["AvgWght_Btn"], self._Btn["cpyWght_Btn"], self._Btn["swchVtx_Btn"], self._Btn["BoneLbl_Btn"], self._Btn["shellUn_btn"], self._Btn["trsfrSK_Btn"],
                           self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], smthBrs_Lay, self._Btn["hammerV_Btn"], self._Btn["toJoint_Btn"], self._Btn["frzBone_Btn"], self._Btn["rstPose_Btn"], self._Btn["cutMesh_Btn"], self._Btn["SurfPin_Btn"],
                           self._Btn["copy2bn_Btn"], self._Btn["b2bSwch_Btn"], self._Btn["showInf_Btn"], self._Btn["delBone_Btn"], self._Btn["addinfl_Btn"], self._Btn["unifyBn_Btn"],
-                          self._Btn["seltInf_Btn"], self._Btn["sepMesh_Btn"], self._Btn["onlySel_Btn"], self._Btn["infMesh_Btn"], max_Lay, self._Btn["vtxOver_Btn"], self._Btn["BindFix_Btn"], self._Btn["delBind_Btn"],  grow_Lay ]
+                          self._Btn["seltInf_Btn"], self._Btn["sepMesh_Btn"], self._Btn["onlySel_Btn"], self._Btn["infMesh_Btn"], max_Lay, self._Btn["vtxOver_Btn"], self._Btn["BindFix_Btn"], self._Btn["delBind_Btn"], grow_Lay]
 
         self.filter()
 
@@ -235,7 +273,7 @@ class VertAndBoneFunction(QWidget):
         addChecks(self, self._Btn["onlySel_Btn"], ["invert"])
         addChecks(self, self._Btn["BindFix_Btn"], ["model only", "in Pose"])
         addChecks(self, self._Btn["smthBrs_Btn"], ["relax", "volume"])
-        
+
         self._Btn["dist"] = self._Btn["AvgWght_Btn"].checks["use distance"]
         self._Btn["polyShell"] = self._Btn["shellUn_btn"].checks["use vtx polyShell"]
         self._Btn["smooth"] = self._Btn["trsfrSK_Btn"].checks["smooth"]
@@ -257,66 +295,66 @@ class VertAndBoneFunction(QWidget):
         self._Btn["relax"] = self._Btn["smthBrs_Btn"].checks["relax"]
         self._Btn["volume"] = self._Btn["smthBrs_Btn"].checks["volume"]
 
-        self._remp = {"use distance" : "dist", "use vtx polyShell": "polyShell", "smooth" : "smooth", "uvSpace" : "uvSpace", "smooth" : "smooth1",
-                      "uvSpace" : "uvSpace1", "growing" : "growing", "full" : "full", "specify name" : "specify name",
-                      "internal" : "internal", "use opm" : "use opm", "use parent" : "use parent", "delete" : "delete",
-                      "fast" : "fast", "query" : "query", "invert" : "invert", "model only" : "model only",
-                      "in Pose" : "in Pose", "relax" : "relax", "volume" : "volume"}
+        self._remp = {"use distance": "dist", "use vtx polyShell": "polyShell", "smooth": "smooth", "uvSpace": "uvSpace", "smooth": "smooth1",
+                      "uvSpace": "uvSpace1", "growing": "growing", "full": "full", "specify name": "specify name",
+                      "internal": "internal", "use opm": "use opm", "use parent": "use parent", "delete": "delete",
+                      "fast": "fast", "query": "query", "invert": "invert", "model only": "model only",
+                      "in Pose": "in Pose", "relax": "relax", "volume": "volume"}
 
-        self.checkedButtons = [self._Btn["AvgWght_Btn"], self._Btn["shellUn_btn"], self._Btn["trsfrSK_Btn"], self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], self._Btn["toJoint_Btn"], 
+        self.checkedButtons = [self._Btn["AvgWght_Btn"], self._Btn["shellUn_btn"], self._Btn["trsfrSK_Btn"], self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], self._Btn["toJoint_Btn"],
                                self._Btn["cutMesh_Btn"], self._Btn["delBone_Btn"], self._Btn["unifyBn_Btn"], self._Btn["onlySel_Btn"], self._Btn["BindFix_Btn"], self._Btn["smthBrs_Btn"]]
 
-        # -- singal connections                     
-        self._Btn["smthBrs_Btn"].checks["relax"].stateChanged.connect( partial( self._updateBrush_func, self._Btn["smthBrs_Btn"] ) )
+        # -- singal connections
+        self._Btn["smthBrs_Btn"].checks["relax"].stateChanged.connect(partial(self._updateBrush_func, self._Btn["smthBrs_Btn"]))
         # self._Btn["onlySel_Btn"].checks["invert"].stateChanged.connect( partial( self._pruneOption, self._Btn["onlySel_Btn"] ) )
         self._Btn["smthBrs_Btn"].checks["volume"].stateChanged.connect(self._smthSpin.setEnabled)
-        
-        self._Btn["trsfrSK_Btn"].clicked.connect( partial( self._trsfrSK_func, self._Btn["trsfrSK_Btn"], False ) )
-        self._Btn["trsfrPS_Btn"].clicked.connect( partial( self._trsfrSK_func, self._Btn["trsfrPS_Btn"], True ) )
 
-        self._Btn["AvgWght_Btn"].clicked.connect( partial( self._AvgWght_func, self._Btn["AvgWght_Btn"] ) )
-        self._Btn["shellUn_btn"].clicked.connect( partial( self._Unify_func, self._Btn["shellUn_btn"])) #interface.unifyShells, self.progressBar ) )
-        self._Btn["nghbors_Btn"].clicked.connect( partial( self._nghbors_func, self._Btn["nghbors_Btn"] ) )
-        self._Btn["smthBrs_Btn"].clicked.connect( partial( self._smoothBrs_func, self._Btn["smthBrs_Btn"] ) )
-        self._Btn["toJoint_Btn"].clicked.connect( partial( self._convertToJoint_func, self._Btn["toJoint_Btn"] ) )
-        self._Btn["delBone_Btn"].clicked.connect( partial( self._delBone_func, self._Btn["delBone_Btn"] ) )
-        self._Btn["unifyBn_Btn"].clicked.connect( partial( self._unifyBn_func, self._Btn["unifyBn_Btn"] ) )
-        self._Btn["onlySel_Btn"].clicked.connect( partial( self._pruneSel_func, self._Btn["onlySel_Btn"] ) )
-        self._Btn["BindFix_Btn"].clicked.connect( partial( self._bindFix_func, self._Btn["BindFix_Btn"] ) )
-        self._Btn["cutMesh_Btn"].clicked.connect( partial( self._cutMesh_func, self._Btn["cutMesh_Btn"] ) )
-        
-        self._Btn["vtexMax_Btn"].clicked.connect( partial( self._vtexMax_func, False ) )
-        self._Btn["vtxOver_Btn"].clicked.connect( partial( self._vtexMax_func, True ) )
-        
-        self._Btn["BoneLbl_Btn"].clicked.connect( partial( interface.labelJoints, False, self.progressBar ) )
-        self._Btn["copy2bn_Btn"].clicked.connect( partial( interface.moveBones, False, self.progressBar ) )
-        self._Btn["b2bSwch_Btn"].clicked.connect( partial( interface.moveBones, True, self.progressBar ) )
+        self._Btn["trsfrSK_Btn"].clicked.connect(partial(self._trsfrSK_func, self._Btn["trsfrSK_Btn"], False))
+        self._Btn["trsfrPS_Btn"].clicked.connect(partial(self._trsfrSK_func, self._Btn["trsfrPS_Btn"], True))
 
-        self._Btn["cpyWght_Btn"].clicked.connect( partial( interface.copyVtx, self.progressBar ) )
-        self._Btn["swchVtx_Btn"].clicked.connect( partial( interface.switchVtx, self.progressBar ) )
-        self._Btn["rstPose_Btn"].clicked.connect( partial( interface.resetPose, self.progressBar ) )
-        self._Btn["hammerV_Btn"].clicked.connect( partial( interface.hammerVerts, self.progressBar ) )
-        self._Btn["showInf_Btn"].clicked.connect( partial( interface.showInfVerts, self.progressBar ) )
-        self._Btn["addinfl_Btn"].clicked.connect( partial( interface.addNewJoint, self.progressBar ) )
-        self._Btn["seltInf_Btn"].clicked.connect( partial( interface.selectJoints, self.progressBar ) )
-        self._Btn["sepMesh_Btn"].clicked.connect( partial( interface.seperateSkinned, self.progressBar ) )
-        self._Btn["infMesh_Btn"].clicked.connect( partial( interface.getMeshFromJoints, self.progressBar ) )
-        self._Btn["frzBone_Btn"].clicked.connect( partial( interface.freezeJoint, self.progressBar ) )
-        self._Btn["delBind_Btn"].clicked.connect( partial( interface.deleteBindPoses, self.progressBar ) )
-        
+        self._Btn["AvgWght_Btn"].clicked.connect(partial(self._AvgWght_func, self._Btn["AvgWght_Btn"]))
+        self._Btn["shellUn_btn"].clicked.connect(partial(self._Unify_func, self._Btn["shellUn_btn"]))  # interface.unifyShells, self.progressBar ) )
+        self._Btn["nghbors_Btn"].clicked.connect(partial(self._nghbors_func, self._Btn["nghbors_Btn"]))
+        self._Btn["smthBrs_Btn"].clicked.connect(partial(self._smoothBrs_func, self._Btn["smthBrs_Btn"]))
+        self._Btn["toJoint_Btn"].clicked.connect(partial(self._convertToJoint_func, self._Btn["toJoint_Btn"]))
+        self._Btn["delBone_Btn"].clicked.connect(partial(self._delBone_func, self._Btn["delBone_Btn"]))
+        self._Btn["unifyBn_Btn"].clicked.connect(partial(self._unifyBn_func, self._Btn["unifyBn_Btn"]))
+        self._Btn["onlySel_Btn"].clicked.connect(partial(self._pruneSel_func, self._Btn["onlySel_Btn"]))
+        self._Btn["BindFix_Btn"].clicked.connect(partial(self._bindFix_func, self._Btn["BindFix_Btn"]))
+        self._Btn["cutMesh_Btn"].clicked.connect(partial(self._cutMesh_func, self._Btn["cutMesh_Btn"]))
+
+        self._Btn["vtexMax_Btn"].clicked.connect(partial(self._vtexMax_func, False))
+        self._Btn["vtxOver_Btn"].clicked.connect(partial(self._vtexMax_func, True))
+
+        self._Btn["BoneLbl_Btn"].clicked.connect(partial(interface.labelJoints, False, self.progressBar))
+        self._Btn["copy2bn_Btn"].clicked.connect(partial(interface.moveBones, False, self.progressBar))
+        self._Btn["b2bSwch_Btn"].clicked.connect(partial(interface.moveBones, True, self.progressBar))
+
+        self._Btn["cpyWght_Btn"].clicked.connect(partial(interface.copyVtx, self.progressBar))
+        self._Btn["swchVtx_Btn"].clicked.connect(partial(interface.switchVtx, self.progressBar))
+        self._Btn["rstPose_Btn"].clicked.connect(partial(interface.resetPose, self.progressBar))
+        self._Btn["hammerV_Btn"].clicked.connect(partial(interface.hammerVerts, self.progressBar))
+        self._Btn["showInf_Btn"].clicked.connect(partial(interface.showInfVerts, self.progressBar))
+        self._Btn["addinfl_Btn"].clicked.connect(partial(interface.addNewJoint, self.progressBar))
+        self._Btn["seltInf_Btn"].clicked.connect(partial(interface.selectJoints, self.progressBar))
+        self._Btn["sepMesh_Btn"].clicked.connect(partial(interface.seperateSkinned, self.progressBar))
+        self._Btn["infMesh_Btn"].clicked.connect(partial(interface.getMeshFromJoints, self.progressBar))
+        self._Btn["frzBone_Btn"].clicked.connect(partial(interface.freezeJoint, self.progressBar))
+        self._Btn["delBind_Btn"].clicked.connect(partial(interface.deleteBindPoses, self.progressBar))
+
         self._Btn["initSmt_Btn"].clicked.connect(interface.initBpBrush)
         self._Btn["SurfPin_Btn"].clicked.connect(interface.pinToSurface)
         self._Btn["storsel_Btn"].clicked.connect(self._storesel_func)
-        
+
         self.shrinks_Btn.clicked.connect(self._shrinks_func)
         self.growsel_Btn.clicked.connect(self._growsel_func)
 
-        self._smthSpin.valueChanged.connect( partial( self._updateBrush_func, self._Btn["smthBrs_Btn"] ) )
+        self._smthSpin.valueChanged.connect(partial(self._updateBrush_func, self._Btn["smthBrs_Btn"]))
 
         for w in [self._Btn["initSmt_Btn"], self._Btn["storsel_Btn"]]:
             w.setStyleSheet("QPushButton { text-align: center; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444); }")
 
-    # -------------------------------  convenience functions for grouped layouts ------------------------------- 
+    # -------------------------------  convenience functions for grouped layouts -------------------------------
     def getButtonSetup(self, btn):
         """ convenience function to figure out which buttons are connected to the layout
         this will check for layouts
@@ -356,7 +394,7 @@ class VertAndBoneFunction(QWidget):
         else:
             return inBtn
 
-    # -------------------------------  functionality for adding buttons to layout normal/favourites ------------------------------- 
+    # -------------------------------  functionality for adding buttons to layout normal/favourites -------------------------------
 
     def getFavSettings(self):
         """ get the current settings on which elements are targeted as favourite
@@ -382,7 +420,7 @@ class VertAndBoneFunction(QWidget):
                 self.favourited.append(b)
 
     """favourite settings property"""
-    favSettings = property( getFavSettings, setFavSettings)
+    favSettings = property(getFavSettings, setFavSettings)
 
     def getCheckValues(self):
         """ get the values fo all checkable attributes in the current tool
@@ -411,7 +449,7 @@ class VertAndBoneFunction(QWidget):
                 btn.checks[key].setChecked(value)
 
     """ckecked attributes property"""
-    checkValues = property( getCheckValues, setCheckValues)
+    checkValues = property(getCheckValues, setCheckValues)
 
     def changeLayout(self, *_):
         """ change layout function based on the state of the favourit settings
@@ -420,23 +458,23 @@ class VertAndBoneFunction(QWidget):
             self.setFavcheck.setIcon(QIcon(":/SE_FavoriteStar.png"))
             self._setFavLayout()
             return
-        
+
         self.setFavcheck.setIcon(QIcon(":/SE_FavoriteStarDefault.png"))
         self._setBtnLayout()
 
-    def filter( self, *_):
+    def filter(self, *_):
         """ install the eventfilter for assigning fouvourite settings
         """
         for btn in self.__buttons:
             if hasattr(btn, "attached"):
                 for w in btn.attached:
-                    self._dict[w] = w.styleSheet()  
-                    self.individualBtns.append(w) 
-                    w.installEventFilter(self)  
+                    self._dict[w] = w.styleSheet()
+                    self.individualBtns.append(w)
+                    w.installEventFilter(self)
                 continue
             self._dict[btn] = btn.styleSheet()
-            self.individualBtns.append(btn)      
-            btn.installEventFilter(self) 
+            self.individualBtns.append(btn)
+            btn.installEventFilter(self)
 
     def _clearLayout(self):
         """ make sure that the buttons are unparented but not destroyed
@@ -448,7 +486,7 @@ class VertAndBoneFunction(QWidget):
         """ repopulate the current widget with only buttons that are assigned as favourite
         """
         self._clearLayout()
-        
+
         _checked = []
         toDisplay = []
         for btn in self.favourited:
@@ -460,7 +498,7 @@ class VertAndBoneFunction(QWidget):
                 continue
             toDisplay.append(btn)
 
-        _rc = len(toDisplay)*.5
+        _rc = len(toDisplay) * .5
         attached = []
         index = 0
         for btn in toDisplay:
@@ -472,7 +510,7 @@ class VertAndBoneFunction(QWidget):
         """ populate the current widget with all objects
         """
         self._clearLayout()
-        _rc = int(len(self.__buttons)*.5)
+        _rc = int(len(self.__buttons) * .5)
         for index, btn in enumerate(self.__buttons):
             row = int(index / _rc)
             self.gridLayout.addWidget(btn, index - (row * _rc), row)
@@ -485,15 +523,15 @@ class VertAndBoneFunction(QWidget):
 
         presplit = inStyleSheet.split("background-color: qlineargradient(", 1)
         postsplit = presplit[1].split(");", 1)[1]
-        return "%s%s%s"%(presplit[0], self.style, postsplit)
+        return "%s%s%s" % (presplit[0], self.style, postsplit)
 
     def active(self, *_):
         """ the settings to actively assign the favourite toolsets
         """
         self.noAction = not self.noAction
         for btn in self.individualBtns:
-            btn.blockSignals(self.noAction)        
-        
+            btn.blockSignals(self.noAction)
+
         if self.noAction:
             self.picker.setIcon(QIcon(":/nodeGrapherDockBack.png"))
             for b in self.favourited:
@@ -525,15 +563,15 @@ class VertAndBoneFunction(QWidget):
                     for btn in self.getGroupedLayout(obj):
                         btn.setStyleSheet(self._convertStyleSheet(btn.styleSheet()))
                         self.favourited.append(btn)
-                
-        return super(VertAndBoneFunction, self).eventFilter( obj, event)
-    
+
+        return super(VertAndBoneFunction, self).eventFilter(obj, event)
+
     # ------------------------------- button connections --------------------------------------------
 
-    # -- checkbox modifiers    
+    # -- checkbox modifiers
     def _pruneOption(self, btn, value):
         #@todo: check if we can get this to work with language changes
-        btn.setText("prune %s infl."%["excluded, selected"][btn.checks["invert"].isChecked()])
+        btn.setText("prune %s infl." % ["excluded, selected"][btn.checks["invert"].isChecked()])
 
     # -- buttons with extra functionality
     def _AvgWght_func(self, sender):
@@ -637,7 +675,7 @@ class VertAndBoneFunction(QWidget):
         self.borderSelection.grow()
         self.shrinks_Btn.setEnabled(self.borderSelection.getBorderIndex() != 0)
 
-    def _bindFix_func(self, sender,  *args):
+    def _bindFix_func(self, sender, *args):
         """ fix the bind map connection function using the extra attributes
 
         :param sender: button object on which the checkbox is attached
@@ -645,7 +683,7 @@ class VertAndBoneFunction(QWidget):
         """
         interface.prebindFixer(sender.checks["model only"].isChecked(), sender.checks["in Pose"].isChecked(), self.progressBar)
 
-    def _smoothBrs_func(self, sender,  *args):
+    def _smoothBrs_func(self, sender, *args):
         """ smooth brush connection function using the extra attributes
 
         :param sender: button object on which the checkbox is attached
@@ -657,7 +695,7 @@ class VertAndBoneFunction(QWidget):
 
         rodPaintSmoothBrush(_radius, int(sender.checks["relax"].isChecked()))
 
-    def _updateBrush_func(self, sender,  *args):
+    def _updateBrush_func(self, sender, *args):
         """ update smooth brush connection function using the extra attributes
 
         :param sender: button object on which the checkbox is attached
@@ -678,9 +716,9 @@ def testUI():
     """ test the current UI without the need of all the extra functionality
     """
     mainWindow = interface.get_maya_window()
-    mwd  = QMainWindow(mainWindow)
+    mwd = QMainWindow(mainWindow)
     mwd.setWindowTitle("VertAndBoneFunction Test window")
-    wdw = VertAndBoneFunction(parent = mainWindow)
+    wdw = VertAndBoneFunction(parent=mainWindow)
     mwd.setCentralWidget(wdw)
     mwd.show()
     return wdw

@@ -5,6 +5,7 @@ from functools import partial
 from math import *
 
 _DEBUG = getDebugState()
+_DIR = os.path.dirname(__file__)
 
 
 class MarkingMenuFilter(QObject):
@@ -56,7 +57,9 @@ class MarkingMenuFilter(QObject):
             sel = interface.getSelection()
             if sel == [] or not '.' in sel[0]:
                 return False
-            foundObjects = interface.objectUnderMouse()
+            _ini = os.path.join(_DIR, 'settings.ini')
+            _settings = QSettings(_ini, QSettings.IniFormat)
+            foundObjects = interface.objectUnderMouse(margin=int(_settings.value("mm_margin", 4)))
             if self.__debug:
                 foundObjects = (True, "testBone")
 
