@@ -3,6 +3,7 @@ from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface
 from functools import partial
 from math import *
+from maya import cmds
 
 _DEBUG = getDebugState()
 _DIR = os.path.dirname(__file__)
@@ -57,6 +58,9 @@ class MarkingMenuFilter(QObject):
             sel = interface.getSelection()
             if sel == [] or not '.' in sel[0]:
                 return False
+            _selectMode = cmds.selectMode(q=True, component=True)
+            if _selectMode:
+                cmds.selectMode(object=True)
             _ini = os.path.join(_DIR, 'settings.ini')
             _settings = QSettings(_ini, QSettings.IniFormat)
             foundObjects = interface.objectUnderMouse(margin=int(_settings.value("mm_margin", 4)))
@@ -65,6 +69,9 @@ class MarkingMenuFilter(QObject):
 
             if foundObjects == (False, '') or foundObjects is False:
                 return False
+            if _selectMode:
+                cmds.selectMode(component=True)
+                cmds.select(sel, r=1)
             self.MMenu.setName(foundObjects[1])
             self.MMenu.showAtMousePos()
             return True

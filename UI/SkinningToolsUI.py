@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__VERSION__ = "5.0.20210916"
+__VERSION__ = "5.0.20210920"
 
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
