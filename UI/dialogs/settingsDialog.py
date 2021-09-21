@@ -14,7 +14,7 @@ class SettingsDialog(QDialog):
     def __init__(self, parentWidget=None, parent=None):
         super(SettingsDialog, self).__init__(parent)
         self.setWindowTitle(self.toolName)
-        self.setLayout(nullVBoxLayout())
+        self.setLayout(nullVBoxLayout(size=6))
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         self.parentWidget = parentWidget
@@ -61,6 +61,7 @@ class SettingsDialog(QDialog):
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName)
         _trs = translator.showUI(_dict, widgetName=self.toolName)
+        return _trs
 
     # --------------------------------------------------------------------------
 
@@ -81,8 +82,10 @@ class SettingsDialog(QDialog):
 
         # -- language
         layout1 = nullHBoxLayout()
+        layout1.setContentsMargins(6, 4, 3, 3)
         self.textInfo["language"] = QLabel("language")
         self.comboBox = QComboBox()
+        self.comboBox.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         languages = os.listdir(os.path.join(_DIR, "languages"))
         self.comboBox.addItems(languages)
 
@@ -100,7 +103,10 @@ class SettingsDialog(QDialog):
         layout3.addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.mmDisplay = mmSearchDisplay.MmSearchDisplay()
         self.mmDisplay.changeCircleSize(self.parentWidget.mmMargin)
-        layout3.addWidget(self.mmDisplay)
+        layout4 = nullVBoxLayout()
+        layout4.addWidget(self.mmDisplay)
+        layout4.addItem(QSpacerItem(2, 2, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        layout3.addLayout(layout4)
         layout2.addWidget(self.textInfo["MMsearch"])
         layout2.addLayout(layout3)
 
@@ -114,6 +120,8 @@ class SettingsDialog(QDialog):
             if key == "MMsearch":
                 self.layout().addLayout(layout2)
                 continue
+            if key == "default":
+                self.layout().addItem(QSpacerItem(2, 2, QSizePolicy.Expanding, QSizePolicy.Expanding))
             self.layout().addWidget(self.textInfo[key])
 
     def setToolTipInfo(self, value):
