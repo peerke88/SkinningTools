@@ -361,7 +361,7 @@ def doCorrectSelectionVisualization(skinMesh):
     """
     objType = cmds.objectType(skinMesh)
     if objType == "transform":
-        shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
+        shape = cmds.listRelatives(skinMesh, c=1, s=1, fullPath=1)[0]
         objType = cmds.objectType(shape)
 
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
@@ -390,7 +390,7 @@ def convertToVertexList(inObject):
     objType = cmds.objectType(checkObject)
     checkType = checkObject
     if objType == "transform":
-        shapes = cmds.listRelatives(inObject, ad=1, s=1)
+        shapes = cmds.listRelatives(inObject, ad=1, s=1, fullPath=1)
         if not shapes == []:
             checkType = inObject
         checkType = shapes[0]
@@ -793,7 +793,7 @@ def getWeights(inMesh):
         sc = skinCluster(inMesh)
     inMesh = getParentShape(inMesh)
 
-    shape = cmds.listRelatives(inMesh, s=1)[0]
+    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
 
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
@@ -830,7 +830,7 @@ def setWeights(inMesh, weightData):
     else:
         sc = skinCluster(inMesh)
     inMesh = getParentShape(inMesh)
-    shape = cmds.listRelatives(inMesh, s=1)[0]
+    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
 
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)

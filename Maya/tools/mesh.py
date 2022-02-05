@@ -543,7 +543,7 @@ def toggleDisplayOrigShape(inMesh, inColor =(.8, 0.2, 0.2), both = False, progre
     :return:  `True` if the function is completed
     :rtype: bool
     """
-    for shape in cmds.listRelatives(inMesh, s=1, ni=0):
+    for shape in cmds.listRelatives(inMesh, s=1, ni=0, fullPath=1):
         if both and cmds.listConnections(shape, s=1, d=1, type= "skinCluster"):
             continue    
         cmds.setAttr("%s.intermediateObject" % shape, not cmds.getAttr("%s.intermediateObject" % shape))

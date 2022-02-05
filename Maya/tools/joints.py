@@ -308,8 +308,10 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     addCleanJoint([joint1, joint2], skin)
     infjnts = list(set(getInfluencingJoints(sc) + [joint1, joint2]))
 
-    meshShapeName = cmds.listRelatives(skin, s=True, f=1)[0]
+    #meshShapeName = cmds.listRelatives(skin, s=True, fullPath=1)[0] # unusued
+
     outInfluencesArray = shared.getWeights(skin)
+    
 
     infLengt = len(infjnts)
     pos1 = infjnts.index(joint1)
@@ -325,6 +327,7 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
         utils.setProgress(j * percentage, progressBar, "moving joint influences")
 
     shared.setWeights(skin, outInfluencesArray)
+
     utils.setProgress(100, progressBar, "moved joint influences")
     return True
 
@@ -680,7 +683,7 @@ def convertClusterToJoint(inCluster, jointName=None, progressBar=None):
     :rtype: bool
     """
     utils.setProgress(0, progressBar, "gather cluster data")
-    shape = cmds.listRelatives(inCluster, s=1, type="clusterHandle") or None
+    shape = cmds.listRelatives(inCluster, s=1, type="clusterHandle", fullPath=1) or None
     if shape is None:
         return
     clusterDeformer = cmds.listConnections(shape, s=1, type="cluster")[0]

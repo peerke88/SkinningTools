@@ -252,7 +252,7 @@ def selectVertices(meshVertexPairs):
     skinMesh = meshVertexPairs[0][0]
     objType = cmds.objectType(skinMesh)
     if objType == "transform":
-        shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
+        shape = cmds.listRelatives(skinMesh, c=1, s=1, fullPath=1)[0]
         objType = cmds.objectType(shape)
 
     if objType == "nurbsSurface" or objType == "nurbsCurve":

@@ -279,6 +279,15 @@ def moveBones(swap=False, progressBar=None):
             continue
         mesh = obj
 
+
+    if len(jnts) != 2:
+        print("Please select exactly two joints as first and second selection.")
+        return
+
+    if mesh == '':
+        print("Please select one mesh as third selection.")
+        return
+
     if swap:
         result = joints.BoneSwitch(jnts[0], jnts[1], mesh, progressBar)
         return result
@@ -470,7 +479,7 @@ def pinToSurface():
         transform = cmds.spaceLocator()[0]
         cmds.xform(transform, ws=1, t=center)
     elif len(selection) == 2:
-        child = cmds.listRelatives(selection[0], s=1) or None
+        child = cmds.listRelatives(selection[0], s=1, fullPath=1) or None
         if child is None:
             transform = selection[0]
             driveMesh = selection[1]

@@ -458,7 +458,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
     :rtype: bool
     """
     setProgress(0, progressBar, "gather shape info")
-    shapes = cmds.listRelatives(meshTarget, s=1)
+    shapes = cmds.listRelatives(meshTarget, s=1, fullPath=1)
     mesh_orig = None
     for shape in shapes:
         if cmds.getAttr("%s.intermediateObject" % shape) == 0:
@@ -502,7 +502,7 @@ def transferUvToSkinnedObject(meshSource, meshTarget, sourceMap="map1", targetMa
 
     setProgress(87, progressBar, "clean connections")
 
-    shapes = cmds.listRelatives(meshTarget, s=1)
+    shapes = cmds.listRelatives(meshTarget, s=1, fullPath=1)
     for shape in shapes:
         connections = cmds.listConnections(shape)
         if not connections:
@@ -524,7 +524,7 @@ def seperateSkinnedObject(inMesh, progressBar=None):
     :rtype: bool
     """
     setProgress(0, progressBar, "start seperate")
-    shape = cmds.listRelatives(inMesh, ad=True, s=True)
+    shape = cmds.listRelatives(inMesh, ad=True, s=True, fullPath=1)
     shells = mesh.getShellFaces(inMesh)
 
     total = len(shells)
@@ -745,7 +745,7 @@ def freezeSkinnedMesh(inMesh, progressBar=None):
     attachedJoints = joints.getInfluencingJoints(sc)  # cmds.listConnections("%s.matrix"%sc, source=True)
 
     setProgress(25, progressBar, "gather current skindata")
-    shape = cmds.listRelatives(inMesh, s=True)[0]
+    shape = cmds.listRelatives(inMesh, s=True, fullPath=1)[0]
     outInfluencesArray = shared.getWeights(inMesh)
 
     setProgress(50, progressBar, "clean mesh")

@@ -462,7 +462,7 @@ class WeightsUI(QWidget):
         cmds.move(bbox[mesh][1][0], '%s.f[4]' % self.__bbCube , x=True)
         cmds.move(bbox[mesh][1][1], '%s.f[1]' % self.__bbCube , y=True)
         cmds.move(bbox[mesh][1][2], '%s.f[0]' % self.__bbCube , z=True)
-        shape = cmds.listRelatives(self.__bbCube , s=1)[0]
+        shape = cmds.listRelatives(self.__bbCube , s=1, fullPath=1)[0]
         cmds.setAttr("%s.overrideEnabled"%shape, 1)
         cmds.setAttr("%s.overrideShading"%shape, 0)
 

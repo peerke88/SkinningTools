@@ -572,7 +572,7 @@ class WeightEditorWindow(QWidget):
         for nodeId, node in enumerate(self.nodesToHilite):
             if cmds.objectType(node) != "transform":
                 continue
-            shape = cmds.listRelatives(node, s=1, type="mesh") or None
+            shape = cmds.listRelatives(node, s=1, type="mesh", fullPath=1) or None
             if shape is None:
                 continue
 
