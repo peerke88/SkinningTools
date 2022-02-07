@@ -306,12 +306,17 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     """
     sc = shared.skinCluster(skin, True)
     addCleanJoint([joint1, joint2], skin)
-    infjnts = list(set(getInfluencingJoints(sc) + [joint1, joint2]))
 
-    #meshShapeName = cmds.listRelatives(skin, s=True, fullPath=1)[0] # unusued
+    # RODO: this line redundant with addCleanJoint() and will mess up the indices
+    # of the joints (after joining the sets joint order in 'infjnts' won't match
+    # the joint indices in the skinCluster)
+    #infjnts = list(set(getInfluencingJoints(sc) + [joint1, joint2]))
 
+    # list of joints sorted by physical indices
+    infjnts = getInfluencingJoints(sc)
+
+    # Dense list of skin weights (order of joints represents physical indices)
     outInfluencesArray = shared.getWeights(skin)
-    
 
     infLengt = len(infjnts)
     pos1 = infjnts.index(joint1)
@@ -523,7 +528,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         jntPercentage = skinPercentage / len(jointsToRemove)
         for jntIter, jnt in enumerate(jointsToRemove):
             bone1 = jnt
-            bone2 = cmds.listRelatives(jnt, parent=True) or [None]
+            bone2 = cmds.listRelatives(jnt, parent=True, fullPath=True) or [None]
             if useParent and bone2 is not None:
                 bone2 = bone2[0]
             else:
@@ -545,7 +550,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         for jnt in jointsToRemove:
             if not jnt in jointsAttached:
                 continue
-            cmds.skinCluster(sc, e=True, ri=jnt)
+            cmds.skinCluster(sc, e=True, removeInfluence=jnt)
 
     print("removed these joints from influence: ", jointsToRemove)
     if delete:
@@ -620,7 +625,11 @@ def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
     utils.setProgress(100, progressBar, "gather mesh information")
     return meshes
 
-
+# RODO: Remark: list connectin returns a dense list (joint sorted by physical indices)
+# we might want to have an alternate functions getInfluencingJointsByLogicalIdx()
+# that would make use of:
+# getAttr -multiIndices ($skincluster+".matrix") to get logical indices
+# see http://rodolphe-vaillant.fr/entry/136/maya-lookup-array-attribute-connections
 def getInfluencingJoints(inObject):
     """ get all joints that are influencing the given mesh
 
@@ -629,6 +638,7 @@ def getInfluencingJoints(inObject):
     :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
     :type progressBar: QProgressBar
     :return: list of all the joints that are currently driving the given mesh
+    order represent physical indices of the joints in the skinCluster
     :rtype:  list
     """
     if cmds.objectType(inObject) != "skinCluster":
