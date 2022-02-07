@@ -32,7 +32,7 @@ class Slider(QWidget):
     def getValueAsString(self):
         if self.decimals == 0:
             return str(int(self.__value))
-        return str(float(int(self.__value * (10**self.decimals + 1)) / float((10**self.decimals + 1))))
+        return str(float(int(self.__value * (10 * (self.decimals + 1))) / float((10 * (self.decimals + 1)))))
 
     def setValue(self, value):
         if self.rigidRange:

@@ -290,13 +290,13 @@ def addCleanJoint(jnts, inMesh, progressBar=None):
 
 
 @shared.dec_undo
-def BoneMove(joint1, joint2, skin, progressBar=None):
+def BoneMove(sourceJoint, targetJoint, skin, progressBar=None):
     """ move joint influences from 1 joint to another
 
-    :param joint1: joint to get the weight information from
-    :type joint1: string
-    :param joint2: joint to set the weigth information to
-    :type joint2: string
+    :param sourceJoint: joint to get the weight information from
+    :type sourceJoint: string
+    :param targetJoint: joint to set the weigth information to
+    :type targetJoint: string
     :param skin: the skincluster on which the weight information is based
     :type skin: string
     :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
@@ -308,23 +308,16 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     addCleanJoint([joint1, joint2], skin)
     infjnts = list(set(getInfluencingJoints(sc) + [joint1, joint2]))
 
-    meshShapeName = cmds.listRelatives(skin, s=True, f=1)[0]
-    outInfluencesArray = shared.getWeights(skin)
+    _map = {}
+    for joint in infjnts:
+        _map[joint] = cmds.getAttr("%s.liw"%joint)
+        cmds.setAttr("%s.liw"%joint, 1)
 
-    infLengt = len(infjnts)
-    pos1 = infjnts.index(joint1)
-    pos2 = infjnts.index(joint2)
-
-    lenOutInfArray = len(outInfluencesArray)
-    amountToLoop = (lenOutInfArray / infLengt)
-    percentage = 99.0 / amountToLoop
-    for j in range(amountToLoop):
-        newValue = outInfluencesArray[(j * infLengt) + pos2] + outInfluencesArray[(j * infLengt) + pos1]
-        outInfluencesArray[(j * infLengt) + pos2] = newValue
-        outInfluencesArray[(j * infLengt) + pos1] = 0.0
-        utils.setProgress(j * percentage, progressBar, "moving joint influences")
-
-    shared.setWeights(skin, outInfluencesArray)
+    cmds.setAttr("%s.liw"%joint1, 0)
+    cmds.setAttr("%s.liw"%joint2, 0)
+    cmds.skinPercent(sc, "%s.vtx[*]"%skin, transformValue=[joint1, 0.0])
+    for joint, value in _map.items():
+        cmds.setAttr("%s.liw"%joint, value)
     utils.setProgress(100, progressBar, "moved joint influences")
     return True
 
@@ -990,3 +983,30 @@ def orientJointChain( average = False, primaryAxis=enumerators.AxisEnumerator.Po
     _toFix.sort(key=len)
     for obj in _toFix:
         cmds.xform(obj, ws=1, m=_infoDict[obj])        
+
+class jointRotation(object):
+    def __init__(self):
+        self._joints = []
+        self._cleanup = []
+    
+    def createJointRotators(self):
+        _sel = cmds.ls(sl=1)
+        sel = _sel[::]
+        for s in _sel:
+            sel.extend(cmds.listRelatives(s,ad=1, type="transform"))
+        for obj in sel:
+            loc = cmds.spaceLocator(n="%sGuide"%obj)[0]
+            cmds.setAttr("%s.displayLocalAxis"%loc, 1)
+            grp = cmds.group(loc, n="%sGuideOfst"%obj)
+            cmds.matchTransform(grp, obj, pos=1, rot=1)
+            pc = cmds.parentConstraint(loc, obj, mo=0)[0]
+            self._cleanup.extend([grp, pc]) 
+        self._joints.extend(cmds.ls(sel, type="joint"))
+
+    def cleanupRotations(self):
+        if self._joints != []:
+            freezeSkinnedJoints(self._joints)
+        if self._cleanup != []:
+            cmds.delete(self._cleanup)
+        self._cleanup=[]
+        self._joints=[]
