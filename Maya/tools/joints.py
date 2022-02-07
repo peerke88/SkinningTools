@@ -290,13 +290,13 @@ def addCleanJoint(jnts, inMesh, progressBar=None):
 
 
 @shared.dec_undo
-def BoneMove(joint1, joint2, skin, progressBar=None):
+def BoneMove(sourceJoint, targetJoint, skin, progressBar=None):
     """ move joint influences from 1 joint to another
 
-    :param joint1: joint to get the weight information from
-    :type joint1: string
-    :param joint2: joint to set the weigth information to
-    :type joint2: string
+    :param sourceJoint: joint to get the weight information from
+    :type sourceJoint: string
+    :param targetJoint: joint to set the weigth information to
+    :type targetJoint: string
     :param skin: the skincluster on which the weight information is based
     :type skin: string
     :param progressBar: progress bar instance to be used for progress display, if `None` it will print the progress instead
@@ -305,12 +305,12 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     :rtype: bool
     """
     sc = shared.skinCluster(skin, True)
-    addCleanJoint([joint1, joint2], skin)
+    addCleanJoint([sourceJoint, targetJoint], skin)
 
     # RODO: this line redundant with addCleanJoint() and will mess up the indices
     # of the joints (after joining the sets joint order in 'infjnts' won't match
     # the joint indices in the skinCluster)
-    #infjnts = list(set(getInfluencingJoints(sc) + [joint1, joint2]))
+    #infjnts = list(set(getInfluencingJoints(sc) + [sourceJoint, targetJoint]))
 
     # list of joints sorted by physical indices
     infjnts = getInfluencingJoints(sc)
@@ -319,8 +319,8 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     outInfluencesArray = shared.getWeights(skin)
 
     infLengt = len(infjnts)
-    pos1 = infjnts.index(joint1)
-    pos2 = infjnts.index(joint2)
+    pos1 = infjnts.index(sourceJoint)
+    pos2 = infjnts.index(targetJoint)
 
     lenOutInfArray = len(outInfluencesArray)
     amountToLoop = (lenOutInfArray // infLengt)
@@ -331,7 +331,19 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
         outInfluencesArray[(j * infLengt) + pos1] = 0.0
         utils.setProgress(j * percentage, progressBar, "moving joint influences")
 
+    _map = {}
+    for joint in infjnts:
+        _map[joint] = cmds.getAttr("%s.liw"%joint) #lockInfluenceWeights
+        cmds.setAttr("%s.liw"%joint, 1)
+
+    cmds.setAttr("%s.liw"%sourceJoint, 0)
+    cmds.setAttr("%s.liw"%targetJoint, 0)
+
+    #cmds.skinPercent(sc, "%s.vtx[*]"%skin, transformValue=[sourceJoint, 0.0])
     shared.setWeights(skin, outInfluencesArray)
+
+    for joint, value in _map.items():
+        cmds.setAttr("%s.liw"%joint, value)
 
     utils.setProgress(100, progressBar, "moved joint influences")
     return True
@@ -427,6 +439,8 @@ def removeJointBySkinPercent(skinObject, jointsToRemove, sc, progressBar=None):
     verts = ShowInfluencedVerts(skinObject, jointsToRemove, progressBar=None)
     if verts == None or len(verts) == 0:
         return
+
+    jointsAttached = getInfluencingJoints(sc)
 
     jnts = []
     percentage = 99.0 / len(jointsToRemove)
@@ -625,8 +639,8 @@ def getMeshesInfluencedByJoint(currentJoints, progressBar=None):
     utils.setProgress(100, progressBar, "gather mesh information")
     return meshes
 
-# RODO: Remark: list connectin returns a dense list (joint sorted by physical indices)
-# we might want to have an alternate functions getInfluencingJointsByLogicalIdx()
+# RODO: Remark: returns a dense list (joint sorted by physical indices)
+# we might want to have an alternate function getInfluencingJointsByLogicalIdx()
 # that would make use of:
 # getAttr -multiIndices ($skincluster+".matrix") to get logical indices
 # see http://rodolphe-vaillant.fr/entry/136/maya-lookup-array-attribute-connections
@@ -858,7 +872,7 @@ def drawStyle(inSelection, style = False, progressBar = None):
         utils.setProgress(index * percentage, progressBar, "set drawStyle")
     utils.setProgress(100, progressBar, "set drawStyle")
 
-def segmentScale(inSelectio, compensate = False, progressBar = None):
+def segmentScale(inSelection, compensate = False, progressBar = None):
     percentage = 99.0 / len(inSelection)
     for index, jnt in enumerate(inSelection):
         if cmds.objectType(jnt) != "joint":
@@ -1003,3 +1017,30 @@ def orientJointChain( average = False, primaryAxis=enumerators.AxisEnumerator.Po
     _toFix.sort(key=len)
     for obj in _toFix:
         cmds.xform(obj, ws=1, m=_infoDict[obj])        
+
+class jointRotation(object):
+    def __init__(self):
+        self._joints = []
+        self._cleanup = []
+    
+    def createJointRotators(self):
+        _sel = cmds.ls(sl=1)
+        sel = _sel[::]
+        for s in _sel:
+            sel.extend(cmds.listRelatives(s,ad=1, type="transform"))
+        for obj in sel:
+            loc = cmds.spaceLocator(n="%sGuide"%obj)[0]
+            cmds.setAttr("%s.displayLocalAxis"%loc, 1)
+            grp = cmds.group(loc, n="%sGuideOfst"%obj)
+            cmds.matchTransform(grp, obj, pos=1, rot=1)
+            pc = cmds.parentConstraint(loc, obj, mo=0)[0]
+            self._cleanup.extend([grp, pc]) 
+        self._joints.extend(cmds.ls(sel, type="joint"))
+
+    def cleanupRotations(self):
+        if self._joints != []:
+            freezeSkinnedJoints(self._joints)
+        if self._cleanup != []:
+            cmds.delete(self._cleanup)
+        self._cleanup=[]
+        self._joints=[]

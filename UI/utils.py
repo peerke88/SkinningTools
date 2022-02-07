@@ -75,7 +75,7 @@ def pushButton(text=''):
     :rtype: QPushButton
     """
     btn = QPushButton(text)
-    btn.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #444444);")
+    btn.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #595959, stop:1 #595959, stop:2 #444444);")
     return btn
 
 

@@ -14,6 +14,7 @@ Contents:
 
 .. toctree::
    :maxdepth: 1
+   :caption: Contents:
    
    autoapi/index
    autoapi/SkinningTools/Maya/index
