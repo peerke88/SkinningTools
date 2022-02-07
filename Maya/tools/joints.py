@@ -497,7 +497,7 @@ def removeJoints(skinObjects, jointsToRemove, useParent=True, delete=True, fast=
         skinObjects.append(_mesh)
 
     skinClusters = []
-    skinPercentage = 100.0 / len(skinObjects)
+    skinPercentage = (100.0 / len(skinObjects) ) if len(skinObjects) > 0 else 100.0
     for skinIter, skinObject in enumerate(skinObjects):
         sc = shared.skinCluster(skinObject, True)
         if sc == None:
