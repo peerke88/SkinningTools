@@ -323,7 +323,7 @@ def BoneMove(joint1, joint2, skin, progressBar=None):
     pos2 = infjnts.index(joint2)
 
     lenOutInfArray = len(outInfluencesArray)
-    amountToLoop = (lenOutInfArray / infLengt)
+    amountToLoop = (lenOutInfArray // infLengt)
     percentage = 99.0 / amountToLoop
     for j in range(amountToLoop):
         newValue = outInfluencesArray[(j * infLengt) + pos2] + outInfluencesArray[(j * infLengt) + pos1]
