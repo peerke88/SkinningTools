@@ -82,7 +82,10 @@ def loadPlugin(plugin):
     registered = cmds.pluginInfo(plugin, q=True, registered=True)
 
     if not registered or not loaded:
-        cmds.loadPlugin(plugin)
+        try:
+            cmds.loadPlugin(plugin)
+        except Exception as e:
+            print(e)
 
 
 def getMayaVersion():
@@ -109,7 +112,7 @@ def getPluginSuffix():
     if platform.system() == "Darwin":
         pluginSuffix = ".bundle"
     if platform.system() == "Linux":
-        pluginSuffix = ".bundle"
+        pluginSuffix = ".so"
     return pluginSuffix
 
 
