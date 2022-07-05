@@ -12,21 +12,23 @@ from maya import cmds
 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEBUG = getDebugState()
-_LOCALFOLDER = os.path.join( os.path.dirname(_DIR), "localWeights")
+_LOCALFOLDER = os.path.join(os.path.dirname(_DIR), "localWeights")
 if not os.path.exists(_LOCALFOLDER):
     os.makedirs(_LOCALFOLDER)
 
 # @todo: make it possible that we can upscale the information as well!
 # rework combobox, multiple objects not necessary and making it more difficult to plan
 
+
 class WeightsUI(QWidget):
     """ weights manager
     allows to save skinning information from given objects and to load it onto the same object or even others
     """
     toolName = "weightUI"
-    def __init__(self, settings = None, inProgressBar=None, parent=None):
+
+    def __init__(self, settings=None, inProgressBar=None, parent=None):
         """ the constructor
-        
+
         :param settings: the default settings to be used
         :type settings: QSettings
         :param inProgressBar: the progress bar to use for display of progress
@@ -51,12 +53,11 @@ class WeightsUI(QWidget):
         self.__addButtons()
         self.ComboC = None
 
-
     def _infoTextOptions(self):
         """ seperate text labels to be used for translation
         """
-        self.infoLabels = {"name" : "name: ",
-                           "overwrite":"overwrite",
+        self.infoLabels = {"name": "name: ",
+                           "overwrite": "overwrite",
                            "exists": "skinWeights file already exists, overwrite?",
                            "verts": "verts:",
                            "check": "check",
@@ -76,11 +77,11 @@ class WeightsUI(QWidget):
         """ simple convenience function to add the buttons to the current ui
         """
         h = nullHBoxLayout()
-        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
         self.textInfo["lcl"] = buttonsToAttach("local", self._getData)
         self.textInfo["fld"] = buttonsToAttach("specify", self._savePath)
         self.textInfo["lbl1"] = QLabel("store meshes:")
-        for w in [self.textInfo["lbl1"],  self.textInfo["lcl"], self.textInfo["fld"]]:
+        for w in [self.textInfo["lbl1"], self.textInfo["lcl"], self.textInfo["fld"]]:
             if isinstance(w, QSpacerItem):
                 h.addItem(w)
             h.addWidget(w)
@@ -88,7 +89,7 @@ class WeightsUI(QWidget):
         self.layout().addLayout(h)
 
         h = nullHBoxLayout()
-        self.fileList = QListWidget()        
+        self.fileList = QListWidget()
         self.fileList.setIconSize(QSize(self.__IS, self.__IS))
         self.fileList.currentItemChanged.connect(self._updateInfo)
         self.textInfo["frm"] = QGroupBox("info")
@@ -101,9 +102,9 @@ class WeightsUI(QWidget):
 
         h = nullHBoxLayout()
         # use this to load files that are not listed (ask user to add to list)
-        self.textInfo["btn1"] = pushButton("import external") 
+        self.textInfo["btn1"] = pushButton("import external")
         self.textInfo["btn2"] = pushButton("load Info")
-        
+
         self.textInfo["btn1"].clicked.connect(self._loadExternalFiles)
         self.textInfo["btn2"].clicked.connect(self._setSkinInfo)
         for btn in [self.textInfo["btn1"], self.textInfo["btn2"]]:
@@ -114,7 +115,7 @@ class WeightsUI(QWidget):
         self._loadFiles()
 
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+    def translate(self, localeDict={}):
         """ translate the ui based on given dictionary
 
         :param localeDict: the dictionary holding information on how to translate the ui
@@ -138,7 +139,7 @@ class WeightsUI(QWidget):
         for key, value in self.textInfo.items():
             if isinstance(self.textInfo[key], QGroupBox):
                 _ret[key] = value.title()
-            else:    
+            else:
                 _ret[key] = value.text()
         for key, value in self.infoLabels.items():
             _ret[key] = value
@@ -150,9 +151,9 @@ class WeightsUI(QWidget):
         """
         from SkinningTools.UI import translator
         _dict = loadLanguageFile("en", self.toolName)
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
 
-    # --------------------------------- ui setup ---------------------------------- 
+    # --------------------------------- ui setup ----------------------------------
     def _loadFiles(self, *args):
         """ convenience function to make sure to load files from known location
         """
@@ -164,7 +165,7 @@ class WeightsUI(QWidget):
             item.info = f
             self.fileList.addItem(item)
 
-    def _getData(self, binary = False, *args):
+    def _getData(self, binary=False, *args):
         """ get the date from the current selection
 
         :param binary: if `True` stores the json information as binary to save space, if `False` stores the data as ascii
@@ -186,7 +187,7 @@ class WeightsUI(QWidget):
             name = lne.text()
 
         onlyFiles = [os.path.join(_LOCALFOLDER, f) for f in os.listdir(_LOCALFOLDER) if os.path.isfile(os.path.join(_LOCALFOLDER, f))]
-        toSave =os.path.join(_LOCALFOLDER, "%s.skinWeights"%(name.split("|")[-1]))
+        toSave = os.path.join(_LOCALFOLDER, "%s.skinWeights" % (name.split("|")[-1]))
         if toSave in onlyFiles:
             _overWriteDlg = QuickDialog(self.infoLabels["overwrite"])
             _overWriteDlg.layout().instertWidget(0, QLabel(self.infoLabels["exists"]))
@@ -196,9 +197,9 @@ class WeightsUI(QWidget):
             os.remove(toSave)
 
         with open(toSave, 'w') as f:
-            json.dump(_data, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
+            json.dump(_data, f, encoding='utf-8', ensure_ascii=not binary, indent=4)
 
-    def _savePath(self, binary = False):
+    def _savePath(self, binary=False):
         """ save the current information to the default path
 
         :param binary: if `True` stores the json information as binary to save space, if `False` stores the data as ascii
@@ -207,15 +208,15 @@ class WeightsUI(QWidget):
         :rtype: string
         """
         _default = self.settings.value("weightPath", os.path.dirname(cmds.file(q=True, sn=True)))
-        
-        getFILEPATH = cmds.fileDialog2(fileFilter="*.skinWeights", fm=0, dir = _default ) or [None]
+
+        getFILEPATH = cmds.fileDialog2(fileFilter="*.skinWeights", fm=0, dir=_default) or [None]
         if getFILEPATH[0] is None:
             return
-        
+
         _data = self.__wm.gatherData()
         self.settings.setValue("weightPath", os.path.dirname(getFILEPATH[0]))
         with open(getFILEPATH[0], 'w') as f:
-            json.dump(_data, f, encoding='utf-8', ensure_ascii = not binary, indent=4)
+            json.dump(_data, f, encoding='utf-8', ensure_ascii=not binary, indent=4)
         _current = self.settings.value("weightFiles", [])
         _current.append(getFILEPATH[0])
         self.settings.setValue("weightFiles", list(set(_current)))
@@ -241,27 +242,27 @@ class WeightsUI(QWidget):
         if not sender.info in self.__cache.keys():
             _data = self.__wm.readData(sender.info)
             self.__cache[sender.info] = _data
-        
+
         self.__infoData = QWidget()
         self.__infoData.setLayout(nullVBoxLayout())
         self.textInfo["frm"].layout().addWidget(self.__infoData)
-        
+
         h = nullHBoxLayout()
         h.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.ComboC = QComboBox()
         self.ComboC.addItems(self.__cache[sender.info]["meshes"])
         h.addWidget(self.ComboC)
-        
+
         self.__infoData.layout().addLayout(h)
         self.__infoSpace = QWidget()
         self.__infoSpace.setLayout(nullVBoxLayout())
         self.__infoData.layout().addWidget(self.__infoSpace)
         self.__infoData.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        
+
         self.ComboC.currentIndexChanged.connect(partial(self._changeMeshInfo, sender.info))
         self._changeMeshInfo(sender.info, self.ComboC)
 
-    def _changeMeshInfo(self, curFile,  *_):
+    def _changeMeshInfo(self, curFile, *_):
         """ chagne the information based on the current weight file selection
 
         :param curFile: the weight file to gather data from
@@ -273,7 +274,7 @@ class WeightsUI(QWidget):
                 if cmds.objExists(cube):
                     cmds.delete(cube)
         currentText = self.ComboC.currentText()
-        
+
         def lockLine(inText, inMesh):
             info = len(inText[inMesh])
             _line = QLineEdit(str(info))
@@ -286,10 +287,10 @@ class WeightsUI(QWidget):
 
         self.__infoSpace.layout().addWidget(self.__infoDetails)
         self.__infoDetails.setLayout(nullGridLayout())
-        
+
         # --- verts
-        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["verts"]), 0,0)
-        self.__infoDetails.layout().addWidget(lockLine(self.__cache[curFile]["vertIds"], currentText), 0,1)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["verts"]), 0, 0)
+        self.__infoDetails.layout().addWidget(lockLine(self.__cache[curFile]["vertIds"], currentText), 0, 1)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkVerts, self.__cache[curFile]["vertPos"], currentText, btn))
@@ -298,33 +299,33 @@ class WeightsUI(QWidget):
         chk.setEnabled(False)
         self.__infoDetails.currentInfo['closest'] = chk
         self.__infoDetails.currentInfo['verts'] = btn
-        self.__infoDetails.layout().addWidget(chk, 0,2)
-        self.__infoDetails.layout().addWidget(btn, 0,3)
+        self.__infoDetails.layout().addWidget(chk, 0, 2)
+        self.__infoDetails.layout().addWidget(btn, 0, 3)
 
         # --- bb
-        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["bbox"]), 1,0)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["bbox"]), 1, 0)
         spin = QDoubleSpinBox()
         spin.setValue(1.0)
         spin.setSingleStep(.05)
         spin.valueChanged.connect(self._scaleBBox)
         spin.setEnabled(False)
         self.__infoDetails.currentInfo['scale'] = spin
-        self.__infoDetails.layout().addWidget(spin, 1,2)
+        self.__infoDetails.layout().addWidget(spin, 1, 2)
         btn = buttonsToAttach(self.infoLabels["check"], partial(self._makeBB, self.__cache[curFile]["bbox"], currentText))
         self.__infoDetails.currentInfo['bbox'] = btn
-        self.__infoDetails.layout().addWidget(btn, 1,3)
+        self.__infoDetails.layout().addWidget(btn, 1, 3)
 
         # --- joints
-        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["joints"]), 2,0)
-        self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 2,2)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["joints"]), 2, 0)
+        self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 2, 2)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkJoints, self.__cache[curFile]["allJnts"], btn))
         self.__infoDetails.currentInfo['joints'] = btn
-        self.__infoDetails.layout().addWidget(btn, 2,3)
+        self.__infoDetails.layout().addWidget(btn, 2, 3)
 
         # --- uvs
-        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["UVs"]), 3,0)
+        self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["UVs"]), 3, 0)
         chk = QCheckBox(self.infoLabels["cPos"])
         chk.setEnabled(False)
         self.__infoDetails.currentInfo['useUV'] = chk
@@ -333,10 +334,10 @@ class WeightsUI(QWidget):
         btn.setMinimumHeight(23)
         btn.clicked.connect(partial(self._checkUvs, self.__cache[curFile]["uvs"], currentText, btn, chk))
         self.__infoDetails.currentInfo['uvs'] = btn
-        self.__infoDetails.layout().addWidget(btn, 3,3)
-
+        self.__infoDetails.layout().addWidget(btn, 3, 3)
 
     # @todo: move these functions to api/interface
+
     def _checkUvs(self, uvs, currentMesh, sender, checkBox):
         """ check if the object has uvs and if the uvs are similar
 
@@ -361,7 +362,7 @@ class WeightsUI(QWidget):
         if None in uvs:
             sender.setStyleSheet('background-color: #ad4c4c;')
             sender.setToolTip(self.infoLabels["noUvin"])
-            return 
+            return
 
         uvCoords = []
         meshPath = shared.getDagpath(sel[0])
@@ -373,19 +374,18 @@ class WeightsUI(QWidget):
             except:
                 uvCoords.append(None)
             vertIter.next()
-        
+
         if None in uvCoords:
             sender.setStyleSheet('background-color: #ad4c4c;')
             if _selection:
                 sender.setToolTip(self.infoLabels["selected"])
             else:
                 sender.setToolTip(self.infoLabels["matching"])
-            return 
+            return
 
         sender.setStyleSheet('background-color: #17D206;')
         checkBox.setEnabled(True)
         self.__infoDetails.currentInfo['closest'].setEnabled(True)
-
 
     def _checkVerts(self, verts, currentMesh, sender):
         """ check if the objects vertices are similar
@@ -416,12 +416,12 @@ class WeightsUI(QWidget):
             sender.setToolTip(self.infoLabels["vPos"])
             self.__infoDetails.currentInfo['verts'].type = 'Pos'
             self.__infoDetails.currentInfo['closest'].setEnabled(True)
-            
+
         for i in range(5):
-            _id =  random.randint(0, amount)
+            _id = random.randint(0, amount)
             pos = smart_roundVec(verts[currentMesh][_id], 3)
-            _fp = cmds.xform("%s.vtx[%i]"%(sel[0], _id), q=1, ws=1,t=1)
-            nPos = smart_roundVec([_fp[0]*scl, _fp[1]*scl, _fp[2]*scl], 3)
+            _fp = cmds.xform("%s.vtx[%i]" % (sel[0], _id), q=1, ws=1, t=1)
+            nPos = smart_roundVec([_fp[0] * scl, _fp[1] * scl, _fp[2] * scl], 3)
             if pos == nPos:
                 continue
             positions = False
@@ -450,27 +450,27 @@ class WeightsUI(QWidget):
         """ create a cube that uses the infromation of the skinweights file bounding box, 
         to identify possible problems when loading the skincluster information
         """
-        
+
         if cmds.objExists(self.__bbCube):
             cmds.delete(self.__bbCube)
         self.__bbCube = ''
         self.__infoDetails.currentInfo['scale'].setEnabled(True)
-        self.__bbCube = cmds.polyCube(n = "bboxCube")[0]
-        cmds.move(bbox[mesh][0][0], '%s.f[5]' % self.__bbCube , x=True)
-        cmds.move(bbox[mesh][0][1], '%s.f[3]' % self.__bbCube , y=True)
-        cmds.move(bbox[mesh][0][2], '%s.f[2]' % self.__bbCube , z=True)
-        cmds.move(bbox[mesh][1][0], '%s.f[4]' % self.__bbCube , x=True)
-        cmds.move(bbox[mesh][1][1], '%s.f[1]' % self.__bbCube , y=True)
-        cmds.move(bbox[mesh][1][2], '%s.f[0]' % self.__bbCube , z=True)
-        shape = cmds.listRelatives(self.__bbCube , s=1)[0]
-        cmds.setAttr("%s.overrideEnabled"%shape, 1)
-        cmds.setAttr("%s.overrideShading"%shape, 0)
+        self.__bbCube = cmds.polyCube(n="bboxCube")[0]
+        cmds.move(bbox[mesh][0][0], '%s.f[5]' % self.__bbCube, x=True)
+        cmds.move(bbox[mesh][0][1], '%s.f[3]' % self.__bbCube, y=True)
+        cmds.move(bbox[mesh][0][2], '%s.f[2]' % self.__bbCube, z=True)
+        cmds.move(bbox[mesh][1][0], '%s.f[4]' % self.__bbCube, x=True)
+        cmds.move(bbox[mesh][1][1], '%s.f[1]' % self.__bbCube, y=True)
+        cmds.move(bbox[mesh][1][2], '%s.f[0]' % self.__bbCube, z=True)
+        shape = cmds.listRelatives(self.__bbCube, s=1)[0]
+        cmds.setAttr("%s.overrideEnabled" % shape, 1)
+        cmds.setAttr("%s.overrideShading" % shape, 0)
 
     def _scaleBBox(self, inValue):
         if not cmds.objExists(self.__bbCube):
             return
 
-        [cmds.setAttr("%s.scale%s"%(cube, ax), inValue) for ax in "XYZ"]
+        [cmds.setAttr("%s.scale%s" % (cube, ax), inValue) for ax in "XYZ"]
 
     def _loadExternalFiles(self):
         """ load external weight files, 
@@ -478,7 +478,7 @@ class WeightsUI(QWidget):
         this will add the folder to the settignsfile so it can be found from now, but will not set skinning info
         """
         _default = self.settings.value("weightPath", os.path.dirname(cmds.file(q=True, sn=True)))
-        getFILEPATH = cmds.fileDialog2(fileFilter="*.skinWeights", fm=2, dir = _default ) or [None]
+        getFILEPATH = cmds.fileDialog2(fileFilter="*.skinWeights", fm=2, dir=_default) or [None]
         _current = self.settings.value("weightFiles", [])
         _current.append(getFILEPATH[0])
         self.settings.setValue("weightFiles", list(set(_current)))
@@ -506,32 +506,26 @@ class WeightsUI(QWidget):
         scale = self.__infoDetails.currentInfo["scale"].value()
         closest = self.__infoDetails.currentInfo["closest"].value()
         useUv = self.__infoDetails.currentInfo['useUV'].isChecked()
-        self.__wm.importData(curFile.info, workMesh = sel, scale = scale, closestNPoints = closest, uvBased =  useUv)
+        self.__wm.importData(curFile.info, workMesh=sel, scale=scale, closestNPoints=closest, uvBased=useUv)
 
     def hideEvent(self, event):
         """ make sure we don't have any lingering data
         """
         if not self.__cache == {}:
             del self.__cache
-    
+
         if cmds.objExists(self.__bbCube):
             cmds.delete(self.__bbCube)
         super(WeightsUI, self).hideEvent(event)
 
-                                 
+
 def testUI():
     """ test the current UI without the need of all the extra functionality
     """
     mainWindow = interface.get_maya_window()
-    mwd  = QMainWindow(mainWindow)
+    mwd = QMainWindow(mainWindow)
     mwd.setWindowTitle("WeightsUI Test window")
-    wdw = WeightsUI(settings = QSettings(os.path.join(_DIR, 'settings.ini'), QSettings.IniFormat), parent = mwd)
+    wdw = WeightsUI(settings=QSettings(os.path.join(_DIR, 'settings.ini'), QSettings.IniFormat), parent=mwd)
     mwd.setCentralWidget(wdw)
     mwd.show()
-    return wdw                                   
-
-
-
-
-
-
+    return wdw

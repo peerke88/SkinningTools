@@ -90,7 +90,10 @@ def loadPlugin(plugin):
     registered = cmds.pluginInfo(plugin, q=True, registered=True)
 
     if not registered or not loaded:
-        cmds.loadPlugin(plugin)
+        try:
+            cmds.loadPlugin(plugin)
+        except Exception as e:
+            print(e)
 
 
 def getMayaVersion():
@@ -117,7 +120,7 @@ def getPluginSuffix():
     if platform.system() == "Darwin":
         pluginSuffix = ".bundle"
     if platform.system() == "Linux":
-        pluginSuffix = ".bundle"
+        pluginSuffix = ".so"
     return pluginSuffix
 
 
@@ -260,7 +263,7 @@ def selectVertices(meshVertexPairs):
     skinMesh = meshVertexPairs[0][0]
     objType = cmds.objectType(skinMesh)
     if objType == "transform":
-        shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
+        shape = cmds.listRelatives(skinMesh, c=1, s=1, fullPath=1)[0]
         objType = cmds.objectType(shape)
 
     if objType == "nurbsSurface" or objType == "nurbsCurve":

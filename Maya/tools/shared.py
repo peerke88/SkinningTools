@@ -361,7 +361,7 @@ def doCorrectSelectionVisualization(skinMesh):
     """
     objType = cmds.objectType(skinMesh)
     if objType == "transform":
-        shape = cmds.listRelatives(skinMesh, c=1, s=1)[0]
+        shape = cmds.listRelatives(skinMesh, c=1, s=1, fullPath=1)[0]
         objType = cmds.objectType(shape)
 
     mel.eval('if( !`exists doMenuComponentSelection` ) eval( "source dagMenuProc" );')
@@ -390,7 +390,7 @@ def convertToVertexList(inObject):
     objType = cmds.objectType(checkObject)
     checkType = checkObject
     if objType == "transform":
-        shapes = cmds.listRelatives(inObject, ad=1, s=1)
+        shapes = cmds.listRelatives(inObject, ad=1, s=1, fullPath=1)
         if not shapes == []:
             checkType = inObject
         checkType = shapes[0]
@@ -785,6 +785,8 @@ def getWeights(inMesh):
     :type inMesh: string
     :return: list of all weights
     :rtype: list
+
+    TODO: make returned weightData sparse i.e. [(int joint_id, float value)] and use MPlugs?
     """
     if cmds.objectType(inMesh) == "skinCluster":
         sc = inMesh
@@ -793,7 +795,7 @@ def getWeights(inMesh):
         sc = skinCluster(inMesh)
     inMesh = getParentShape(inMesh)
 
-    shape = cmds.listRelatives(inMesh, s=1)[0]
+    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
 
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
@@ -810,7 +812,10 @@ def getWeights(inMesh):
     infDags = skinFn.influenceObjects()
     infIndexes = OpenMaya.MIntArray(len(infDags), 0)
     for x in range(len(infDags)):
-        infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
+        # RODO: This might be confusing but from what I gathered
+        # MFnSkinCluster::setWeights/getWeights actually expects
+        # the list of physical indices and not logical indices.
+        infIndexes[x] = x #int(skinFn.indexForInfluenceObject(infDags[x]))
 
     weightData = skinFn.getWeights(meshPath, vertexComp, infIndexes)
     return weightData
@@ -823,6 +828,8 @@ def setWeights(inMesh, weightData):
     :type inMesh: string
     :param weightData: full list of weight data [[value]* joints] * vertices
     :type weightData: list/MDoubleArray
+
+    TODO: make weightData sparse i.e. [(int joint_id, float value)] and use MPlugs?
     """
     if cmds.objectType(inMesh) == "skinCluster":
         sc = inMesh
@@ -830,7 +837,7 @@ def setWeights(inMesh, weightData):
     else:
         sc = skinCluster(inMesh)
     inMesh = getParentShape(inMesh)
-    shape = cmds.listRelatives(inMesh, s=1)[0]
+    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
 
     skinNode = getDagpath(sc)
     skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
@@ -838,7 +845,12 @@ def setWeights(inMesh, weightData):
     meshNode = meshPath.node()
 
     meshVerItFn = OpenMaya.MItMeshVertex(meshNode)
-    indices = range(meshVerItFn.count())
+
+    #indices = range(meshVerItFn.count())
+    nbVerts = meshVerItFn.count()
+    indices = OpenMaya.MIntArray(nbVerts, 0)
+    for x in range(nbVerts):
+        indices[x] = x
 
     singleIdComp = OpenMaya.MFnSingleIndexedComponent()
     vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
@@ -847,7 +859,10 @@ def setWeights(inMesh, weightData):
     infDags = skinFn.influenceObjects()
     infIndexes = OpenMaya.MIntArray(len(infDags), 0)
     for x in range(len(infDags)):
-        infIndexes[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
+        # RODO: This might be confusing but from what I gathered
+        # MFnSkinCluster::setWeights/getWeights actually expects
+        # the list of physical indices and not logical indices.
+        infIndexes[x] = x # int(skinFn.indexForInfluenceObject(infDags[x]))
 
     if not isinstance(weightData, OpenMaya.MDoubleArray):
         newWeightData = OpenMaya.MDoubleArray(len(weightData), 0)
@@ -856,6 +871,9 @@ def setWeights(inMesh, weightData):
     else:
         newWeightData = weightData
 
+    # Note: kInvalidParameter exception most likely means the size or the
+    # stored indices in vertexComp, infIndexes, newWeightData are incorrect
+    # Example of invalid input: having 3 joints but infIndexes[0] = 10
     skinFn.setWeights(meshPath, vertexComp, infIndexes, newWeightData)
 
 

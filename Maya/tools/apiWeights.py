@@ -114,7 +114,7 @@ class ApiWeights():
                 if not cmds.nodeType(node) == 'mesh':
                     continue
                 node = cmds.listRelatives(node, p=True, f=True)[0]
-            shape = cmds.listRelatives(node, s=1, type="mesh") or None
+            shape = cmds.listRelatives(node, s=1, type="mesh", fullPath=1) or None
             if shape is None:
                 continue
 
