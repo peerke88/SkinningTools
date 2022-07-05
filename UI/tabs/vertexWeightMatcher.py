@@ -18,8 +18,6 @@ class TransferWeightsWidget(QWidget):
         self.setLayout(nullVBoxLayout())
         self.__defaults()
 
-        self.__defaults()
-
         v1 = self.__vertexFunc()
         v2 = self.__skinClusterFunc()
 

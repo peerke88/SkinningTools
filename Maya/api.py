@@ -77,6 +77,14 @@ def selectedSkinnedShapes():
     return result
 
 
+def startUndo(chunkName):
+    cmds.undoInfo(ock=True, cn=chunkName)
+
+
+def endUndo(chunkName):
+    cmds.undoInfo(cck=True, cn=chunkName)
+
+
 def loadPlugin(plugin):
     loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
     registered = cmds.pluginInfo(plugin, q=True, registered=True)

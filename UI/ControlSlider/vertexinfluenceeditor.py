@@ -48,6 +48,9 @@ class VertexInfluenceEditor(QGroupBox):
 
             gripSlider = SliderControl(skBone, label=skBone.rsplit('|', 1)[-1], mn=0.0, mx=1.0, rigidRange=True, labelOnSlider=True)
             gripSlider.slider.setValue(weights[i])
+
+            gripSlider.startScrub.connect(partial(api.startUndo, "skinSliderChunk"))
+            gripSlider.endScrub.connect(partial(api.endUndo, "skinSliderChunk"))
             gripSlider.slider.valueChanged.connect(functools.partial(self.__updateWeights, i))
             gripSlider.lineEdit.textEdited[unicode].connect(self.__lineEdit_FieldEditted)
 
