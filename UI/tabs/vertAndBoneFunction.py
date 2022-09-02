@@ -195,7 +195,7 @@ class VertAndBoneFunction(QWidget):
         self._Btn["cutMesh_Btn"] = svgButton("create proxy", _svgPath("proxy"), size=self.__IS, toolTipInfo="proxy")
         self._Btn["SurfPin_Btn"] = svgButton("add Surface pin", _svgPath("meshPin"), size=self.__IS, toolTipInfo="surfacePin")
         self._Btn["copy2bn_Btn"] = svgButton("move bone infl.", _svgPath("Bone2Bone"), size=self.__IS, toolTipInfo="boneMove")
-        self._Btn["b2bSwch_Btn"] = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS, toolTipInfo="boneMove")
+        self._Btn["b2bSwch_Btn"] = svgButton("swap bone infl.", _svgPath("Bone2Boneswitch"), size=self.__IS, toolTipInfo="boneSwitch")
         self._Btn["showInf_Btn"] = svgButton("influenced vtx", _svgPath("selectinfl"), size=self.__IS, toolTipInfo="selInfl")
         self._Btn["delBone_Btn"] = svgButton("remove joint", _svgPath("jointDelete"), size=self.__IS, toolTipInfo="delJoint")
         self._Btn["addinfl_Btn"] = svgButton("add joint", _svgPath("addJoint"), size=self.__IS, toolTipInfo="addJoint")
