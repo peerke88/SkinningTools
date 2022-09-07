@@ -2,7 +2,7 @@
 
 # @note:
 #  this file will represent an interface between the ui and the actual commands
-# this is where all the selection gets logged and the right arguments get piped through 
+# this is where all the selection gets logged and the right arguments get piped through
 from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
 from SkinningTools.Maya.mayaWidget import *
 from SkinningTools.Maya.api import *
@@ -17,6 +17,7 @@ import os, platform, sys
 
 cmds.selectPref(tso=True)
 
+
 def getInterfaceDir():
     return os.path.dirname(os.path.abspath(__file__))
 
@@ -25,14 +26,17 @@ def showToolTip(inBool):
     cmds.help(popupMode=inBool)
 
 
-def getAllJoints(useSelection = False):
+def getAllJoints(useSelection=False):
     return cmds.ls(sl=useSelection, type="joint")
+
 
 @shared.dec_repeat
 def doSkinPercent(bone, value, operation):
     skinCluster.doSkinPercent(bone, value, operation)
-    
+
 # ensure we get ordered selection and all in long names
+
+
 def getSelection():
     return cmds.ls(os=1, l=1, fl=1)
 
@@ -43,6 +47,7 @@ def doSelect(input, replace=True):
         return
     cmds.select(input, r=replace)
 
+
 def getCurrentMeshJoints():
     selection = getSelection()
     if len(selection) > 1:
@@ -51,6 +56,7 @@ def getCurrentMeshJoints():
         selection = selection.split('.')[0]
     return joints.getInfluencingJoints(selection)
 
+
 def setSmoothAware(input):
     cmds.softSelect(e=True, softSelectFalloff=input)
 
@@ -58,27 +64,30 @@ def setSmoothAware(input):
 def getSmoothAware():
     return cmds.softSelect(q=True, softSelectFalloff=True)
 
+
 def skinnedJointColors():
-    return [[161, 106,  48], [159, 161,  48], [104, 161,  48],
-            [ 48, 161,  93], [ 48, 161, 161], [ 48, 103, 161],
-            [111,  48, 161], [161,  48, 106]]
+    return [[161, 106, 48], [159, 161, 48], [104, 161, 48],
+            [48, 161, 93], [48, 161, 161], [48, 103, 161],
+            [111, 48, 161], [161, 48, 106]]
+
 
 def setJointLocked(inJoint, inValue):
-    cmds.setAttr("%s.liw"%inJoint, inValue)
+    cmds.setAttr("%s.liw" % inJoint, inValue)
+
 
 def getLockData(inObject):
     inJoints = joints.getInfluencingJoints(inObject)
     locked = []
     for joint in inJoints:
-        if cmds.getAttr("%s.liw"%joint):
+        if cmds.getAttr("%s.liw" % joint):
             locked.append(joint)
     return locked
 
 
 def forceLoadPlugin(inPlugin):
     if not inPlugin.endswith(".py"):
-        inPlugin = "%s.py"%inPlugin
-    pluginPath = os.path.join(getInterfaceDir(), "plugin/%s"%inPlugin)
+        inPlugin = "%s.py" % inPlugin
+    pluginPath = os.path.join(getInterfaceDir(), "plugin/%s" % inPlugin)
     loaded = cmds.pluginInfo(pluginPath, q=True, loaded=True)
     registered = cmds.pluginInfo(pluginPath, q=True, registered=True)
 
@@ -86,6 +95,7 @@ def forceLoadPlugin(inPlugin):
         cmds.loadPlugin(pluginPath)
 
 # --- maya menus ---
+
 
 def mirrorSkinOptions():
     cmds.optionVar(stringValue=("mirrorSkinAxis", "YZ"))
@@ -110,17 +120,20 @@ def uniteSkinned():
     selection = getSelection()
     cmds.polyUniteSkinned(selection, ch=0, mergeUVSets=1)
 
-def removeUnused(progressBar = None):
+
+def removeUnused(progressBar=None):
     selection = getSelection()
     joints.removeUnusedInfluences(selection, progressBar)
 
-def resetToBindPoseobject(progressBar = None):
+
+def resetToBindPoseobject(progressBar=None):
     selection = getSelection()
     joints.resetToBindPoseobject(selection, progressBar)
 
 # --- dcc ---
 
-def dccToolButtons(progressBar = None):
+
+def dccToolButtons(progressBar=None):
     from SkinningTools.UI.utils import buttonsToAttach
 
     mb01 = buttonsToAttach('Smooth Bind', cmds.SmoothBindSkinOptions)
@@ -133,7 +146,6 @@ def dccToolButtons(progressBar = None):
     mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
     mb09 = buttonsToAttach('Remove unused influences', partial(removeUnused, progressBar))
     mb10 = buttonsToAttach('goto bind-pose', partial(resetToBindPoseobject, progressBar))
-
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08, mb09, mb10]
 
@@ -177,13 +189,16 @@ def labelJoints(doCheck=True, progressBar=None):
     result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
     return result
 
+
 def hold():
     holdFetch.hold(True)
+
 
 def fetch():
     holdFetch.fetch()
 
-def createPolySkeleton(radius = 1):
+
+def createPolySkeleton(radius=1):
     dlg = QDialog()
     dlg.setLayout(nullVBoxLayout())
     hlay = nullVBoxLayout()
@@ -248,7 +263,7 @@ def convertToJoint(inName=None, progressBar=None):
     if "." in selection[0]:
         result = joints.convertVerticesToJoint(selection, inName, progressBar)
         return result
- 
+
     result = joints.convertClusterToJoint(selection, inName, progressBar)
     return result
 
@@ -257,12 +272,17 @@ def convertToJoint(inName=None, progressBar=None):
 def resetPose(progressBar=None):
     selection = getSelection()
     jnts = []
+    meshes = []
     results = []
     for obj in selection:
         if cmds.objectType(obj) == "joint":
             jnts.append(obj)
             continue
-        sc = shared.skinCluster(obj, True)
+        meshes.append(obj)
+    for mesh in meshes:
+        sc = shared.skinCluster(mesh, True)
+        if not sc:
+            continue
         _res = joints.resetSkinnedJoints(jnts, sc, progressBar)
         results.append(_res)
     return results
@@ -278,7 +298,6 @@ def moveBones(swap=False, progressBar=None):
             jnts.append(obj)
             continue
         mesh = obj
-
 
     if len(jnts) != 2:
         print("Please select exactly two joints as first and second selection.")
@@ -428,11 +447,13 @@ def paintSmoothBrush():
 
     cmds.setToolTo(_ctx)
 
+
 @shared.dec_repeat
-def hammerVerts(progressBar = None):
+def hammerVerts(progressBar=None):
     selection = getSelection()
     result = skinCluster.hammerVerts(selection, False, progressBar)
     return result
+
 
 def getNeightbors(inComps):
     objType = cmds.objectType(inComps[0])
@@ -450,11 +471,12 @@ def getNeightbors(inComps):
 
     cmds.error("current type --%s-- not valid for this commmand, only surface or polygon can be used!" % objType)
 
-def cutMesh(internal, maya2020, progressBar= None ):
+
+def cutMesh(internal, maya2020, progressBar=None):
     selection = getSelection()
     if "." in selection[0]:
         selection = [selection[0].split(".")[0]]
-    
+
     meshes = []
     _toDelete = []
     for obj in selection:
@@ -464,8 +486,9 @@ def cutMesh(internal, maya2020, progressBar= None ):
 
         msh = mesh.cutCharacterFromSkin(obj, internal, maya2020, progressBar)
         meshes.append(msh)
-    cmds.group(meshes, n = "lowRez")
+    cmds.group(meshes, n="lowRez")
     cmds.delete(_toDelete)
+
 
 def pinToSurface():
     selection = getSelection()
@@ -492,9 +515,10 @@ def pinToSurface():
     else:
         cmds.error("selection does not match, needs polygon mesh and transform object, or polygon selection")
 
-    shared.skinConstraint(driveMesh, transform )
+    shared.skinConstraint(driveMesh, transform)
 
-def prebindFixer( doModel, inPose ,progressBar = None):
+
+def prebindFixer(doModel, inPose, progressBar=None):
     # @note:
     # this displays the originshape when moving joints, need to make sure both shapes are visibile maybe when using the inpose == False
     # maybe double check if this could be changed, so that once an opject is in edit mode either way, the next click will always make sure the objects is set to a default state
@@ -505,14 +529,15 @@ def prebindFixer( doModel, inPose ,progressBar = None):
         selection = selection.split('.')[0]
 
     if doModel or inPose:
-        mesh.toggleDisplayOrigShape(selection, both = inPose)
-    
+        mesh.toggleDisplayOrigShape(selection, both=inPose)
+
     else:
-        joints.toggleMoveSkinnedJoints(selection, inPose, progressBar = None)
+        joints.toggleMoveSkinnedJoints(selection, inPose, progressBar=None)
+
 
 def getUVInfo(inMesh):
-    allUvSets = cmds.polyUVSet(inMesh, q=1, auv =1 )
-    currentUvSet = cmds.polyUVSet(inMesh, q=1, cuv =1 )
+    allUvSets = cmds.polyUVSet(inMesh, q=1, auv=1)
+    currentUvSet = cmds.polyUVSet(inMesh, q=1, cuv=1)
     uvSets = currentUvSet
     for s in allUvSets:
         if s in uvSets:
@@ -520,11 +545,14 @@ def getUVInfo(inMesh):
         uvSets.append(s)
     return uvSets
 
-def transferUV(source, target, sMap = "map1", tMap = "map1", progressBar = None):
+
+def transferUV(source, target, sMap="map1", tMap="map1", progressBar=None):
     skinCluster.transferUvToSkinnedObject(source, target, sMap, tMap, progressBar)
+
 
 def deleteBindPoses(progressBar=None):
     joints.removeBindPoses(progressBar)
+
 
 def getMayaVersion():
     mayaVersion = str(cmds.about(apiVersion=True))[:-2]
@@ -534,6 +562,7 @@ def getMayaVersion():
         mayaVersion = cmds.about(version=1)
     return mayaVersion
 
+
 def getPluginSuffix():
     pluginSuffix = ".mll"
     if platform.system() == "Darwin":
@@ -542,42 +571,45 @@ def getPluginSuffix():
         pluginSuffix = ".bundle"
     return pluginSuffix
 
+
 def pathToPlugin(pluginName):
-    pluginFile = "%s%s"%(pluginName, getPluginSuffix())
+    pluginFile = "%s%s" % (pluginName, getPluginSuffix())
     version = getMayaVersion()
     for dirName, __, fList in os.walk(getInterfaceDir()):
         if version in dirName and pluginFile in fList:
             return os.path.join(dirName, pluginFile)
 
+
 @shared.dec_loadPlugin(pathToPlugin("smooth_brush_maya"))
 def initBpBrush():
     selection = getSelection()
     sc = shared.skinCluster(selection[0])
-    cmds.SBR_cache_manager(buildCache = sc)
+    cmds.SBR_cache_manager(buildCache=sc)
 
-def setHardShellWeight(inProgressBar = None):
+
+def setHardShellWeight(inProgressBar=None):
     _copy = vertexWeight()
     selection = shared.convertToVertexList(getSelection())
     amount = len(selection)
-    precentage = 99.0/ amount
-    setProgress(0, inProgressBar, "start creating hard shells" )
+    precentage = 99.0 / amount
+    setProgress(0, inProgressBar, "start creating hard shells")
     processed = []
     for index, vert in enumerate(selection):
         if vert in processed:
             continue
 
         _copy.getVtxWeight(vert)
-        
+
         face = cmds.polyListComponentConversion(vert, tf=1)
         moreFaces = cmds.filterExpand(face, sm=34, fp=1)
         mesh = face[0].split('.')[0]
         idx = shared.convertToIndexList(moreFaces)[0]
         faces = cmds.polySelect(q=1, extendToShell=idx)
         shell = shared.convertToCompList(faces, mesh, "f")
-        processed.extend( shared.convertToVertexList(shell) )
-        
+        processed.extend(shared.convertToVertexList(shell))
+
         _copy.setVtxWeight(shell)
-        setProgress(precentage*index, inProgressBar, "converting hard shell" )
+        setProgress(precentage * index, inProgressBar, "converting hard shell")
 
     setProgress(100, inProgressBar, "processed all shells in selection")
 
@@ -609,7 +641,7 @@ class vertexWeight(object):
         return index
 
     @shared.dec_undo
-    def setVtxWeight(self, inSelection = None):
+    def setVtxWeight(self, inSelection=None):
         selection = getSelection()
         if inSelection:
             selection = inSelection
@@ -630,6 +662,7 @@ class vertexWeight(object):
             transformValueList.append([jnt, self.vertexWeightInfo[i]])
 
         cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)
+
 
 class skinWeight(object):
     # @TODO: check to make sure when remapped if skinweights neew remap as well!
@@ -710,7 +743,7 @@ class NeighborSelection(object):
             if i == 0:
                 toConvert = self.__bdrSelBase
             self.__bdrSel = getNeightbors(toConvert)
-        
+
         if self.__bdrIndex == 0:
             cmds.select(self.__bdrSelBase, r=1)
             return
@@ -765,7 +798,7 @@ def objectUnderMouse(margin=4, selectionType="joint"):
                                        relPos.x() + margin,
                                        active_view.portHeight() - relPos.y() + margin)
     if selectionType == "joint":
-        
+
         sm = getSelectionModeIcons()
         cmds.selectMode(object=True)
         cmds.selectType(joint=maskOn)
@@ -779,4 +812,3 @@ def objectUnderMouse(margin=4, selectionType="joint"):
             boneName = fobj
             break
     return foundBone, boneName
-
