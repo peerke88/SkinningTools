@@ -768,6 +768,7 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     else:
         jnt = cmds.createNode("joint", n=jointName)
     cmds.matchTransform(jnt, cluster, pos=1, rot=0)
+    cmds.delete(cluster)
 
     addCleanJoint([jnt], inMesh)
     sc = shared.skinCluster(inMesh, True)
