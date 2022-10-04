@@ -815,7 +815,7 @@ def getWeights(inMesh):
         # RODO: This might be confusing but from what I gathered
         # MFnSkinCluster::setWeights/getWeights actually expects
         # the list of physical indices and not logical indices.
-        infIndexes[x] = x #int(skinFn.indexForInfluenceObject(infDags[x]))
+        infIndexes[x] = x  # int(skinFn.indexForInfluenceObject(infDags[x]))
 
     weightData = skinFn.getWeights(meshPath, vertexComp, infIndexes)
     return weightData
@@ -862,7 +862,7 @@ def setWeights(inMesh, weightData):
         # RODO: This might be confusing but from what I gathered
         # MFnSkinCluster::setWeights/getWeights actually expects
         # the list of physical indices and not logical indices.
-        infIndexes[x] = x # int(skinFn.indexForInfluenceObject(infDags[x]))
+        infIndexes[x] = x  # int(skinFn.indexForInfluenceObject(infDags[x]))
 
     if not isinstance(weightData, OpenMaya.MDoubleArray):
         newWeightData = OpenMaya.MDoubleArray(len(weightData), 0)

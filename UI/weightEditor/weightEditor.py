@@ -18,6 +18,7 @@ from SkinningTools.UI.weightEditor.vertHeaderView import VertHeaderView
 from SkinningTools.UI.weightEditor.popupSpinBox import PopupSpinBox
 from SkinningTools.UI.hoverIconButton import HoverIconButton
 from SkinningTools.Maya.tools.apiWeights import ApiWeights
+from SkinningTools.Maya.tools import weightPaintUtils as paintUtil
 
 class WeightEditorWindow(QWidget):
     """ weight editor widget, 
@@ -100,6 +101,12 @@ class WeightEditorWindow(QWidget):
         searchLay.addWidget(self.textInfo["label"])
         searchLay.addWidget(self.textInfo["jointSearchLE"])
         
+        self.LockAllButton = HoverIconButton()
+        self.LockAllButton.setCustomIcon(':/nodeGrapherUnlocked.png',':/lockGeneric.png')
+        self.LockAllButton.setCheckable(True)
+        self.LockAllButton.clicked.connect(self.lockAllWeights)
+        searchLay.addWidget(self.LockAllButton)
+
         self.showButton = HoverIconButton()
         self.showButton.setCustomIcon(":/RS_visible.png", ":/RS_visible.png", ":/hotkeyFieldClear.png")
         self.showButton.setCheckable(True)
@@ -407,7 +414,13 @@ class WeightEditorWindow(QWidget):
             self.lockWeigths(jointID=[jointID], lock = True )
         self.weightSelectModel.clearSelection()
         self.refreshTable()
-    
+
+    def lockAllWeights(self):
+        for jnt in self.allInfJoints:
+            interface.setJointLocked(jnt, self.sender().isChecked())
+        self.refreshTable()
+        paintUtil.forceRefreshPaintTool()
+
     def lockWeigths(self, jointID=None, lock = True):
         """ function to lock or unlock weights, this will be represented in the widget as well as in the dcc tool
 

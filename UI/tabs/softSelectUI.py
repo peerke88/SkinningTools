@@ -81,7 +81,7 @@ class FillerInfluenceWidget(QWidget):
         influence.setIcon(QIcon(":/customSoftSelectFalloffCurve.png"))
         influence.setEnabled(True if self.influence else False)
 
-        menu.exec_(self.mapToGlobal(event.pos()))
+        menu.exec_(QCursor.pos())
 
 
 class InfluenceWidget(QWidget):
@@ -209,7 +209,7 @@ class InfluenceWidget(QWidget):
         soft.setIcon(QIcon(":/redSelect.png"))
         soft.setEnabled(True if self.ssData else False)
         
-        menu.exec_(self.mapToGlobal(event.pos()))
+        menu.exec_(QCursor.pos())
 
 
 class SoftSelectionToWeightsWidget(QWidget):
