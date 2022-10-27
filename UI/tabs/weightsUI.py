@@ -43,10 +43,10 @@ class WeightsUI(QWidget):
 
         self.textInfo = {}
         self._infoTextOptions()
-        self.__bbCube = ''
+        self._bbCube = ''
         self.__infoData = None
         self.__infoDetails = None
-        self.__cache = {}
+        self._cache = {}
         self.settings = settings
         self.progressBar = inProgressBar
         self.__wm = weightsManager.WeightsManager(inProgressBar)
@@ -190,14 +190,14 @@ class WeightsUI(QWidget):
         toSave = os.path.join(_LOCALFOLDER, "%s.skinWeights" % (name.split("|")[-1]))
         if toSave in onlyFiles:
             _overWriteDlg = QuickDialog(self.infoLabels["overwrite"])
-            _overWriteDlg.layout().instertWidget(0, QLabel(self.infoLabels["exists"]))
+            _overWriteDlg.layout().insertWidget(0, QLabel(self.infoLabels["exists"]))
             _overWriteDlg.exec_()
             if _overWriteDlg.result() == 0:
                 return
             os.remove(toSave)
 
-        with open(toSave, 'w') as f:
-            json.dump(_data, f, encoding='utf-8', ensure_ascii=not binary, indent=4)
+        with open(toSave, 'w', encoding='utf8') as f:
+            json.dump(_data, f, ensure_ascii=not binary, indent=4)
 
     def _savePath(self, binary=False):
         """ save the current information to the default path
@@ -239,9 +239,9 @@ class WeightsUI(QWidget):
         :type sender: QWidget 
         """
         self.clearInfo()
-        if not sender.info in self.__cache.keys():
+        if not sender.info in self._cache.keys():
             _data = self.__wm.readData(sender.info)
-            self.__cache[sender.info] = _data
+            self._cache[sender.info] = _data
 
         self.__infoData = QWidget()
         self.__infoData.setLayout(nullVBoxLayout())
@@ -250,7 +250,7 @@ class WeightsUI(QWidget):
         h = nullHBoxLayout()
         h.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.ComboC = QComboBox()
-        self.ComboC.addItems(self.__cache[sender.info]["meshes"])
+        self.ComboC.addItems(self._cache[sender.info]["meshes"])
         h.addWidget(self.ComboC)
 
         self.__infoData.layout().addLayout(h)
@@ -270,7 +270,7 @@ class WeightsUI(QWidget):
         """
         if self.__infoDetails is not None:
             self.__infoDetails.deleteLater()
-            for cube in self.__bbCube:
+            for cube in self._bbCube:
                 if cmds.objExists(cube):
                     cmds.delete(cube)
         currentText = self.ComboC.currentText()
@@ -290,10 +290,10 @@ class WeightsUI(QWidget):
 
         # --- verts
         self.__infoDetails.layout().addWidget(QLabel(self.infoLabels["verts"]), 0, 0)
-        self.__infoDetails.layout().addWidget(lockLine(self.__cache[curFile]["vertIds"], currentText), 0, 1)
+        self.__infoDetails.layout().addWidget(lockLine(self._cache[curFile]["vertIds"], currentText), 0, 1)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
-        btn.clicked.connect(partial(self._checkVerts, self.__cache[curFile]["vertPos"], currentText, btn))
+        btn.clicked.connect(partial(self._checkVerts, self._cache[curFile]["vertPos"], currentText, btn))
         chk = QSpinBox()
         chk.setMinimum(1)
         chk.setEnabled(False)
@@ -311,7 +311,7 @@ class WeightsUI(QWidget):
         spin.setEnabled(False)
         self.__infoDetails.currentInfo['scale'] = spin
         self.__infoDetails.layout().addWidget(spin, 1, 2)
-        btn = buttonsToAttach(self.infoLabels["check"], partial(self._makeBB, self.__cache[curFile]["bbox"], currentText))
+        btn = buttonsToAttach(self.infoLabels["check"], partial(self._makeBB, self._cache[curFile]["bbox"], currentText))
         self.__infoDetails.currentInfo['bbox'] = btn
         self.__infoDetails.layout().addWidget(btn, 1, 3)
 
@@ -320,7 +320,7 @@ class WeightsUI(QWidget):
         self.__infoDetails.layout().addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 2, 2)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
-        btn.clicked.connect(partial(self._checkJoints, self.__cache[curFile]["allJnts"], btn))
+        btn.clicked.connect(partial(self._checkJoints, self._cache[curFile]["allJnts"], btn))
         self.__infoDetails.currentInfo['joints'] = btn
         self.__infoDetails.layout().addWidget(btn, 2, 3)
 
@@ -332,12 +332,13 @@ class WeightsUI(QWidget):
         self.__infoDetails.layout().addWidget(chk, 3, 2)
         btn = pushButton(self.infoLabels["check"])
         btn.setMinimumHeight(23)
-        btn.clicked.connect(partial(self._checkUvs, self.__cache[curFile]["uvs"], currentText, btn, chk))
+        btn.clicked.connect(partial(self._checkUvs, self._cache[curFile]["uvs"], currentText, btn, chk))
         self.__infoDetails.currentInfo['uvs'] = btn
         self.__infoDetails.layout().addWidget(btn, 3, 3)
 
     # @todo: move these functions to api/interface
 
+    # @todo: move these functions to api/interface
     def _checkUvs(self, uvs, currentMesh, sender, checkBox):
         """ check if the object has uvs and if the uvs are similar
 
@@ -366,7 +367,8 @@ class WeightsUI(QWidget):
 
         uvCoords = []
         meshPath = shared.getDagpath(sel[0])
-        vertIter = OpenMaya.MItMeshVertex(meshPath)
+        from maya.api.OpenMaya import MItMeshVertex
+        vertIter = MItMeshVertex(meshPath)
         while not vertIter.isDone():
             try:
                 u, v, __ = vertIter.getUVs()
@@ -451,23 +453,23 @@ class WeightsUI(QWidget):
         to identify possible problems when loading the skincluster information
         """
 
-        if cmds.objExists(self.__bbCube):
-            cmds.delete(self.__bbCube)
-        self.__bbCube = ''
+        if cmds.objExists(self._bbCube):
+            cmds.delete(self._bbCube)
+        self._bbCube = ''
         self.__infoDetails.currentInfo['scale'].setEnabled(True)
-        self.__bbCube = cmds.polyCube(n="bboxCube")[0]
-        cmds.move(bbox[mesh][0][0], '%s.f[5]' % self.__bbCube, x=True)
-        cmds.move(bbox[mesh][0][1], '%s.f[3]' % self.__bbCube, y=True)
-        cmds.move(bbox[mesh][0][2], '%s.f[2]' % self.__bbCube, z=True)
-        cmds.move(bbox[mesh][1][0], '%s.f[4]' % self.__bbCube, x=True)
-        cmds.move(bbox[mesh][1][1], '%s.f[1]' % self.__bbCube, y=True)
-        cmds.move(bbox[mesh][1][2], '%s.f[0]' % self.__bbCube, z=True)
-        shape = cmds.listRelatives(self.__bbCube, s=1)[0]
+        self._bbCube = cmds.polyCube(n="bboxCube")[0]
+        cmds.move(bbox[mesh][0][0], '%s.f[5]' % self._bbCube, x=True)
+        cmds.move(bbox[mesh][0][1], '%s.f[3]' % self._bbCube, y=True)
+        cmds.move(bbox[mesh][0][2], '%s.f[2]' % self._bbCube, z=True)
+        cmds.move(bbox[mesh][1][0], '%s.f[4]' % self._bbCube, x=True)
+        cmds.move(bbox[mesh][1][1], '%s.f[1]' % self._bbCube, y=True)
+        cmds.move(bbox[mesh][1][2], '%s.f[0]' % self._bbCube, z=True)
+        shape = cmds.listRelatives(self._bbCube, s=1)[0]
         cmds.setAttr("%s.overrideEnabled" % shape, 1)
         cmds.setAttr("%s.overrideShading" % shape, 0)
 
     def _scaleBBox(self, inValue):
-        if not cmds.objExists(self.__bbCube):
+        if not cmds.objExists(self._bbCube):
             return
 
         [cmds.setAttr("%s.scale%s" % (cube, ax), inValue) for ax in "XYZ"]
@@ -491,9 +493,8 @@ class WeightsUI(QWidget):
 
         """
         if self.__infoDetails is None:
-            print("no weight info selected")
+            raise ValueError("no weight info selected")
             return
-        print("setting the skinning info")
 
         currentMesh = self.ComboC.currentText()
         sel = interface.getSelection()
@@ -511,11 +512,11 @@ class WeightsUI(QWidget):
     def hideEvent(self, event):
         """ make sure we don't have any lingering data
         """
-        if not self.__cache == {}:
-            del self.__cache
+        if self._cache:
+            del self._cache
 
-        if cmds.objExists(self.__bbCube):
-            cmds.delete(self.__bbCube)
+        if cmds.objExists(self._bbCube):
+            cmds.delete(self._bbCube)
         super(WeightsUI, self).hideEvent(event)
 
 

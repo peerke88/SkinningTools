@@ -64,3 +64,11 @@ def _paintingWeights():
         return False
 
     return True
+
+# === added functionality
+
+
+def forceRefreshPaintTool():
+    if not _paintingWeights():
+        return False
+    mel.eval('artAttrSkinJointMenuRebuild( "artAttrSkinPaintCtx")')

@@ -905,10 +905,10 @@ def mirrorJoints(inSelection, mirrorAxis = "X", behaviour = True, searchReplace 
             continue
         parent = None
         if worldSpace:
-            parent = cmds.listRelatives(jnt, p=1, f=1)[0] or None
+            parent = cmds.listRelatives(jnt, p=1, f=1) or None
         if parent != None:
             cmds.parent(jnt, w=1)
-        parentInfo[jnt] == parent
+        parentInfo[jnt] = None if parent is None else parent[0]
 
         cmds.mirrorJoint(jnt, mxy=_mirrorSetup[mirrorAxis.upper()][0], 
                               mxz=_mirrorSetup[mirrorAxis.upper()][1], 
@@ -923,7 +923,7 @@ def mirrorJoints(inSelection, mirrorAxis = "X", behaviour = True, searchReplace 
         if cmds.objExists(_value):
             value = _value
         cmds.parent(key.replace(*searchReplace), value)
-        utils.setProgress((index * percentage) + 79,0, progressBar, "reparent mirrored joints")
+        utils.setProgress((index * percentage) + 79.0, progressBar, "reparent mirrored joints")
 
     utils.setProgress(100, progressBar, "mirrored joints")
 
@@ -1006,16 +1006,14 @@ def orientJointChain( average = False, primaryAxis=enumerators.AxisEnumerator.Po
                 up = pos + (_cur * -1)
             _setupDict[obj] = [aim, up, pos]
 
-    _toSetup = _setupDict.keys()
-    _toSetup.sort(key=len)
-    for index, obj in enumerate(_toSetup):
-        aim, up, pos = _setupDict[obj]
+    _toSetup = sorted(_setupDict.keys(), key=len)
+    for index, key in enumerate(_toSetup):
+        aim, up, pos = _setupDict[key]
         cur = (up - pos).normal()
-        aimMatrix = mathUtils.lookAt(pos, aim, up, primaryAxis, secondaryAxis, False)
-        cmds.xform(obj, ws=1, m=mathUtils.matrixToFloatList(aimMatrix))
-
-    _toFix = _infoDict.keys()
-    _toFix.sort(key=len)
+        aimMatrix = mathUtils.lookAt(pos, aim, up, secondaryAxis, False)
+        cmds.xform(key, ws=1, m=mathUtils.matrixToFloatList(aimMatrix))
+        
+    _toFix =sorted(_infoDict.keys(), key=len)
     for obj in _toFix:
         cmds.xform(obj, ws=1, m=_infoDict[obj])        
 
@@ -1041,6 +1039,7 @@ class jointRotation(object):
     def cleanupRotations(self):
         if self._joints != []:
             freezeSkinnedJoints(self._joints)
+        
         if self._cleanup != []:
             cmds.delete(self._cleanup)
         self._cleanup=[]

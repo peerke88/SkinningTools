@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
-from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.py23 import *
 
 class MeshSelector(QDialog):

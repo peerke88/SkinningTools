@@ -12,6 +12,7 @@ from random import randint
 
 # Note: temporary, or move entire class over to maya.tools
 from maya import cmds
+from maya.api import OpenMaya
 
 
 class WeightsManager(object):
@@ -98,14 +99,15 @@ class WeightsManager(object):
         :param uvBased: if `True` will try to search information based on UV's, if `False`  will use the points in the 3d scene
         :type uvBased: bool
         """
-        _data = readData(jsonFile)
+        setProgress(0, self.progressBar, "start loading data")
+        _data = self.readData(jsonFile)
 
         # get all information on objects in the scene
         _currentMeshes = list(set(cmds.listRelatives(cmds.ls(sl=0, type="mesh"), parent=1)))
         bbInfo = {}
         for curMesh in _currentMeshes:
-            __BB = cmds.exactWorldBoundingBox(node)
-            bbInfo[curMesh] = [smart_round(__BB[:3], 3), smart_round(__BB[3:6], 3)]
+            __BB = cmds.exactWorldBoundingBox(curMesh)
+            bbInfo[curMesh] = [smart_roundVec(__BB[:3], 3), smart_roundVec(__BB[3:6], 3)]
 
         # remap mesh names if the names from the file are not present (bbox is first denominator to find similar meshes)
         remapMesh = {}
@@ -120,26 +122,28 @@ class WeightsManager(object):
 
         # remap joints in the scene if the joint naming does not match with stuff on file
         _needsRemapJoint = False
-        for joint in _jsonDict["allJoints"]:
+        for joint in _data["allJnts"]:
             if cmds.objExists(joint):
                 continue
             _needsRemapJoint = True
 
         # create a remapping dictionary for all joints
         currentJoints = cmds.ls(sl=0, type="joint")
-        connectionDict = {i: i for i in _jsonDict["allJoints"]}
+        connectionDict = {i: i for i in _data["allJnts"]}
         if _needsRemapJoint:
-            _remap = RemapDialog(leftSide=_jsonDict["allJoints"], rightSide=currentJoints, parent=self)
+            _remap = RemapDialog(leftSide=_data["allJnts"], rightSide=currentJoints, parent=self)
             _remap.exec_()
             connectionDict = _remap.getConnectionInfo()
 
+        setProgress(20, self.progressBar, "loading mesh data")
+        percentage = 79.0 / (len(remapMesh.keys()))
         # for each mesh we now do the skinning operation
-        for inMesh, toMesh in remapMesh.items():
-            closest = checkNeedsClosestVtxSearch(_data, inMesh, toMesh)
+        for iterIdx, (inMesh, toMesh) in enumerate(remapMesh.items()):
+            closest = self.checkNeedsClosestVtxSearch(_data, inMesh, toMesh)
 
             # check if we are uv based and if uv's are available
             canDoUV = uvBased
-            vertPos, uvCoords = _getPosAndUvCoords(toMesh)
+            vertPos, uvCoords = self._getPosAndUvCoords(toMesh)
             if canDoUV and closest:
                 if None in _data["uvs"][inMesh] or None in uvCoords:
                     canDoUV = False
@@ -155,8 +159,8 @@ class WeightsManager(object):
                 distanceWeight = {i: [1] for i in _data["vertIds"][inMesh]}
 
             # convert closest positions to actual weights
+            closestWeights = []
             if closest:
-                closestWeights = []
                 for i in _data["vertIds"][inMesh]:
                     setWeights = [0.0] * len(_data["infl"][inMesh])
                     for _id, wghtIndex in enumerate(closestWghtId[i]):
@@ -165,23 +169,24 @@ class WeightsManager(object):
                             setWeights[j] += wt
                     closestWeights.append(setWeights)
             else:
-                closestWeights = _data["weights"][inMesh][::]
+                closestWeights = _data["weights"][inMesh]
 
             # remap based on joint dict
+            jointWeights = []
             if _needsRemapJoint:
-                jointWeights = []
                 for index in _data["vertIds"][inMesh]:
                     _intermediate = [0.0] * len(_data["infl"][inMesh])
                     for key, value in connectionDict.items():
                         prevIndex = _data["infl"][inMesh].index[key]
                         outIndex = currentJoints.index[value]
                         _intermediate[outIndex] = closestWeights[index][prevIndex]
-                    jointWeights.append_intermediate
+                    jointWeights.extend(_intermediate)
             else:
-                jointWeights = closestWeights[::]
+                for weightList in closestWeights:
+                    jointWeights.extend(weightList)
 
             # gather or build information
-            sc = shared.skincluster(toMesh)
+            sc = shared.skinCluster(toMesh)
             jnts = connectionDict.values()
             if sc is None:
                 sc = cmds.skinCluster(toMesh, jnts, tsb=1)
@@ -189,7 +194,10 @@ class WeightsManager(object):
             verts = shared.convertToVertexList(toMesh)
             vertIds = shared.convertToIndexList(verts)
 
-            cmds.SkinEditor(toMesh, sc, vid=vertIds, nw=jointWeights, jid=jnts, ow=jointWeights)
+            shared.setWeights(toMesh, jointWeights)
+            setProgress(20 + (percentage * iterIdx), self.progressBar, "loading %s Data" % toMesh)
+
+        setProgress(100, self.progressBar, "imported Data")
 
     def _getPosAndUvCoords(self, inMesh):
         """ get positional data of the current mesh's components
@@ -228,8 +236,8 @@ class WeightsManager(object):
         """
         _needsClosest = False
         for i in range(5):
-            _id = randint(0, (_data["vertIds"][fromMesh][-1] + 1))
-            pos = smart_roundVec(_data["vertPos"][fromMesh][_id], 3)
+            _id = randint(0, (data["vertIds"][fromMesh][-1] + 1))
+            pos = smart_roundVec(data["vertPos"][fromMesh][_id], 3)
             nPos = smart_roundVec(cmds.xform("%s.vtx[%i]" % (toMesh, _id), q=1, ws=1, t=1), 3)
             if pos == nPos:
                 continue
