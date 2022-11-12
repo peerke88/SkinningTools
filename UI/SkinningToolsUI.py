@@ -27,7 +27,6 @@ from SkinningTools.UI.tabs.vertexWeightMatcher import *
 from SkinningTools.UI.tabs.initialWeightUI import InitWeightUI
 from SkinningTools.UI.tabs.softSelectUI import SoftSelectionToWeightsWidget
 from SkinningTools.UI.tabs.weightsUI import WeightsUI
-from SkinningTools.UI.tabs.jointFunction import JointFunctions
 from SkinningTools.UI.dialogs.settingsDialog import SettingsDialog
 
 import webbrowser, os, warnings, zipfile
