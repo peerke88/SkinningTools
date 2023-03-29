@@ -4,7 +4,8 @@ from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.UI import utils
 from SkinningTools.Maya.tools import shared, mathUtils, mesh, enumerators
 from maya import cmds
-from maya.api.OpenMaya import MVector
+from maya.api.OpenMaya import MVector, MPoint, MGlobal, MRampAttribute, MFnMesh, MFnDagNode
+from maya.api import OpenMayaAnim
 
 
 # @note all functions must have connection with progressbar and sensible progress messages,
@@ -739,6 +740,37 @@ def convertClusterToJoint(inCluster, jointName=None, progressBar=None):
     utils.setProgress(100, progressBar, "converted cluster to joint")
     return jnt
 
+@shared.dec_undo
+def convertSoftModToJoint(inSoftMod, jointName=None, progressBar=None):
+    shape = cmds.ls(cmds.listConnections(inSoftMod, d=1), type="softMod") or None
+    if shape is None:
+        return
+
+    fallof_center = MPoint(*cmds.getAttr("%s.falloffCenter"%shape[0]))
+    dgpath = shared.getDagpath(inSoftMod)
+    inclMatrix = dgpath.inclusiveMatrix()
+    soft_mod_center = fallof_center * inclMatrix
+
+    obj = MGlobal.getSelectionListByName(shape[0]).getDependNode(0)
+    mfn = OpenMayaAnim.MFnGeometryFilter(obj)
+    ramp_attr = MRampAttribute(mfn.findPlug('falloffCurve', False))
+    falloff_radius = mfn.findPlug('falloffRadius', False).asFloat()
+
+    shape = mfn.getOutputGeometry()[0]
+    mfnShape = MFnMesh(shape)
+    points = mfnShape.getPoints()
+    name = MFnDagNode(shape).fullPathName()
+    parent = shared.getDagpath(name.rsplit('|', 1)[0])
+
+    soft_vertices = []
+    for i in range(len(points)):
+        point_distance = ((points[i]*parent.inclusiveMatrix()) - soft_mod_center).length()
+        if point_distance <= falloff_radius:
+            value = ramp_attr.getValueAtPosition(point_distance / falloff_radius)
+            soft_vertices.append([name, i, value])
+
+    return soft_vertices
+    
 
 @shared.dec_undo
 def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
