@@ -6,7 +6,7 @@ cd $directory
 function pause(){
     read -p "$*s"
 }
-array=( 2017 2018 2019 2020 2022 2023)
+array=( 2017 2018 2019 2020 2022 2023 2024)
 
 [ ! -d "./build" ] && mkdir -p "./build"
 cd "./build"
