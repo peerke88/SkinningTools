@@ -229,9 +229,9 @@ def freezeSkinnedJoints(jnts, rotate=1, scale=1, progressBar=None):
     """
     if len(jnts) == 1:
         jnts = shared.selectHierarchy(jnts)
-    if rotate:
-        freezeRotate(jnts)
-        utils.setProgress(33, progressBar, "freezeRotate")
+    # if rotate:
+    #     freezeRotate(jnts)
+    #     utils.setProgress(33, progressBar, "freezeRotate")
     if scale:
         freezeScale(jnts)
         utils.setProgress(66, progressBar, "freezeScale")

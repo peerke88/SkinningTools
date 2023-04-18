@@ -6,7 +6,7 @@ function pause(){
     read -p "$*s"
 }
 
-array=( 2017 2018 2019 2020 2022)
+array=( 2017 2018 2019 2020 2022 2023 2024)
 
 cd "$BASEDIR/build"
 rm -r *
