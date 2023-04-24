@@ -145,7 +145,7 @@ def dccToolButtons(progressBar=None):
     mb07 = buttonsToAttach('Prune Weights', cmds.PruneSmallWeightsOptions)
     mb08 = buttonsToAttach('Combine skinned mesh', uniteSkinned)
     mb09 = buttonsToAttach('Remove unused influences', partial(removeUnused, progressBar))
-    mb10 = buttonsToAttach('goto bind-pose', partial(resetToBindPoseobject, progressBar))
+    mb10 = buttonsToAttach('goto bind-pose', partial(resetToBindPoseobject, progressBar)) #  (use preBindMatrix data)
 
     return [mb01, mb02, mb03, mb04, mb05, mb06, mb07, mb08, mb09, mb10]
 
@@ -269,7 +269,7 @@ def convertToJoint(inName=None, progressBar=None):
 
 
 @shared.dec_repeat
-def resetPose(progressBar=None):
+def resetPose(resetBindPoseNode=True, progressBar=None):
     selection = getSelection()
     jnts = []
     meshes = []
@@ -280,10 +280,13 @@ def resetPose(progressBar=None):
             continue
         meshes.append(obj)
     for mesh in meshes:
-        sc = shared.skinCluster(mesh, True)
-        if not sc:
+        skinClusterName = shared.skinCluster(mesh, True)
+        if not skinClusterName:
             continue
-        _res = joints.resetSkinnedJoints(jnts, sc, progressBar)
+        if resetBindPoseNode:            
+            _res = joints.resetBindPoseNodeSkinCluster(skinClusterName, progressBar)
+        else:
+            _res = joints.resetSkinnedJoints(jnts, skinClusterName, progressBar)
         results.append(_res)
     return results
 

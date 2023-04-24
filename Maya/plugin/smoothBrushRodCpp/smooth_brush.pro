@@ -10,13 +10,13 @@ TARGET = smooth_brush_maya
 include(./smooth_brush.pri)
 
 win32:DEFINES += "_WIN32="
-win32:INCLUDEPATH += "C:\Program Files\Autodesk\Maya2019\include"
+win32:INCLUDEPATH += "C:\Program Files\Autodesk\Maya2022\include"
 DEFINES += "OPENMAYA_EXPORT="
 DEFINES += "OPENMAYAUI_EXPORT="
 DEFINES += "OPENMAYARENDER_EXPORT="
 DEFINES += "OPENMAYAANIM_EXPORT="
 DEFINES += "FND_EXPORT="
-DEFINES += "MAYA_API_VERSION=2018000"
+DEFINES += "MAYA_API_VERSION=2022000"
 
 # Modules
 SOURCES     += $${SMOOTH_BRUSH_FILES}

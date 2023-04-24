@@ -6,7 +6,7 @@ from SkinningTools.Maya.tools import shared, mathUtils, mesh, enumerators
 from maya import cmds
 from maya.api.OpenMaya import MVector, MPoint, MGlobal, MRampAttribute, MFnMesh, MFnDagNode
 from maya.api import OpenMayaAnim
-
+ 
 
 # @note all functions must have connection with progressbar and sensible progress messages,
 # look into warning messages later
@@ -95,6 +95,41 @@ def resetToBindPoseobject(inObject, progressBar=None):
         utils.setProgress(i * percentage, progressBar, "rest pose on %s" % joint)
 
     utils.setProgress(100, progressBar, "bindposes reset")
+    return True
+
+
+@shared.dec_undo
+def resetBindPoseNodeSkinCluster(skinClusterName : str, progressBar=None):
+    ''' Reset bind pose of *all* joints of a specified skincluster
+        (both preBindMatrix value and bindPose node if present)
+    '''  
+    from typing import List  
+    myAttr : str = skinClusterName + ".bindPose"
+    connectedNode : str = ""
+    connections : List[str] = cmds.listConnections(myAttr, type="dagPose", source=True, destination=False)
+    if (connections is not None) and len(connections) > 0:
+        connectedNode = connections[0]
+
+    # delete bind pose of skincluster:
+    hasBindPoseNode = cmds.objExists(connectedNode)
+    if hasBindPoseNode:
+        cmds.delete(connectedNode)
+    # get every joints
+    joints : List[str] = cmds.skinCluster(skinClusterName, query=True, inf=True)
+
+    # Reset prebind matrices
+    percentage = 99.0 / len(joints)
+    for i, joint in enumerate(joints):
+        curInvMat : List[float] = cmds.getAttr( f"{joint}.worldInverseMatrix" )       
+        cmds.setAttr(f"{skinClusterName}.bindPreMatrix[ {i} ]", type="matrix", *curInvMat)
+        utils.setProgress(i * percentage, progressBar, "resetting %s" % joint)
+
+    if hasBindPoseNode :
+        # Create a new bind pose node according to selection:
+        bindPoseNodeName : str = cmds.dagPose(joints, bp=True, save=True, selection=True)
+        cmds.connectAttr(bindPoseNodeName + ".message", skinClusterName + ".bindPose")
+
+    utils.setProgress(100, progressBar, "joints reset")
     return True
 
 

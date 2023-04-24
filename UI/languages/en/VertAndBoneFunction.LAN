@@ -40,6 +40,7 @@
   "seltInf_Btn": "attached joints", 
   "trsfrPS_Btn": "skin to pose", 
   "rstPose_Btn": "recalc bind", 
+  "reset bindPose node": "reset bindPose node",
   "infMesh_Btn": "influenced meshes", 
   "in Pose": "in Pose", 
   "cpyWght_Btn": "copy vtx", 

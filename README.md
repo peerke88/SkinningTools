@@ -36,7 +36,13 @@ after that use the following python commands:
 
 - for development:
 ```python
+
+import sys
+# Path to the project folder containing the module 'SkinningTools'
+sys.path.insert(0, r"C:/path/to/project/folder/")
+
 from SkinningTools import reloader
+from importlib import reload 
 reload(reloader)
 reloader.unload(newScene=False)
 
@@ -44,11 +50,13 @@ from SkinningTools.UI import SkinningToolsUI
 reload(SkinningToolsUI)
 myWindow = SkinningToolsUI.showUI()
 ```
+
 - for release/use:
 ```python
 from SkinningTools.UI import SkinningToolsUI
 myWindow = SkinningToolsUI.showUI()
 ```
+
 ## Acknowledgments
 
 * kdTree

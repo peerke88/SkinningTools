@@ -1,7 +1,8 @@
 import sys
 import os
 from maya import cmds
-from py23 import *
+from importlib import reload
+#from py23 import *
 
 import SkinningTools.Maya.api as api
 reload(api)
@@ -10,7 +11,7 @@ reload( skinBrushes )
 import  SkinningTools.Maya.interface as interface
 reload( interface )
 
-from UI import SkinningToolsUI
+from SkinningTools.UI import SkinningToolsUI
 
 DEFAULT_RELOAD_PACKAGES = ['SkinningTools']
 
@@ -27,6 +28,7 @@ But sometimes you need to reload several modules, unload/reload sub-plugins.
 The code below will close the main window, reload every single python module 
 create a new scene to ensure no plugin data is used and re-load sub-plugins:    
     from SkinningTools import reloader
+    from importlib import reload 
     reload(reloader)
     reloader.unload()    
 '''

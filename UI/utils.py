@@ -508,15 +508,15 @@ def widgetsAt(pos):
     return widget_at
 
 
-def addChecks(cls, button, checks=None):
+def addChecks(parent_widget, button, checkBoxTextList=None, checkBoxObjectNames=None):
     """ add checkboxes to a button for extra functionality
 
-    :param cls: parent class
-    :type cls: <class>
+    :param parent_widget: parent class
+    :type parent_widget: <class>
     :param button: the button to add the checkboxes to
     :type button: QPushButton
-    :param checks: names of all the checkboxes to add
-    :type checks: list
+    :param checkBoxTextList: text of the checkboxes to add to 'button'
+    :type checkBoxTextList: List
     """
     v = nullVBoxLayout(size=3)
     h = nullHBoxLayout()
@@ -524,29 +524,41 @@ def addChecks(cls, button, checks=None):
     v.setAlignment(Qt.AlignRight)
     button.setLayout(v)
     button.setContextMenuPolicy(Qt.CustomContextMenu)
+    # Dynamically add attribute:
     button.checks = {}
-    checks = checks or []
-    for check in checks:
-        chk = QCheckBox()
-        # chk.setEnabled(False)
-        chk.setToolTip(check)
-        chk.displayText = check
-        v.addWidget(chk)
-        button.checks[check] = chk
 
-    functions, popup = addContextToMenu(cls, checks, button)
+    assert len(checkBoxTextList) == len(checkBoxObjectNames), "checkBoxTextList and checkBoxObjectNames must be the same length"       
+    checks = checkBoxTextList or []    
+    
+    for idx, checkboxText in enumerate( checks ):
+        checkBoxObject = QCheckBox()
+        # checkBoxObject.setEnabled(False)
+        checkBoxObject.setToolTip(checkboxText)
+        checkBoxObject.displayText = checkboxText
+        v.addWidget(checkBoxObject)
+        button.checks[checkboxText] = checkBoxObject
+        # Add entry {text : object name } to dictionary
+        objectName = checkBoxObjectNames[idx]
+        parent_widget._remp[checkboxText] = objectName
+        parent_widget._Btn[objectName] = checkBoxObject
+
+    functions, popup = addContextToMenu(parent_widget, checks, button)
     button.customContextMenuRequested.connect(partial(onContextMenu, button, popup, functions))
 
     button.getNameInfo = {}
     for check in checks:
         button.getNameInfo[check] = functions[check]
 
+    # register button to the list of buttons with checkboxes
+    parent_widget.checkedButtons.append(button)   
 
-def addContextToMenu(cls, actionNames, btn):
+
+
+def addContextToMenu(parent_widget, actionNames, btn):
     """ add context menu to button based on the checkboxes
 
-    :param cls: parent class
-    :type cls: <class>
+    :param parent_widget: parent class
+    :type parent_widget: <class>
     :param actionNames: names of all the checkboxes
     :type actionNames: list
     :param button: the button to add context menu to
@@ -554,11 +566,11 @@ def addContextToMenu(cls, actionNames, btn):
     :return: functions dictionary, Qmenu
     :rtype: list
     """
-    popMenu = QMenu(cls)
+    popMenu = QMenu(parent_widget)
     allFunctions = {}
     for actionName in actionNames:
         _name = btn.checks[actionName].displayText
-        check = QAction(_name, cls)
+        check = QAction(_name, parent_widget)
         check.setCheckable(True)
         check.toggled.connect(btn.checks[actionName].setChecked)
         popMenu.addAction(check)

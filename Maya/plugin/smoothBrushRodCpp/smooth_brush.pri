@@ -5,6 +5,9 @@ SMOOTH_BRUSH_INCLUDEPATH =
 
 
 SMOOTH_BRUSH_FILES += \
+BuildPlugins.bat \
+BuildPlugins.sh \
+BuildPluginsLinux.sh \
 CMakeLists.txt \
 FindMaya.cmake \
 run_cmake.py \
