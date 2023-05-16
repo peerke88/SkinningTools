@@ -99,13 +99,13 @@ def resetToBindPoseobject(inObject, progressBar=None):
 
 
 @shared.dec_undo
-def resetBindPoseNodeSkinCluster(skinClusterName : str, progressBar=None):
+def resetBindPoseNodeSkinCluster(skinClusterName , progressBar=None):
     ''' Reset bind pose of *all* joints of a specified skincluster
         (both preBindMatrix value and bindPose node if present)
     '''  
     from typing import List  
-    myAttr : str = skinClusterName + ".bindPose"
-    connectedNode : str = ""
+    myAttr  = skinClusterName + ".bindPose"
+    connectedNode  = ""
     connections : List[str] = cmds.listConnections(myAttr, type="dagPose", source=True, destination=False)
     if (connections is not None) and len(connections) > 0:
         connectedNode = connections[0]
@@ -126,7 +126,7 @@ def resetBindPoseNodeSkinCluster(skinClusterName : str, progressBar=None):
 
     if hasBindPoseNode :
         # Create a new bind pose node according to selection:
-        bindPoseNodeName : str = cmds.dagPose(joints, bp=True, save=True, selection=True)
+        bindPoseNodeName  = cmds.dagPose(joints, bp=True, save=True, selection=True)
         cmds.connectAttr(bindPoseNodeName + ".message", skinClusterName + ".bindPose")
 
     utils.setProgress(100, progressBar, "joints reset")
