@@ -106,7 +106,7 @@ def resetBindPoseNodeSkinCluster(skinClusterName , progressBar=None):
     from typing import List  
     myAttr  = skinClusterName + ".bindPose"
     connectedNode  = ""
-    connections : List[str] = cmds.listConnections(myAttr, type="dagPose", source=True, destination=False)
+    connections= cmds.listConnections(myAttr, type="dagPose", source=True, destination=False)
     if (connections is not None) and len(connections) > 0:
         connectedNode = connections[0]
 
@@ -115,12 +115,12 @@ def resetBindPoseNodeSkinCluster(skinClusterName , progressBar=None):
     if hasBindPoseNode:
         cmds.delete(connectedNode)
     # get every joints
-    joints : List[str] = cmds.skinCluster(skinClusterName, query=True, inf=True)
+    joints = cmds.skinCluster(skinClusterName, query=True, inf=True)
 
     # Reset prebind matrices
     percentage = 99.0 / len(joints)
     for i, joint in enumerate(joints):
-        curInvMat : List[float] = cmds.getAttr( f"{joint}.worldInverseMatrix" )       
+        curInvMat = cmds.getAttr( f"{joint}.worldInverseMatrix" )       
         cmds.setAttr(f"{skinClusterName}.bindPreMatrix[ {i} ]", type="matrix", *curInvMat)
         utils.setProgress(i * percentage, progressBar, "resetting %s" % joint)
 
