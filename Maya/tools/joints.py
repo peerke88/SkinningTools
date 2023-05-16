@@ -121,7 +121,7 @@ def resetBindPoseNodeSkinCluster(skinClusterName , progressBar=None):
     percentage = 99.0 / len(joints)
     for i, joint in enumerate(joints):
         curInvMat = cmds.getAttr( "{0}.worldInverseMatrix".format(joint) )       
-        cmds.setAttr("{0}.bindPreMatrix[ {1} ]".format(skinClusterNamem i), type="matrix", *curInvMat)
+        cmds.setAttr("{0}.bindPreMatrix[ {1} ]".format(skinClusterName, i), type="matrix", *curInvMat)
         utils.setProgress(i * percentage, progressBar, "resetting %s" % joint)
 
     if hasBindPoseNode :
