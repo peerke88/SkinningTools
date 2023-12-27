@@ -79,6 +79,8 @@ class VertAndBoneFunction(QWidget):
         :type localeDict: dict
         """
         for key, value in localeDict.items():
+            if not key in self._Btn.keys():
+                continue
             if isinstance(self._Btn[key], QCheckBox):
                 self._Btn[key].displayText = value
                 self._Btn[key].setToolTip(value)
@@ -253,37 +255,37 @@ class VertAndBoneFunction(QWidget):
                 w.setMaximumWidth(30)
             grow_Lay.layout().addWidget(w)
 
-        self.__buttons = [self._Btn["AvgWght_Btn"], 
-                          self._Btn["cpyWght_Btn"], 
-                          self._Btn["swchVtx_Btn"], 
-                          self._Btn["BoneLbl_Btn"], 
-                          self._Btn["shellUn_btn"], 
+        self.__buttons = [self._Btn["AvgWght_Btn"],
+                          self._Btn["cpyWght_Btn"],
+                          self._Btn["swchVtx_Btn"],
+                          self._Btn["BoneLbl_Btn"],
+                          self._Btn["shellUn_btn"],
                           self._Btn["trsfrSK_Btn"],
-                          self._Btn["trsfrPS_Btn"], 
-                          self._Btn["nghbors_Btn"], 
-                          smthBrs_Lay, 
+                          self._Btn["trsfrPS_Btn"],
+                          self._Btn["nghbors_Btn"],
+                          smthBrs_Lay,
 
-                          self._Btn["hammerV_Btn"], 
-                          self._Btn["toJoint_Btn"], 
-                          self._Btn["frzBone_Btn"], 
-                          self._Btn["rstPose_Btn"], 
-                          self._Btn["cutMesh_Btn"], 
+                          self._Btn["hammerV_Btn"],
+                          self._Btn["toJoint_Btn"],
+                          self._Btn["frzBone_Btn"],
+                          self._Btn["rstPose_Btn"],
+                          self._Btn["cutMesh_Btn"],
                           self._Btn["SurfPin_Btn"],
-                          self._Btn["copy2bn_Btn"], 
-                          self._Btn["b2bSwch_Btn"], 
-                          self._Btn["showInf_Btn"], 
-                          self._Btn["delBone_Btn"], 
-                          self._Btn["addinfl_Btn"], 
+                          self._Btn["copy2bn_Btn"],
+                          self._Btn["b2bSwch_Btn"],
+                          self._Btn["showInf_Btn"],
+                          self._Btn["delBone_Btn"],
+                          self._Btn["addinfl_Btn"],
                           self._Btn["unifyBn_Btn"],
-                          self._Btn["seltInf_Btn"], 
-                          self._Btn["sepMesh_Btn"], 
-                          self._Btn["onlySel_Btn"], 
-                          self._Btn["infMesh_Btn"], 
-                          max_Lay, 
-                          
-                          self._Btn["vtxOver_Btn"], 
-                          self._Btn["BindFix_Btn"], 
-                          self._Btn["delBind_Btn"], 
+                          self._Btn["seltInf_Btn"],
+                          self._Btn["sepMesh_Btn"],
+                          self._Btn["onlySel_Btn"],
+                          self._Btn["infMesh_Btn"],
+                          max_Lay,
+
+                          self._Btn["vtxOver_Btn"],
+                          self._Btn["BindFix_Btn"],
+                          self._Btn["delBind_Btn"],
                           grow_Lay]
 
         self.filter()
@@ -293,23 +295,22 @@ class VertAndBoneFunction(QWidget):
         # Define mapping between text and button object name:
         # { text : button object unique name }
         self._remp = {}
-        
+
         # -- add a QCheckBox inside the button for extra functionality
         #        (self, svg button              , check box texts                 , check box object unique names):
-        addChecks(self, self._Btn["AvgWght_Btn"], ["use distance"]                , ["dist"])
-        addChecks(self, self._Btn["shellUn_btn"], ["use vtx polyShell"]           , ["polyShell"])
-        addChecks(self, self._Btn["trsfrSK_Btn"], ["smooth", "uvSpace"]           , ["smooth", "uvSpace"])
-        addChecks(self, self._Btn["trsfrPS_Btn"], ["smooth", "uvSpace"]           , ["smooth1", "uvSpace1"])
-        addChecks(self, self._Btn["nghbors_Btn"], ["growing", "full"]             , ["growing", "full"])
-        addChecks(self, self._Btn["toJoint_Btn"], ["specify name"]                , ["specify name"])
-        addChecks(self, self._Btn["rstPose_Btn"], ["reset bindPose node"]         , ["reset bindPose node"])
-        addChecks(self, self._Btn["cutMesh_Btn"], ["internal", "use opm"]         , ["internal", "use opm"])
+        addChecks(self, self._Btn["AvgWght_Btn"], ["use distance"], ["dist"])
+        addChecks(self, self._Btn["shellUn_btn"], ["use vtx polyShell"], ["polyShell"])
+        addChecks(self, self._Btn["trsfrSK_Btn"], ["smooth", "uvSpace"], ["smooth", "uvSpace"])
+        addChecks(self, self._Btn["trsfrPS_Btn"], ["smooth", "uvSpace"], ["smooth1", "uvSpace1"])
+        addChecks(self, self._Btn["nghbors_Btn"], ["growing", "full"], ["growing", "full"])
+        addChecks(self, self._Btn["toJoint_Btn"], ["specify name"], ["specify name"])
+        addChecks(self, self._Btn["rstPose_Btn"], ["reset bindPose node"], ["reset bindPose node"])
+        addChecks(self, self._Btn["cutMesh_Btn"], ["internal", "use opm"], ["internal", "use opm"])
         addChecks(self, self._Btn["delBone_Btn"], ["use parent", "delete", "fast"], ["use parent", "delete", "fast"])
-        addChecks(self, self._Btn["unifyBn_Btn"], ["query"]                       , ["query"])
-        addChecks(self, self._Btn["onlySel_Btn"], ["invert"]                      , ["invert"])
-        addChecks(self, self._Btn["BindFix_Btn"], ["model only", "in Pose"]       , ["model only", "in Pose"])
-        addChecks(self, self._Btn["smthBrs_Btn"], ["relax", "volume"]             , ["relax", "volume"])    
-
+        addChecks(self, self._Btn["unifyBn_Btn"], ["query"], ["query"])
+        addChecks(self, self._Btn["onlySel_Btn"], ["invert"], ["invert"])
+        addChecks(self, self._Btn["BindFix_Btn"], ["model only", "in Pose"], ["model only", "in Pose"])
+        addChecks(self, self._Btn["smthBrs_Btn"], ["relax", "volume"], ["relax", "volume"])
 
         # -- signal connections
         self._Btn["smthBrs_Btn"].checks["relax"].stateChanged.connect(partial(self._updateBrush_func, self._Btn["smthBrs_Btn"]))
@@ -340,7 +341,7 @@ class VertAndBoneFunction(QWidget):
 
         self._Btn["cpyWght_Btn"].clicked.connect(partial(interface.copyVtx, self.progressBar))
         self._Btn["swchVtx_Btn"].clicked.connect(partial(interface.switchVtx, self.progressBar))
-        
+
         self._Btn["hammerV_Btn"].clicked.connect(partial(interface.hammerVerts, self.progressBar))
         self._Btn["showInf_Btn"].clicked.connect(partial(interface.showInfVerts, self.progressBar))
         self._Btn["addinfl_Btn"].clicked.connect(partial(interface.addNewJoint, self.progressBar))
@@ -453,7 +454,11 @@ class VertAndBoneFunction(QWidget):
         if values is None:
             return
         for index, btn in enumerate(self.checkedButtons):
+            if index >= len(values):
+                continue
             for key, value in values[index]:
+                if not key in btn.checks.keys():
+                    continue
                 btn.checks[key].setChecked(value)
 
     """ckecked attributes property"""
