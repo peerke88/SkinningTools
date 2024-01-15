@@ -305,7 +305,7 @@ def sortByDistance(nodes, point, points):
     :return: Sorted node list and sorted points list
     :rtype: tuple(list, list)
     """
-    iter = zip(nodes, points)
+    iter = list(zip(nodes, points))
     iter.sort(key=lambda x: (x[1] - point).length())
 
     nodes, points = zip(*iter)
