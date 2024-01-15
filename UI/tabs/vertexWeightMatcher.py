@@ -12,9 +12,8 @@ from maya import cmds
 class TransferWeightsWidget(QWidget):
     toolName = "TransferWeightsWidget"
 
-    @dec_loadPlugin(interface.getInterfaceDir() + "/plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/skinCommands%s" % (api.getMayaVersion(), api.getPluginSuffix()))
     def __init__(self, parent=None):
-        super(TransferWeightsWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.__defaults()
 
@@ -286,7 +285,7 @@ class ClosestVertexWeightWidget(QWidget):
     toolName = "ClosestVertexWeightWidget"
 
     def __init__(self, parent=None):
-        super(ClosestVertexWeightWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.__defaults()
         self.__setButtons()
@@ -427,7 +426,7 @@ class TransferUvsWidget(QWidget):
     toolName = "TransferUvsWidget"
 
     def __init__(self, parent=None):
-        super(TransferUvsWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.__defaults()
         self.__setButtons()
