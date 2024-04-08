@@ -1,17 +1,18 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 
+
 class VertHeaderView(QHeaderView):
     """ header view that displays text in a vertical manner
     """
     rightClicked = pyqtSignal()
-    
+
     _margin = 3
     _font = QFont()
     _metrics = QFontMetrics(_font)
     _selectedFont = QFont()
-    _selectedFont.setWeight(63)
-    
+    # _selectedFont.setWeight(63)
+
     def __init__(self, parent=None):
         """ the constructor
 
@@ -19,15 +20,15 @@ class VertHeaderView(QHeaderView):
         :type parent: QWidget
         """
         super(VertHeaderView, self).__init__(Qt.Horizontal, parent)
-        self._parent = parent 
-        
-        if QT_VERSION != "pyside2":
+        self._parent = parent
+
+        if QT_VERSION not in ["pyside2", "pyside6"]:
             self.setClickable(True)
         else:
             self.setSectionsClickable(True)
-        
+
         self.setHighlightSections(True)
-        
+
     def mouseReleaseEvent(self, event):
         """ mouse event to emit when mouse is right clicked
         """
@@ -49,30 +50,30 @@ class VertHeaderView(QHeaderView):
         """
         painter.rotate(-90)
         data = self._getData(index)
-        
+
         data = data.split(':')[-1]
         isSelected = self.checkSelected(index)
-        
+
         if isSelected:
             font = self._selectedFont
         else:
             font = self._font
         painter.setFont(font)
-        
+
         _color = self.model().headerData(index, Qt.Horizontal, Qt.BackgroundRole)
-        _darker = QColor(*map(lambda c:c-42, _color.getRgb()[:3]))
+        _darker = QColor(*map(lambda c: c - 42, _color.getRgb()[:3]))
         _nRect = self.rotate(index, rect)
-        painter.fillRect(_nRect , _color)
-        
+        painter.fillRect(_nRect, _color)
+
         painter.setPen(QPen(_darker))
         painter.drawRect(_nRect)
-        
-        painter.setPen(QColor(*[230]*3))
-        
+
+        painter.setPen(QColor(*[230] * 3))
+
         tx = -rect.height() + self._margin
-        ty = rect.left() + (rect.width() + self._metrics.descent()) / 2 
+        ty = rect.left() + (rect.width() + self._metrics.descent()) / 2
         painter.drawText(tx, ty, data)
-        
+
     def checkSelected(self, index):
         """ check if the current object is selected
 
@@ -85,8 +86,8 @@ class VertHeaderView(QHeaderView):
         selected_item = sel_model.currentIndex()
         isSelected = sel_model.columnIntersectsSelection(index, selected_item)
         return isSelected
-        
-    def rotate(self,index, rect):
+
+    def rotate(self, index, rect):
         """ convenience function to rotate the current header from horizontal to vertical
 
         :param index: index of the header to change
@@ -96,12 +97,12 @@ class VertHeaderView(QHeaderView):
         :return: the vertically placed rect
         :rtype: QRect
         """
-        offset = int( index == 0)
+        offset = int(index == 0)
         rect = rect.getRect()
         rect = [rect[1] - rect[3] + 1, rect[0] - 1 + offset, rect[3] - 1, rect[2] - offset]
         rect = QRect(*rect)
         return rect
-        
+
     def sizeHint(self):
         """ returns the size hint 
 
@@ -119,7 +120,7 @@ class VertHeaderView(QHeaderView):
         if self.model() is None:
             return 0
         width_list = [self._metrics.width(self._getData(i)) for i in range(0, self.model().columnCount())] or [0]
-        max_width = max(width_list) *1.1
+        max_width = max(width_list) * 1.1
         return max_width
 
     def _getData(self, index):
@@ -131,5 +132,3 @@ class VertHeaderView(QHeaderView):
         :rtype: QVariant
         """
         return self.model().headerData(index, self.orientation(), 0)
-        
-        

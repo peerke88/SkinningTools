@@ -111,7 +111,7 @@ class SkinBrushes(QWidget):
     def __addBrushFunc(self):
 
         mainVertLayout = nullVBoxLayout()
-        mainVertLayout.setMargin(5)
+        # mainVertLayout.setMargin(5)
         self.layout().addLayout(mainVertLayout)
 
         def _svgPath(svg):

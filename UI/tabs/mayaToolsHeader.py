@@ -12,7 +12,7 @@ class MayaToolsHeader(QWidget):
     :note: this needs to change later based on the dcc tool
     """
     toolName = "MayaToolsHeader"
-    
+
     def __init__(self, inGraph=None, inProgressBar=None, parent=None):
         """ the constructor
 
@@ -38,7 +38,7 @@ class MayaToolsHeader(QWidget):
         self.__connections()
 
     # --------------------------------- translation ----------------------------------
-    def translate(self, localeDict = {}):
+    def translate(self, localeDict={}):
         """ translate the ui based on given dictionary
 
         :param localeDict: the dictionary holding information on how to translate the ui
@@ -46,7 +46,7 @@ class MayaToolsHeader(QWidget):
         """
         for key, value in localeDict.items():
             self.textInfo[key].setText(value)
-        
+
     def getButtonText(self):
         """ convenience function to get the current items that need new locale text
         """
@@ -60,10 +60,10 @@ class MayaToolsHeader(QWidget):
         we use the english language to translate from to make sure that translation doesnt get lost
         """
         from SkinningTools.UI import translator
-        _dict = loadLanguageFile("en", self.toolName) 
-        _trs = translator.showUI(_dict, widgetName = self.toolName)
-          
-    # --------------------------------- ui setup ----------------------------------  
+        _dict = loadLanguageFile("en", self.toolName)
+        _trs = translator.showUI(_dict, widgetName=self.toolName)
+
+    # --------------------------------- ui setup ----------------------------------
 
     def __mayaToolsSetup(self):
         """ convenience function to gather all buttons for the current UI
@@ -120,7 +120,11 @@ class MayaToolsHeader(QWidget):
         :rtype: string
         """
         filePath = os.path.join(tempfile.gettempdir(), 'screenshot.jpg')
-        QPixmap.grabWidget(self.BezierGraph.view).save(filePath, 'jpg')
+        try:
+            QPixmap.grabWidget(self.BezierGraph.view).save(filePath, 'jpg')
+        except:
+            print('note to devs: grabwidget has been depricated check what replaced it!')
+            #QScreen.grabWindow(self.BezierGraph.view).save(filename, 'jpg')
         return filePath
 
     def _updateGraphButton(self):
@@ -161,10 +165,10 @@ def testUI():
     """ test the current UI without the need of all the extra functionality
     """
     mainWindow = interface.get_maya_window()
-    mwd  = QMainWindow(mainWindow)
+    mwd = QMainWindow(mainWindow)
     from SkinningTools.UI.fallofCurveUI import BezierGraph
     mwd.setWindowTitle("MayaToolsHeader Test window")
-    wdw = MayaToolsHeader(inGraph = BezierGraph() , parent = mainWindow)
+    wdw = MayaToolsHeader(inGraph=BezierGraph(), parent=mainWindow)
     mwd.setCentralWidget(wdw)
     mwd.show()
     return wdw
