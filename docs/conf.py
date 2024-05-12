@@ -26,7 +26,7 @@ author = u'Mio Zwickl, Rodolphe Vaillant, Trevor v Hoof, Jan Pijpers, Perry Leij
 # The short X.Y version
 version = u'5.0'
 # The full version, including alpha/beta/rc tags
-release = u'5.0.20240116'
+release = u'5.0.20240512'
 
 # -- General configuration ---------------------------------------------------
 

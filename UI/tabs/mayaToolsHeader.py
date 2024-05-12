@@ -123,8 +123,9 @@ class MayaToolsHeader(QWidget):
         try:
             QPixmap.grabWidget(self.BezierGraph.view).save(filePath, 'jpg')
         except:
-            print('note to devs: grabwidget has been depricated check what replaced it!')
-            #QScreen.grabWindow(self.BezierGraph.view).save(filename, 'jpg')
+            imageVar2 = self.BezierGraph.view.grab(self.BezierGraph.view.rect())  # returns QPixMap
+            imageVar2.save(filePath, 'jpg')
+
         return filePath
 
     def _updateGraphButton(self):

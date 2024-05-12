@@ -104,7 +104,10 @@ class Slider(QWidget):
         else:
             valueStr = unicode(self.getValueAsString())
         fontMetrics = painter.fontMetrics()
-        valueStrLength = fontMetrics.width(valueStr)
+        if not QT_VERSION == "pyside6":
+            valueStrLength = fontMetrics.width(valueStr)
+        else:
+            valueStrLength = fontMetrics.horizontalAdvance(valueStr)
         painter.drawText(QPointF(w * 0.5 - valueStrLength * 0.5, h - 6), valueStr)
 
     def sliderPosition(self):

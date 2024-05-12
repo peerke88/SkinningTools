@@ -54,7 +54,7 @@ class MarkingMenuFilter(QObject):
             self.getBoneUnderMouse = False
             return False
 
-        if event.type() == QEvent.MouseButtonPress and event.button() == 4:
+        if event.type() == QEvent.MouseButtonPress and (event.button() == 4 if QT_VERSION != "pyside6" else event.button() == Qt.MouseButton.MiddleButton):
             sel = interface.getSelection()
             if sel == [] or not '.' in sel[0]:
                 return False
@@ -78,7 +78,7 @@ class MarkingMenuFilter(QObject):
 
         self.MMenu.updateLine(QCursor.pos())
 
-        if event.type() == QEvent.MouseButtonRelease and event.button() == 4:
+        if event.type() == QEvent.MouseButtonRelease and (event.button() == 4 if QT_VERSION != "pyside6" else event.button() == Qt.MouseButton.MiddleButton):
             _curItem = self.MMenu.getActiveItem()
             if _curItem is not None:
                 _curItem.runFunction()
@@ -132,7 +132,10 @@ class radialMenu(QMainWindow):
 
         self.scene = QGraphicsScene()
         self.view = QGraphicsView()
-        self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
+        if not QT_VERSION == "pyside6":
+            self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
+        else:
+            self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.view.setScene(self.scene)
         self.view.setSceneRect(self.frameGeometry())
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -221,12 +224,20 @@ class radialMenu(QMainWindow):
             item.setStyleSheet(self.__borders["default"])
             if self.__ActiveItem:
                 continue
-            if QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.topRight()).intersect(line)[0] or \
-                    QLineF.BoundedIntersection == QLineF(rect.topRight(), rect.bottomRight()).intersect(line)[0] or \
-                    QLineF.BoundedIntersection == QLineF(rect.bottomLeft(), rect.bottomRight()).intersect(line)[0] or \
-                    QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.bottomLeft()).intersect(line)[0]:
-                item.setStyleSheet(self.__borders["hilite"])
-                self.__ActiveItem = item
+            if not QT_VERSION == "pyside6":
+                if QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.topRight()).intersect(line)[0] or \
+                        QLineF.BoundedIntersection == QLineF(rect.topRight(), rect.bottomRight()).intersect(line)[0] or \
+                        QLineF.BoundedIntersection == QLineF(rect.bottomLeft(), rect.bottomRight()).intersect(line)[0] or \
+                        QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.bottomLeft()).intersect(line)[0]:
+                    item.setStyleSheet(self.__borders["hilite"])
+                    self.__ActiveItem = item
+            else:
+                if QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.topRight()).intersects(line)[0] or \
+                        QLineF.BoundedIntersection == QLineF(rect.topRight(), rect.bottomRight()).intersects(line)[0] or \
+                        QLineF.BoundedIntersection == QLineF(rect.bottomLeft(), rect.bottomRight()).intersects(line)[0] or \
+                        QLineF.BoundedIntersection == QLineF(rect.topLeft(), rect.bottomLeft()).intersects(line)[0]:
+                    item.setStyleSheet(self.__borders["hilite"])
+                    self.__ActiveItem = item
 
     def getActiveItem(self):
         """ return the activated item that is in collision with the mouse
@@ -258,7 +269,10 @@ class radialMenu(QMainWindow):
         self.mainItem.setText(inName)
         self.mainItem.setStyleSheet(self.__borders["default"])
         self.mainItem.setAlignment(Qt.AlignCenter)
-        w = QPainter().fontMetrics().width(self.mainItem.text()) + 10
+        if not QT_VERSION == "pyside6":
+            w = QPainter().fontMetrics().width(self.mainItem.text()) + 10
+        else:
+            w = QPainter().fontMetrics().horizontalAdvance(self.mainItem.text()) + 5
         position = self.mainItem.curPos
         self.mainItem.setGeometry(position.x() - (w * .5), position.y() - 10.5, w, 21)
 
@@ -282,7 +296,11 @@ class radialMenu(QMainWindow):
         item = QLabel(inText)
         item.setStyleSheet(self.__borders["default"])
         item.setAlignment(Qt.AlignCenter)
-        w = QPainter().fontMetrics().width(item.text()) + 10
+        if not QT_VERSION == "pyside6":
+            w = QPainter().fontMetrics().width(item.text()) + 10
+        else:
+            w = QPainter().fontMetrics().horizontalAdvance(item.text()) + 5
+
         item.setGeometry(position.x() - (w * .5), position.y() - 10.5, w, 21)
         if inFunction is not None:
             item.runFunction = partial(inFunction, item, inValue, operation)
@@ -305,7 +323,11 @@ class radialMenu(QMainWindow):
         item = QCheckBox(inText)
         item.setChecked(inValue)
         item.setStyleSheet(self.__borders["default"])
-        w = QPainter().fontMetrics().width(item.text()) + 20
+        if not QT_VERSION == "pyside6":
+            w = QPainter().fontMetrics().width(item.text()) + 20
+        else:
+            w = QPainter().fontMetrics().horizontalAdvance(item.text()) + 10
+
         item.setGeometry(position.x() - (w * .5) - 2, position.y() - 11.5, w + 4, 21)
         if inFunction is not None:
             item.runFunction = partial(inFunction, item)

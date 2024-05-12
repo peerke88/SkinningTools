@@ -108,7 +108,11 @@ class NodeView(QGraphicsView):
         :type parent: QWidget
         """
         super(NodeView, self).__init__(parent)
-        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
+        if not QT_VERSION == "pyside6":
+            self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
+        else:
+            self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setViewportUpdateMode(QGraphicsView.SmartViewportUpdate)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
