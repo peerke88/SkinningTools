@@ -644,7 +644,7 @@ def keepOnlySelectedInfluences(fullSelection, jointOnlySelection, inverse=False,
 
 
 @shared.dec_undo
-def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progressBar=None):
+def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, matchMaxInfl = False, progressBar=None):
     """ a function that can walk over a mesh selection smooth the mesh gradually
 
     :param input: list components
@@ -669,7 +669,7 @@ def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progr
     sc = shared.skinCluster(inMesh)
     if both:
         cmds.select(vertices, r=1)
-        cmds.skinCluster(sc, geometry=vertices, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
+        cmds.skinCluster(sc, geometry=vertices, e=True, sw=0.000001, swi=5, omi=matchMaxInfl, forceNormalizeWeights=1)
     if full:
         grown = shared.convertToVertexList(cmds.polyListComponentConversion(vertices, tf=True))
     else:
@@ -681,7 +681,7 @@ def smoothAndSmoothNeighbours(input, both=False, growing=False, full=True, progr
 
     fixedList = list(set(grown) ^ set(vertices))
     setProgress(67, progressBar, "gathered smooth data")
-    cmds.skinCluster(sc, geometry=fixedList, e=True, sw=0.000001, swi=5, omi=0, forceNormalizeWeights=1)
+    cmds.skinCluster(sc, geometry=fixedList, e=True, sw=0.000001, swi=5, omi=matchMaxInfl, forceNormalizeWeights=1)
 
     setProgress(100, progressBar, "smoothed neighbors")
     if False in [growing, both]:

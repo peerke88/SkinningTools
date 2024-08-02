@@ -174,7 +174,7 @@ def switchVtx(progressBar=None):
 
 
 @shared.dec_repeat
-def labelJoints(doCheck=True, progressBar=None):
+def labelJoints(selectionBased=False, doCheck=True, progressBar=None):
     jnts = cmds.ls(type="joint")
     jntAmount = len(jnts)
     if doCheck:
@@ -184,9 +184,9 @@ def labelJoints(doCheck=True, progressBar=None):
                 _reLabel = True
         if not _reLabel:
             return True
-    dialog = JointLabel()
+    dialog = JointLabel(title="label selected joints" if selectionBased else "label joints")
     dialog.exec_()
-    result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), progressBar)
+    result = joints.autoLabelJoints(dialog.L_txt.text(), dialog.R_txt.text(), selectionBased, progressBar)
     return result
 
 
@@ -235,9 +235,9 @@ def copySkin(inplace, smooth, uvSpace, progressBar=None):
 
 
 @shared.dec_repeat
-def neighbors(both, growing, full, progressBar=None):
+def neighbors(both, growing, full, maxinf, progressBar=None):
     selection = getSelection()
-    result = skinCluster.smoothAndSmoothNeighbours(selection, both, growing, full, progressBar)
+    result = skinCluster.smoothAndSmoothNeighbours(selection, both, growing, full, maxinf, progressBar)
     return result
 
 

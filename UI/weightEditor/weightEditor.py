@@ -414,12 +414,13 @@ class WeightEditorWindow(QWidget):
             self.lockWeigths(jointID=[jointID], lock = True )
         self.weightSelectModel.clearSelection()
         self.refreshTable()
+        paintUtil.forceRefreshPaintTool()
 
     def lockAllWeights(self):
         for jnt in self.allInfJoints:
             interface.setJointLocked(jnt, self.sender().isChecked())
-        self.refreshTable()
         paintUtil.forceRefreshPaintTool()
+        self.refreshTable()
 
     def lockWeigths(self, jointID=None, lock = True):
         """ function to lock or unlock weights, this will be represented in the widget as well as in the dcc tool

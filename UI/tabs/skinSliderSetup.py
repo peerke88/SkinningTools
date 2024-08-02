@@ -7,6 +7,8 @@ from functools import partial
 from SkinningTools.UI.ControlSlider.skinningtoolssliderlist import SkinningToolsSliderList
 from SkinningTools.UI.hoverIconButton import HoverIconButton
 
+_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 class SkinSliderSetup(QWidget):
     """ skinslider setup, 
     allows the weights to be changed with a slider widget while keeping everything normalized
@@ -81,7 +83,13 @@ class SkinSliderSetup(QWidget):
         self.showButton.setChecked(True)
         self.inflEdit.showUnused(False)
         
+        def _svgPath(svg):
+            return os.path.join(_DIR, "Icons/%s.svg" % svg)
+
         searchLay.addWidget(self.showButton)
+        hammerButton = svgButton("", _svgPath("hammer"), size=20, toolTipInfo="weightHammer")
+        hammerButton.clicked.connect(self.hammerupdate)
+        searchLay.addWidget(hammerButton)
         _frm = QWidget()
         _frm.setMinimumWidth(10)
         _frm.setMaximumHeight(1)
@@ -106,7 +114,11 @@ class SkinSliderSetup(QWidget):
         """
         self.inflEdit.showUnused(self.showButton.isChecked())
         if self.jointSearch != []:
-            self.inflEdit.showOnlyJoints(self.jointSearch)
+            self.inflEdit.showOnlyJoints(self.jointSearch)  
+
+    def hammerupdate(self, *args):
+        interface.hammerVerts()
+        self._update()
 
     def _update(self):
         """ convenience function to refresh and update the current widget

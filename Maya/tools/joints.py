@@ -11,7 +11,7 @@ from maya.api import OpenMayaAnim
 # @note all functions must have connection with progressbar and sensible progress messages,
 # look into warning messages later
 @shared.dec_undo
-def autoLabelJoints(inputLeft="L_*", inputRight="R_*", progressBar=None):
+def autoLabelJoints(inputLeft="L_*", inputRight="R_*", selectionBased=False, progressBar=None):
     """ joint labeling function
 
     :param inputLeft: search function that allocates which joints are part of the left side of the rig "*" used as a wildcard to replace part of the string
@@ -34,19 +34,19 @@ def autoLabelJoints(inputLeft="L_*", inputRight="R_*", progressBar=None):
 
     # using short names as these will not work well with long names
     # @TODO: lets have a look if we can give a warning if there are duplicate names in the short version
-    allJoints = cmds.ls(type="joint") or None
+    allJoints = cmds.ls(sl=selectionBased, type="joint") or None
     if allJoints is None:
         return
 
     allFoundjoints = allJoints[::]
     percentage = 99.0 / len(allJoints)
-    if not "*" in inputLeft:
+    if "*" not in inputLeft:
         inputLeft = "*" + inputLeft + "*"
-    if not "*" in inputRight:
+    if "*" not in inputRight:
         inputRight = "*" + inputRight + "*"
 
-    leftJoints = cmds.ls("%s" % inputLeft, type="joint")
-    rightJoints = cmds.ls("%s" % inputRight, type="joint")
+    leftJoints = [value for value in cmds.ls(inputLeft, type="joint") if value in allJoints]
+    rightJoints = [value for value in cmds.ls(inputRight, type="joint") if value in allJoints]
     iteration1 = 0
     iteration2 = 0
 
@@ -808,7 +808,7 @@ def convertSoftModToJoint(inSoftMod, jointName=None, progressBar=None):
     
 
 @shared.dec_undo
-def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
+def convertVerticesToJoint(inComponents, jointName=None, progressBar=None, softSelection = True):
     """ convert (soft) selection to a joint based on center of selection
     
     :param inComponents: mesh component selection to assign to the joint
@@ -840,10 +840,13 @@ def convertVerticesToJoint(inComponents, jointName=None, progressBar=None):
     addCleanJoint([jnt], inMesh)
     sc = shared.skinCluster(inMesh, True)
 
-    percentage = 99.0 / len(verts)
-    for index, vert in enumerate(verts):
-        cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])
-        utils.setProgress(index * percentage, progressBar, "set skinweights")
+    if softSelection:
+        percentage = 99.0 / len(verts)
+        for index, vert in enumerate(verts):
+            cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])
+            utils.setProgress(index * percentage, progressBar, "set skinweights")
+    else:
+        cmds.skinPercent(sc, verts, tv=[jnt, 1])
     utils.setProgress(100, progressBar, "converted to joint")
     return jnt
 
