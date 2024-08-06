@@ -13,7 +13,7 @@ class TransferWeightsWidget(QWidget):
     toolName = "TransferWeightsWidget"
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(TransferWeightsWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.__defaults()
 
@@ -285,7 +285,7 @@ class ClosestVertexWeightWidget(QWidget):
     toolName = "ClosestVertexWeightWidget"
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(ClosestVertexWeightWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.__defaults()
         self.__setButtons()
@@ -426,7 +426,7 @@ class TransferUvsWidget(QWidget):
     toolName = "TransferUvsWidget"
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(TransferUvsWidget, self).__init__(parent)
         self.setLayout(nullVBoxLayout())
         self.__defaults()
         self.__setButtons()

@@ -697,7 +697,10 @@ class SkinningToolsUI(interface.DockWidget):
         sometimes the close event is not handled correctly by maya so we add the save state in here to make sure its always triggered
         :note: its only storing info so it doesnt break anything
         """
-        QApplication.restoreOverrideCursor()
+        try:
+            QApplication.restoreOverrideCursor()
+        except:
+            QApp.restoreOverrideCursor()
         if not self.toolTipWindow is None:
             self.toolTipWindow.hide()
             self.toolTipWindow.deleteLater()
@@ -714,7 +717,10 @@ class SkinningToolsUI(interface.DockWidget):
         normally python would do garbage collection for you, but to be sure that nothing is stored in memory that does not get deleted we 
         force the deletion here as well. somehow this avoids crashes in maya!
         """
-        QApplication.restoreOverrideCursor()
+        try:
+            QApplication.restoreOverrideCursor()
+        except:
+            QApp.restoreOverrideCursor()
         api._cleanEventFilter()
         self.saveUIState()
         try:

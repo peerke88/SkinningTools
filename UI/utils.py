@@ -508,7 +508,7 @@ def widgetsAt(pos):
     return widget_at
 
 
-def addChecks(parent_widget, button, checkBoxTextList=None, checkBoxObjectNames=None):
+def addChecks(parent_widget, button, checkBoxTextList=[], checkBoxObjectNames=[]):
     """ add checkboxes to a button for extra functionality
 
     :param parent_widget: parent class
@@ -527,7 +527,7 @@ def addChecks(parent_widget, button, checkBoxTextList=None, checkBoxObjectNames=
     # Dynamically add attribute:
     button.checks = {}
 
-    assert len(checkBoxTextList) == len(checkBoxObjectNames), "checkBoxTextList and checkBoxObjectNames must be the same length"       
+    # assert len(checkBoxTextList) == len(checkBoxObjectNames), "checkBoxTextList and checkBoxObjectNames must be the same length"     
     checks = checkBoxTextList or []    
     
     for idx, checkboxText in enumerate( checks ):
@@ -538,7 +538,10 @@ def addChecks(parent_widget, button, checkBoxTextList=None, checkBoxObjectNames=
         v.addWidget(checkBoxObject)
         button.checks[checkboxText] = checkBoxObject
         # Add entry {text : object name } to dictionary
-        objectName = checkBoxObjectNames[idx]
+        if idx > (len(checkBoxObjectNames)-1):
+            objectName = checkboxText.replace( " ", "_" )
+        else:
+            objectName = checkBoxObjectNames[idx]
         parent_widget._remp[checkboxText] = objectName
         parent_widget._Btn[objectName] = checkBoxObject
 
