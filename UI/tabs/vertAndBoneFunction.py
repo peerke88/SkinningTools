@@ -260,13 +260,6 @@ class VertAndBoneFunction(QWidget):
                 w.setEnabled(False)
                 w.setMaximumWidth(30)
             grow_Lay.layout().addWidget(w)
-
-        self.__buttons = [self._Btn["AvgWght_Btn"], self._Btn["cpyWght_Btn"], self._Btn["swchVtx_Btn"], self._Btn["BoneLbl_Btn"], self._Btn["shellUn_btn"], self._Btn["trsfrSK_Btn"],
-                          self._Btn["trsfrPS_Btn"], self._Btn["nghbors_Btn"], smthBrs_Lay, self._Btn["hammerV_Btn"], self._Btn["toJoint_Btn"], self._Btn["frzBone_Btn"], self._Btn["rstPose_Btn"], self._Btn["cutMesh_Btn"], self._Btn["SurfPin_Btn"],
-                          self._Btn["copy2bn_Btn"], self._Btn["b2bSwch_Btn"], self._Btn["showInf_Btn"], self._Btn["delBone_Btn"], self._Btn["addinfl_Btn"], self._Btn["unifyBn_Btn"],
-                          self._Btn["seltInf_Btn"], self._Btn["sepMesh_Btn"], self._Btn["onlySel_Btn"], self._Btn["infMesh_Btn"], max_Lay, self._Btn["vtxOver_Btn"], self._Btn["BindFix_Btn"], self._Btn["delBind_Btn"], grow_Lay]
-
-        self.filter()
         
         self.__buttons = [self._Btn["AvgWght_Btn"],  
                           self._Btn["cpyWght_Btn"],  
