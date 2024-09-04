@@ -306,9 +306,10 @@ class VertAndBoneFunction(QWidget):
         #        (self, svg button              , check box texts                 , check box object unique names): 
         addChecks(self, self._Btn["AvgWght_Btn"], ["use distance"]                , ["dist"]) 
         addChecks(self, self._Btn["shellUn_btn"], ["use vtx polyShell"]           , ["polyShell"]) 
+        addChecks(self, self._Btn["BoneLbl_Btn"], ["selection based"]             , ["selection based"])
         addChecks(self, self._Btn["trsfrSK_Btn"], ["smooth", "uvSpace"]           , ["smooth", "uvSpace"]) 
         addChecks(self, self._Btn["trsfrPS_Btn"], ["smooth", "uvSpace"]           , ["smooth1", "uvSpace1"]) 
-        addChecks(self, self._Btn["nghbors_Btn"], ["growing", "full"]             , ["growing", "full"]) 
+        addChecks(self, self._Btn["nghbors_Btn"], ["growing", "full", "maxinf"]   , ["growing", "full", "maxinf"]) 
         addChecks(self, self._Btn["toJoint_Btn"], ["specify name"]                , ["specify name"]) 
         addChecks(self, self._Btn["rstPose_Btn"], ["reset bindPose node"]         , ["reset bindPose node"]) 
         addChecks(self, self._Btn["cutMesh_Btn"], ["internal", "use opm"]         , ["internal", "use opm"]) 
