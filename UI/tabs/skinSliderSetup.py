@@ -9,6 +9,8 @@ from SkinningTools.UI.hoverIconButton import HoverIconButton
 
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
+
 class SkinSliderSetup(QWidget):
     """ skinslider setup, 
     allows the weights to be changed with a slider widget while keeping everything normalized
@@ -95,8 +97,25 @@ class SkinSliderSetup(QWidget):
         _frm.setMaximumHeight(1)
         searchLay.addWidget(_frm)
 
+        solverLay = nullHBoxLayout()
+        self.radio_group = QButtonGroup(self)
+
+        rb_low = QRadioButton("Low priority", self)
+        rb_high = QRadioButton("High priority", self)
+        rb_avg = QRadioButton("Uniform", self)
+        rb_avg.setChecked(True)
+        
+        for idx, radio in enumerate([rb_avg, rb_low, rb_high]):
+            self.radio_group.addButton(radio)
+            solverLay.addWidget(radio)
+            radio.toggled.connect(partial(self._setWeightSolver, idx))
+
+        self.layout().addLayout(solverLay)
         self.layout().addLayout(searchLay)
         self.layout().addWidget(self.inflEdit)
+
+    def _setWeightSolver(self, idx, *args):
+        self.inflEdit.solver = idx
 
     def searchJointName(self):
         """ based on the given text we only display jointsliders that are represted by a partial identification of the given string in the search lineedit

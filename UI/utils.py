@@ -3,13 +3,18 @@ from SkinningTools.py23 import *
 from SkinningTools.UI.qt_util import *
 from SkinningTools.ThirdParty.kdtree import KDTree
 from SkinningTools.ThirdParty import requests
-
+from enum import Enum
 import re, difflib, math, tempfile, base64, os, json, warnings
 from functools import partial
 
 UIDIRECTORY = os.path.dirname(__file__)
 
 
+class WeightSolver(Enum):
+    Uniform = 0
+    PriorityLow = 1
+    PriorityHigh = 2
+    
 def getDebugState():
     """ convenience function to work with debug mode 
     this gets turned to False when packaged using the package creator

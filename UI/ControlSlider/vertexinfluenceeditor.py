@@ -23,6 +23,7 @@ class VertexInfluenceEditor(QGroupBox):
         self.__info = {}
         self._hideZero = True
         self.__sliders = []
+        self._solver = WeightSolver.Uniform
 
         if len(vtxLName) > 1:
             self.setTitle("Multi Slider")
@@ -76,6 +77,14 @@ class VertexInfluenceEditor(QGroupBox):
             self.__info[skBone] = sliderFrame
             self.__sliders.append((gripSlider, lockButton))
 
+    def _setSolver(self, idx):
+        if isinstance(idx, int):
+            self._solver = [WeightSolver.Uniform, WeightSolver.PriorityLow, WeightSolver.PriorityHigh][idx]
+        else:
+            self._solver = idx
+
+    solver = property(None, _setSolver)
+
     def hideZero(self, state):
         self._hideZero = state
 
@@ -126,9 +135,25 @@ class VertexInfluenceEditor(QGroupBox):
         if numSliders - 1 == 0:
             return  # no other sliders to edit
 
-        totalValue = 0.0
-        offset = newValue
+        weights = self.uniformNormalisation(setId, numSliders, newValue)
+        
+        self.__busyWithCallback = False
 
+        # apply to skincluster
+        stack = []
+        for i in range(numSliders):
+            stack.append((self.__influences[i], weights[i]))
+
+        api.skinPercent(*self.__target, normalize=True, transformValue=stack)
+
+    
+    def uniformNormalisation(self, setId, numSliders, newValue):
+        """
+        updated formula to add new normalisation elements (low priority and high priority)
+        based on code supplied by Rémi Deletrain
+        """
+        offset = newValue
+        totalValue = 0.0
         totalLength = 0.0
         for i in range(numSliders):
             if i == setId:
@@ -167,17 +192,15 @@ class VertexInfluenceEditor(QGroupBox):
                 else:
                     weights[i] = slider.slider.value()
                 continue
-            if totalValue == 0:
+            
+            if self._solver == WeightSolver.PriorityLow:
+                weights[i] = max(1e-8, weights[i]) * scale
+            elif self._solver == WeightSolver.PriorityHigh:
+                weights[i] *= (weights[i] / totalValue) if totalValue > 0 else scale
+            elif totalValue == 0:
                 weights[i] = scale
             else:
                 weights[i] *= scale
+            
             slider.slider.setValue(weights[i])
-        # self._snapHiliteNode(self.__target)
-        self.__busyWithCallback = False
-
-        # apply to skincluster
-        stack = []
-        for i in range(numSliders):
-            stack.append((self.__influences[i], weights[i]))
-
-        api.skinPercent(*self.__target, normalize=True, transformValue=stack)
+        return weights
