@@ -776,104 +776,68 @@ def growLatticePoints(points):
                 extras.append(growc)
     return extras
 
+def _getSetData(inMesh):
+    """ Helper function to get skinCluster, vertex component, and influence data for both get/set operations. """
+    if cmds.objectType(inMesh) == "skinCluster":
+        sc = inMesh
+        inMesh = cmds.listConnections(inMesh, s=0, d=1, type="shape")[0]
+    else:
+        sc = skinCluster(inMesh)
+
+    inMesh = getParentShape(inMesh)
+    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
+
+    skinNode = getDagpath(sc)
+    skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
+    meshPath = getDagpath(shape)
+
+    vertexComp = OpenMaya.MFnSingleIndexedComponent()
+    mo = vertexComp.create(OpenMaya.MFn.kMeshVertComponent)
+    vertexCount = cmds.polyEvaluate(inMesh, vertex=True)
+
+    indices = OpenMaya.MIntArray(vertexCount, 0)
+    for i in range(vertexCount):
+        indices[i] = i
+    vertexComp.addElements(indices)
+
+    infDags = skinFn.influenceObjects()
+    infIndexes = OpenMaya.MIntArray(len(infDags), 0)
+    for i in range(len(infDags)):
+        infIndexes[i] = i
+
+    return skinFn, meshPath, mo, infIndexes
 
 def getWeights(inMesh):
-    """ get the complete weight data of a given mesh
-    weightData = [[value]* joints] * vertices
-
+    """ Get the complete weight data of a given mesh.
+    
     :param inMesh: the object to get the data from
     :type inMesh: string
     :return: list of all weights
-    :rtype: list
-
-    TODO: make returned weightData sparse i.e. [(int joint_id, float value)] and use MPlugs?
+    :rtype: MDoubleArray
     """
-    if cmds.objectType(inMesh) == "skinCluster":
-        sc = inMesh
-        inMesh = cmds.listConnections(inMesh, s=0, d=1, type="shape")
-    else:
-        sc = skinCluster(inMesh)
-    inMesh = getParentShape(inMesh)
-
-    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
-
-    skinNode = getDagpath(sc)
-    skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
-    meshPath = getDagpath(shape)
-    meshNode = meshPath.node()
-
-    meshVerItFn = OpenMaya.MItMeshVertex(meshNode)
-    indices = range(meshVerItFn.count())
-
-    singleIdComp = OpenMaya.MFnSingleIndexedComponent()
-    vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
-    singleIdComp.addElements(indices)
-
-    infDags = skinFn.influenceObjects()
-    infIndexes = OpenMaya.MIntArray(len(infDags), 0)
-    for x in range(len(infDags)):
-        # RODO: This might be confusing but from what I gathered
-        # MFnSkinCluster::setWeights/getWeights actually expects
-        # the list of physical indices and not logical indices.
-        infIndexes[x] = x  # int(skinFn.indexForInfluenceObject(infDags[x]))
-
-    weightData = skinFn.getWeights(meshPath, vertexComp, infIndexes)
-    return weightData
-
-
+    skinFn, meshPath, vertexComp, infIndexes = _getSetData(inMesh)
+    
+    weights, _ = skinFn.getWeights(meshPath, vertexComp)
+    
+    return weights
+    
 def setWeights(inMesh, weightData):
-    """ set the complete weight data of a given mesh
+    """ Set the complete weight data for a given mesh.
 
     :param inMesh: the object to set the data to
     :type inMesh: string
-    :param weightData: full list of weight data [[value]* joints] * vertices
-    :type weightData: list/MDoubleArray
-
-    TODO: make weightData sparse i.e. [(int joint_id, float value)] and use MPlugs?
+    :param weightData: full list of weight data as MDoubleArray
+    :type weightData: MDoubleArray or list
     """
-    if cmds.objectType(inMesh) == "skinCluster":
-        sc = inMesh
-        inMesh = cmds.listConnections(inMesh, s=0, d=1, type="shape")
-    else:
-        sc = skinCluster(inMesh)
-    inMesh = getParentShape(inMesh)
-    shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
-
-    skinNode = getDagpath(sc)
-    skinFn = OpenMayaAnim.MFnSkinCluster(skinNode)
-    meshPath = getDagpath(shape)
-    meshNode = meshPath.node()
-
-    meshVerItFn = OpenMaya.MItMeshVertex(meshNode)
-
-    #indices = range(meshVerItFn.count())
-    nbVerts = meshVerItFn.count()
-    indices = OpenMaya.MIntArray(nbVerts, 0)
-    for x in range(nbVerts):
-        indices[x] = x
-
-    singleIdComp = OpenMaya.MFnSingleIndexedComponent()
-    vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
-    singleIdComp.addElements(indices)
-
-    infDags = skinFn.influenceObjects()
-    infIndexes = OpenMaya.MIntArray(len(infDags), 0)
-    for x in range(len(infDags)):
-        # RODO: This might be confusing but from what I gathered
-        # MFnSkinCluster::setWeights/getWeights actually expects
-        # the list of physical indices and not logical indices.
-        infIndexes[x] = x  # int(skinFn.indexForInfluenceObject(infDags[x]))
-
+    skinFn, meshPath, vertexComp, infIndexes = _getSetData(inMesh)
+    
     if not isinstance(weightData, OpenMaya.MDoubleArray):
-        newWeightData = OpenMaya.MDoubleArray(len(weightData), 0)
+        newWeightData = OpenMaya.MDoubleArray(len(weightData))
         for i, w in enumerate(weightData):
             newWeightData[i] = w
     else:
         newWeightData = weightData
 
-    # Note: kInvalidParameter exception most likely means the size or the
-    # stored indices in vertexComp, infIndexes, newWeightData are incorrect
-    # Example of invalid input: having 3 joints but infIndexes[0] = 10
     skinFn.setWeights(meshPath, vertexComp, infIndexes, newWeightData)
 
 
