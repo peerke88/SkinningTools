@@ -52,7 +52,7 @@ from maya import cmds
 
 import base64
 
-__VERSION__ = "5.0.20240512"
+__VERSION__ = "5.0.20250819"
 
 class InstallWindow(QDialog):
     def __init__(self,scriptDir, parent = None):
