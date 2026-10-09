@@ -1,8 +1,5 @@
-import math
-from maya import cmds
-from maya.api import OpenMaya, OpenMayaAnim
-from SkinningTools.Maya.tools import shared
-from SkinningTools.Maya.plugin.SkinEditPlugin import SkinEditClass
+from maya.api import OpenMaya
+from SkinningTools.Maya.tools import shared, weightMath, weightWrite
 
 CONTEXT_INIT = "paintAverageWghtCtxInitialize"
 CONTEXT_UPDATE = "paintAverageWghtCtxUpdate"
@@ -49,45 +46,13 @@ class AverageWghtCtx(object):
         self.infl = OpenMaya.MDagPathArray()
 
     def calcWeights(self, value, origWeights, nbWeigths, influences, amountComps):
-        if math.isnan(value) or math.isinf(value) or not 0.0 <= value <= 1.0:
-            raise ValueError('Smoothing strength must be finite in [0, 1]')
-        count = len(influences)
-        if not count or len(origWeights) != count or len(nbWeigths) != count * amountComps:
+        if len(influences) != len(origWeights):
             raise ValueError('Smoothing weight dimensions do not match')
-        if any(math.isnan(w) or math.isinf(w) or not 0.0 <= w <= 1.0
-               for w in list(origWeights) + list(nbWeigths)):
-            raise ValueError('Smoothing weights must be finite in [0, 1]')
-        # Strength zero and isolated vertices are exact no-ops, including limits.
-        if value == 0.0 or amountComps == 0:
-            return list(origWeights), influences
-        locked = getattr(self, 'locked', [False] * count)
-        newWeigths = [origWeights[i] if locked[i] else
-                      origWeights[i] * (1.0-value) +
-                      sum(nbWeigths[j] for j in range(i, len(nbWeigths), count)) / amountComps * value
-                      for i in range(count)]
-        if self.maintainMaxInfl:
-            if self.maxInfluences < 1:
-                raise ValueError('Maximum influences must be positive')
-            locked_count = sum(locked[i] and newWeigths[i] > 0.0 for i in range(count))
-            if locked_count > self.maxInfluences:
-                raise ValueError('Locked influences exceed maximum influences')
-            ranked = sorted((i for i in range(count) if not locked[i]),
-                            key=lambda i: (-newWeigths[i], i))
-            for i in ranked[self.maxInfluences-locked_count:]:
-                newWeigths[i] = 0.0
-        if self.normalize == 1:
-            locked_sum = sum(newWeigths[i] for i in range(count) if locked[i])
-            if locked_sum > 1.0 + 1e-6:
-                raise ValueError('Locked weights exceed normalization budget')
-            total = sum(newWeigths[i] for i in range(count) if not locked[i])
-            if total:
-                factor = max(0.0, 1.0-locked_sum) / total
-                for i in range(count):
-                    if not locked[i]:
-                        newWeigths[i] *= factor
-            elif 0.0 < locked_sum < 1.0-1e-6 and any(not item for item in locked):
-                raise ValueError('No unlocked weight to fill normalization budget')
-        return newWeigths, influences
+        weights = weightMath.blendWeights(value, origWeights, nbWeigths, amountComps,
+            normalize=self.normalize == 1,
+            maximum=self.maxInfluences if self.maintainMaxInfl else None,
+            locked=getattr(self, 'locked', None))
+        return weights, influences
 
     def setWeights(self, index, value):
         if self.obj is None:
@@ -105,15 +70,15 @@ class AverageWghtCtx(object):
         neighborComp = componentFn.create(OpenMaya.MFn.kMeshVertComponent)
         componentFn.addElements(neighbors)
         neighborWeights = self.skinCluster.getWeights(self.dag, neighborComp)[0] if neighbors else []
-        influences = self.skinCluster.influenceObjects()
-        indices = OpenMaya.MIntArray(range(len(influences)))
-        self.locked = [cmds.getAttr(inf.fullPathName() + '.liw') for inf in influences]
+        mapping = weightWrite.influenceMapping(self.skinCluster)
+        indices = OpenMaya.MIntArray([physical for dag, physical, logical in mapping])
+        self.locked = weightWrite.influenceLocks(mapping)
         # Read current settings for each edit, not cached initialization settings.
         self.maxInfluences = self.skinCluster.findPlug('maxInfluences', True).asInt()
         self.maintainMaxInfl = self.skinCluster.findPlug('maintainMaxInfluences', True).asBool()
         self.normalize = self.skinCluster.findPlug('normalizeWeights', True).asInt()
         weights, unused = self.calcWeights(value, origWeights, neighborWeights, indices, len(neighbors))
-        self.writer = SkinEditClass()
+        self.writer = weightWrite.WeightBatch()
         operation = self.writer._prepare({'mesh': self.dag.fullPathName(),
             'skinCluster': self.skinCluster.name(), 'vertices': [index],
             'influences': list(indices), 'weights': weights, 'normalize': False})
@@ -190,17 +155,11 @@ def initializePlugin(mObject):
     plugin = OpenMaya.MFnPlugin(mObject, kCreator, kVersion, "any")
 
     for command, creator, syntax in [(CONTEXT_INIT, creatorInit, initialize), (CONTEXT_UPDATE, creatorUpdate, syntaxUpdate)]:
-        try:
-            plugin.registerCommand(command, creator, syntax)
-        except:
-            raise
+        plugin.registerCommand(command, creator, syntax)
 
 
 def uninitializePlugin(mObject):
     plugin = OpenMaya.MFnPlugin(mObject)
 
     for command in [CONTEXT_INIT, CONTEXT_UPDATE]:
-        try:
-            plugin.deregisterCommand(command)
-        except:
-            raise
+        plugin.deregisterCommand(command)

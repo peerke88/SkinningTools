@@ -3,8 +3,8 @@
 Historical M0 evidence is retained; M1/M2 updates identify corrected targets.
 Status is not acceptance. Runtime evidence
 is explicitly distinguished from isolated Python execution and source inspection.
-D001-D013 retain the supplied register; D014-D021 are additional observations.
-M1/M2 were accepted by continuation; M3 remains awaiting acceptance. Unchecked boxes
+D001-D013 retain the supplied register; D014-D023 are additional observations.
+M1/M2/M3 were accepted by continuation; M4 remains awaiting acceptance. Unchecked boxes
 are retained for explicit ledger review; verification evidence is stated per entry.
 
 - [ ] D001
@@ -472,3 +472,47 @@ are retained for explicit ledger review; verification evidence is stated per ent
     Implementation status: Fixed during the authorized M3 native argument audit: optional positional strings plus checked active-selection fallback; no public flag removed.
 
     Verification status: Tested in Maya 2025; interactive viewport invocation remains unexecuted.
+
+- [ ] D022
+
+    Category: UI callback control-flow defect, observed during M4 extraction.
+
+    Severity: Medium.
+
+    Source location: UI/ControlSlider/vertexinfluenceeditor.py __updateWeights.
+
+    Observed behavior: A single-slider callback sets the busy guard then returns without clearing it. A normalization exception also leaves it set, suppressing subsequent callbacks.
+
+    Expected behavior: Clear the guard on early return and calculation failure.
+
+    Reproduction: Execute original M3 callback body with a single-slider state; guard remains True. Failure path is source-confirmed.
+
+    Root cause: Reset follows return-prone/exception-prone calculations without finally.
+
+    Test coverage: Actual imported callback tested with one slider and an injected calculation exception.
+
+    Implementation status: Fixed in M4 using try/finally while retaining normal-path reset timing before the scene write.
+
+    Verification status: Original single-slider body reproduced in isolated Python; desired actual callback cases pass in Maya2025. Interactive signals remain unexecuted.
+
+- [ ] D023
+
+    Category: Table batch construction defect, observed during M4 simplification.
+
+    Severity: High.
+
+    Source location: UI/weightEditor/weightEditor.py tryNormalizeWeights.
+
+    Observed behavior: A final all-zero row whose original is zero sets recalc=False; last-row flushing is skipped and a preceding mesh's pending influence/weight buffers remain empty. Batch validation rejects the edit.
+
+    Expected behavior: Submit prior valid edits even when the final row requires no write, in one undoable batch.
+
+    Reproduction: Original M3 method with a changed first-mesh row and zero final second-mesh row raises Influence indices must be unique physical indices. The original method runs with the current writer, whose corresponding input validation is retained from M3.
+
+    Root cause: Pending buffers flush only inside recalc=True, with cross-row mesh state and a special last-row branch.
+
+    Test coverage: Actual current table method commits the earlier row, leaves the zero mesh unchanged and restores both through one undo. Interleaved mesh rows also tested.
+
+    Implementation status: Fixed in M4 by grouping each recalculated row directly by mesh/influence layout and committing once.
+
+    Verification status: Original method failure reproduced and desired cases pass in fresh Maya2025. Full interactive table event wiring remains unexecuted.

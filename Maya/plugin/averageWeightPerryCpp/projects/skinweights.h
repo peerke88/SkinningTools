@@ -30,7 +30,6 @@ private:
 	MDagPath mMeshPath;
 	MObject mMeshComponents;
 	MFnSkinCluster mSkin;
-	MIntArray mInfluenceIndices;
 
 	MStatus ParseObjects(MStringArray objects);
 	MStatus GetSkinWeights();

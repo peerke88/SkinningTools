@@ -38,7 +38,6 @@ private:
 	int mMaxinf;
 	MDoubleArray mOldValues;
 	MDoubleArray mNewValues;
-	MDoubleArray mZeroValues;
 
 	MStatus ParseArgs(const MArgList& args, MString* outSkinClusterName, MStringArray* outTargetNames);
 	

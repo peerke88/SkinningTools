@@ -7,7 +7,10 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TARGETS = ('setWeights', 'skinPercent', 'SkinEditor', 'SkinWeights',
            'AverageVtxWeight', 'copySkinWeights', 'skinCluster', 'setAttr',
-           'undoInfo', 'startUndo', 'endUndo', 'loadPlugin', 'forceLoadPlugin')
+           'undoInfo', 'startUndo', 'endUndo', 'loadPlugin', 'forceLoadPlugin',
+           'setWeightsBatch', 'influenceMapping', 'physicalInfluences', 'influenceLocks',
+           'normalizeWeights', 'normalizeWeightsInPlace', 'normalizeEditedWeights',
+           'blendWeights', 'limitInfluences', 'sliderWeights')
 
 
 def inventory():

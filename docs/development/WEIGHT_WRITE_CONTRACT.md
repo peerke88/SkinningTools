@@ -94,3 +94,19 @@ with the same physical-index/exact-restoration/settings-control rules. Algorithm
 remain separate until M4; brush/native smoothing now enforce limits per row.
 Only the Maya2025 primary bundled native binary is rebuilt. Earlier boundary
 limits for arbitrary whole-scene changes and persistent rollback failures remain.
+
+## M4 owner update
+
+SkinEditor remains the command, with preparation/mapping/exact application in
+Maya/tools/weightWrite.py's WeightBatch. SkinEditClass inherits these methods and
+retains parsing/undo ownership. The Python brush uses WeightBatch directly, without
+constructing a plugin command helper. weightMath owns deterministic policies and
+the locked-budget normalization shared by batch and brush. SDK double arrays skip
+redundant numeric type tests only; finite/range/dimension checks remain.
+
+The table submits a batch grouped by mesh/influence layout and publishes derived
+UI state after success. Interleaved rows and an unchanged final zero row are covered.
+Both native setter projects use the primary authoritative source/helpers.
+Built-in Maya writes and the independent native brush retain their semantics.
+Earlier atomicity/workflow boundaries still apply. M4_REPORT.md records tests,
+the current binary hash and performance observations.

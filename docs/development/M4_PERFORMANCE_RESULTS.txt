@@ -1,0 +1,18 @@
+Final paired command-only benchmark, fresh Maya2025 processes.
+Same prebuilt JSON payload; 1 warmup, 11 trials; wrapper queries/JSON excluded.
+Baseline SkinEditPlugin.py extracted read-only from 6ca6e494460d136fe08811064e06f503f8092ee0.
+
+M3
+COMMAND_ONLY 9 vertices median 0.000316 min 0.000240 max 0.000409 seconds
+COMMAND_ONLY 121 vertices median 0.000937 min 0.000907 max 0.001067 seconds
+COMMAND_ONLY 1089 vertices median 0.006458 min 0.005981 max 0.006523 seconds
+
+M4
+COMMAND_ONLY 9 vertices median 0.000324 min 0.000282 max 0.000408 seconds
+COMMAND_ONLY 121 vertices median 0.001103 min 0.000974 max 0.001173 seconds
+COMMAND_ONLY 1089 vertices median 0.006751 min 0.006095 max 0.006922 seconds
+
+Largest median overhead about 4.5%, overlapping observed ranges. No production-scale/memory certification.
+First extraction largest median .007787 seconds vs baseline .006380 (~22%).
+In-place private-row normalization and skipping redundant SDK double-array numeric type checks reduced the overhead.
+Finite/range checks are preserved.

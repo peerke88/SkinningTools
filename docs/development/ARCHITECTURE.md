@@ -122,3 +122,24 @@ pending M4. Maya2025 averageWeightPerryCpp bundled binary is rebuilt and validat
 skinToolWeightsCpp root target registers only SkinWeights despite being named
 smooth_brush_maya; it was built/tested separately without overwriting any brush
 engine binary. See M3_BUILD.md and M3_REPORT.md for provenance and deferred hosts.
+
+## M4 current ownership
+
+Earlier sections retain historical observations. Current Python calculations
+live in Maya/tools/weightMath.py, importable without Maya/Qt. Batch/brush share
+normalization; blending/limits, table priority and slider solvers each have a named
+implementation. Distinct policies remain distinct; UI classes gather inputs and
+apply results.
+
+Maya/tools/weightWrite.py owns influenceMapping (DAG, physical position, logical
+plug), geometry resolvers and WeightBatch preparation/exact application/rollback.
+Shared, ApiWeights and Python brush consume its layout. SkinEditClass inherits
+the writer and owns command undo; paint callbacks use WeightBatch directly and
+own their cached undo/redo. Table edits submit one grouped batch and discard an
+unused original-weight cache.
+
+skinToolWeightsCpp/projects includes authoritative native setter/helpers from
+averageWeightPerryCpp/projects. Both builds/registrations remain; smoothBrushRodCpp
+stays separate. Maya built-in writes retain their own ownership and semantics.
+Loader/build naming is M5 work. M4_REPORT.md records current ownership and limits;
+M4_CALL_SITES.json is the updated inventory.

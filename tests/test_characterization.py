@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 from tests.source_loader import ROOT, definition
+from Maya.tools import weightMath
 
 
 class BaselinePythonTests(unittest.TestCase):
@@ -101,7 +102,7 @@ class BaselinePythonTests(unittest.TestCase):
         state.tryNormalizeWeights.assert_not_called()
 
     def test_D005_blend_endpoints_and_intermediate_without_normalization(self):
-        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'math': __import__('math')}, owner='AverageWghtCtx')
+        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'weightMath': weightMath}, owner='AverageWghtCtx')
         state = SimpleNamespace(maintainMaxInfl=False, normalize=0)
         for strength in (0.0, 0.5, 1.0):
             actual, indices = calc(state, strength, [0.8, 0.2], [0.2, 0.8, 0.4, 0.6], [0, 1], 2)
@@ -112,13 +113,13 @@ class BaselinePythonTests(unittest.TestCase):
             self.assertEqual(indices, [0, 1])
 
     def test_D005_normalization_masks_strength_zero_scaling(self):
-        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'math': __import__('math')}, owner='AverageWghtCtx')
+        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'weightMath': weightMath}, owner='AverageWghtCtx')
         result, _ = calc(SimpleNamespace(maintainMaxInfl=False, normalize=1),
                          0.0, [0.8, 0.2], [0.2, 0.8, 0.4, 0.6], [0, 1], 2)
         self.assertEqual(result, [0.8, 0.2])
 
     def test_D005_zero_neighbors_preserves_original_weights(self):
-        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'math': __import__('math')}, owner='AverageWghtCtx')
+        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'weightMath': weightMath}, owner='AverageWghtCtx')
         result, _ = calc(SimpleNamespace(maintainMaxInfl=False, normalize=1),
                          0.0, [0.8, 0.2], [], [0, 1], 0)
         self.assertEqual(result, [0.8, 0.2])
@@ -141,7 +142,7 @@ class BaselinePythonTests(unittest.TestCase):
         self.assertEqual(len(checks), 2)
         for check in checks:
             for weights, flagged in (([0.2, 0.3], True), ([0.8, 0.7], True), ([0.5, 0.5], False), ([0.0, 0.0], True), ([1.000001], False), ([0.999999], False), ([1.000002], True), ([0.999998], True)):
-                scope = {'nWeight': weights, 'sumWeights': round(sum(weights), 12)}
+                scope = {'nWeight': weights, 'weights': weights, 'sumWeights': round(sum(weights), 12)}
                 self.assertEqual(eval(compile(ast.Expression(check), path, 'eval'), scope), flagged)
 
     def test_D009_node_parameter_scopes_selection(self):

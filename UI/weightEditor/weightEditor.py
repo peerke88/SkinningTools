@@ -2,7 +2,7 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface, api
-from SkinningTools.Maya.tools import shared
+from SkinningTools.Maya.tools import shared, weightMath
 from SkinningTools.py23 import *
 
 #@todo: make sure all cmds modules are moved over to interface/api
@@ -770,143 +770,44 @@ class WeightEditorWindow(QWidget):
         self.tryNormalizeWeights()
 
     def tryNormalizeWeights(self):
-        """ force normalize the weights of the current vertex row
-        making sure that all elements are adding up to a maximum of 1
-        trys to make sure that the maximum influences are kept unless more cells are altered at the same time
-        htis is used as the set weights function as we dont want weights that are not normalized
-        """
-        _workData = self.weightTable._data
-        
-        self.meshIDdict = defaultdict( lambda : OpenMaya.MIntArray() )
-        self.meshInfDict = defaultdict( lambda : OpenMaya.MIntArray() )
-        self.meshWeigthDict = defaultdict( lambda : OpenMaya.MDoubleArray() )
-        self.origMeshWeights = defaultdict( lambda : OpenMaya.MDoubleArray() )
-        
-        meshWeightList = []
-        origMeshWeightList = []
-        prevMesh = None
-        prevJointIDs = None
-        self.rowsToUpdate = sorted(list(self.rowsToUpdate))
+        """Delegate row policy to pure math, then commit one validated scene batch."""
+        self.meshIDdict = defaultdict(lambda: OpenMaya.MIntArray())
+        self.meshInfDict = defaultdict(lambda: OpenMaya.MIntArray())
+        self.meshWeigthDict = defaultdict(lambda: OpenMaya.MDoubleArray())
+        self.rowsToUpdate = sorted(self.rowsToUpdate)
         if not self.rowsToUpdate:
             return
-
-        _lastRow = list(self.rowsToUpdate)[-1]
+        groups = OrderedDict()
+        results = []
         for row in self.rowsToUpdate:
-            _recalc = True
-
-            vtx = self.vtxDataDict[row][0]
-            influences =  self.vtxDataDict[row][2]
-            amountJoints = len(influences)
-            currentJointIDs = self.vtxDataDict[row][4]
-            vertex = self.vtxDataDict[row][5]
-            mesh = self.vtxDataDict[row][6]
-            
-            jointIndexlist = self.jointIndexList[mesh]
-            lockedJoints = self.vtxlockedData[vertex]
-            
-            origWeights = self.meshWeights[mesh][vtx]
-            nWeight = _workData[row]
-            
-            calcNWeigth = []
-            lockedSum = sum([nWeight[i] for i in lockedJoints])
-            
-            if lockedSum >= 1.0:
-                for index, wght in enumerate(nWeight):
-                    if index in lockedJoints:
-                        calcNWeigth.append(wght)
-                        continue
-                    calcNWeigth.append(0.0)
-            else:
-                selectedCols = []
-                if row in self.cellDict.keys():
-                    selectedCols = self.cellDict[row]
-                selJointID = [jointIndexlist[i] for i in selectedCols]
-                    
-                sumSelection = sum([nWeight[i] for i in selJointID if i is not None])
-                restJntID = list(set(currentJointIDs) - set(selJointID))
-                restSum = sum([nWeight[i] for i in restJntID]) - lockedSum
-                
-                if restSum + sumSelection == 0.0:
-                    nWeight = origWeights
-                    sumSelection = sum([nWeight[i] for i in selJointID if i is not None])
-                if sumSelection + lockedSum >= 1.0:
-                    for index, wght in enumerate(nWeight):
-                        if index in lockedJoints:
-                            calcNWeigth.append(wght)
-                        elif index in selJointID:
-                            calcNWeigth.append(wght/sumSelection*(1.0-lockedSum))
-                        else:
-                            calcNWeigth.append(0.0)
-                            
-                elif sumSelection < 1.0:
-                    sumTotal = sumSelection + lockedSum
-                    if sumTotal >= 1.0 or restSum == 0.0:
-                        if restSum == sumSelection == 0.0:
-                            _recalc = False
-                        other = 0.0
-                        ratio = 0.0
-                        if sumSelection != 0.0:
-                            ratio = (1 - lockedSum) / sumSelection
-                    else:
-                        newRestSum = 1.0 - sumTotal
-                        other = newRestSum / restSum
-                        ratio = 1.0
-
-                    for index, wght in enumerate(nWeight):
-                        if index in lockedJoints:
-                            calcNWeigth.append(wght)
-                        elif index in selJointID:
-                            calcNWeigth.append(nWeight[index]  * ratio)
-                        else:
-                            calcNWeigth.append(nWeight[index]  * other)
-
-            nWeight = calcNWeigth[:]
-                
-            if _recalc:
-                if mesh != prevMesh and prevMesh is not None:
-                    self.meshWeigthDict[prevMesh] += meshWeightList
-                    self.origMeshWeights[prevMesh] += origMeshWeightList
-                    meshWeightList = []
-                    origMeshWeightList = []
-                    self.meshInfDict[prevMesh] = OpenMaya.MIntArray() + prevJointIDs
-
-                if row == _lastRow:
-                    meshWeightList += nWeight
-                    origMeshWeightList += origWeights
-                    self.meshWeigthDict[mesh] += meshWeightList
-                    self.origMeshWeights[mesh] += origMeshWeightList
-                    self.meshInfDict[mesh] = OpenMaya.MIntArray() + currentJointIDs
-
-                meshWeightList += nWeight
-                origMeshWeightList += origWeights
-                self.meshIDdict[mesh] += [vtx] 
-
-            prevMesh = mesh
-            prevJointIDs = currentJointIDs
-            
-            wghtList = self.nodeVtxIndexList[vertex] 
-            for i, w in enumerate(nWeight):
-                wghtList[i] = w
-                    
-            if abs(round(sum(nWeight) - 1.0, 10)) > 1e-6:
+            data = self.vtxDataDict[row]
+            vtx, influences, currentJointIDs, vertex, mesh = data[0], data[2], data[4], data[5], data[6]
+            selected = [self.jointIndexList[mesh][column] for column in self.cellDict.get(row, [])]
+            weights, recalc = weightMath.normalizeEditedWeights(self.weightTable._data[row],
+                self.meshWeights[mesh][vtx], self.vtxlockedData[vertex], selected, currentJointIDs)
+            if recalc:
+                key = (mesh, tuple(currentJointIDs))
+                if key not in groups:
+                    groups[key] = {'mesh': mesh, 'skinCluster': self.meshSkinClusters[mesh],
+                                   'vertices': [], 'influences': list(currentJointIDs), 'weights': []}
+                groups[key]['vertices'].append(vtx)
+                groups[key]['weights'].extend(weights)
+                self.meshIDdict[mesh] += [vtx]
+                self.meshInfDict[mesh] = OpenMaya.MIntArray(currentJointIDs)
+                self.meshWeigthDict[mesh] += weights
+            results.append((row, vertex, weights, len(influences)))
+        shared.setWeightsBatch(list(groups.values()))
+        for row, vertex, weights, amountJoints in results:
+            target = self.nodeVtxIndexList[vertex]
+            for i, weight in enumerate(weights):
+                target[i] = weight
+            if abs(round(sum(weights) - 1.0, 10)) > 1e-6:
                 self.weightTable.totalNotNormalized.add(row)
             else:
-                if row in self.weightTable.totalNotNormalized:
-                    self.weightTable.totalNotNormalized.remove(row)
-            
-            self.weightTable.overMaxInfDict[row] = amountJoints - nWeight.count(0.0)
-        
-        requests = []
-        for mesh, vertIds in self.meshIDdict.items():
-            sc = self.meshSkinClusters[mesh]
-            newWeight = self.meshWeigthDict[mesh]
-            jnts = self.meshInfDict[mesh]
-            requests.append({'mesh': mesh, 'skinCluster': sc, 'vertices': vertIds,
-                             'influences': jnts, 'weights': newWeight})
-        shared.setWeightsBatch(requests)
-        
+                self.weightTable.totalNotNormalized.discard(row)
+            self.weightTable.overMaxInfDict[row] = amountJoints - weights.count(0.0)
         self.refreshTable()
-        
+
     def refreshTable(self):
         """ force redraw the current table view
         """

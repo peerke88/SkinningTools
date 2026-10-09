@@ -6,6 +6,7 @@ from maya import cmds, mel, OpenMaya as oldOpenMaya
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.Maya.tools import weightWrite
 from SkinningTools.ThirdParty import pyprof2calltree
 from SkinningTools.ThirdParty.kdtree import KDTree
 
@@ -576,13 +577,7 @@ def getDagpath(node, extendToShape=False):
     :return: the openmaya object (returns dependnode if the object is not a dagnode)
     :rtype: MDagPath, MDependNode
     """
-    sellist = OpenMaya.MGlobal.getSelectionListByName(node)
-    try:
-        if extendToShape:
-            return sellist.getDagPath(0).extendToShape()
-        return sellist.getDagPath(0)
-    except:
-        return sellist.getDependNode(0)
+    return weightWrite.getDagpath(node, extendToShape)
 
 
 def getMfnSkinCluster(mDag):
@@ -597,7 +592,7 @@ def getMfnSkinCluster(mDag):
         skinNode = skinCluster(mDag.fullPathName())
     else:
         skinNode = skinCluster(mDag)
-    return OpenMayaAnim.MFnSkinCluster(getDagpath(skinNode))
+    return weightWrite.getMfnSkinCluster(skinNode)
 
 
 def traverseHierarchy(inObject):
@@ -804,11 +799,7 @@ def _getSetData(inMesh):
         indices[i] = i
     vertexComp.addElements(indices)
 
-    infDags = skinFn.influenceObjects()
-    # Weight arrays use physical positions, not sparse logical matrix plug indices.
-    infIndexes = OpenMaya.MIntArray(len(infDags), 0)
-    for i in range(len(infDags)):
-        infIndexes[i] = i
+    infIndexes = weightWrite.physicalInfluences(skinFn)
 
     return skinFn, meshPath, mo, infIndexes
 

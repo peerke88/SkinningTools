@@ -103,3 +103,17 @@ native numerical failures and cmds errors are retained in M3_BASELINE_RESULTS.tx
 New D021 default selection is corrected within the native argument audit.
 Native post-mutation fault injection, interactive strokes, NURBS/lattice setters,
 Maya2022/PySide2, other platform/ABI builds and production memory/scale are deferred.
+
+## M4 evidence update
+
+23 Python tests pass, including seven actual pure-module cases. All 52 Maya2025
+cases pass against delivered primary bytes; four duplicate native setter cases
+pass separately. Four new architecture cases cover canonical mapping, brush
+writer identity, table batching/undo and slider cleanup. Policy comparisons give
+exact equality for 864 slider and 256 table cases against accepted M3 source.
+D022/D023 original control-flow failures are reproduced and corrected.
+Command-only largest-case median adds about 4.5% versus M3 with overlapping ranges;
+see M4_PERFORMANCE_RESULTS.txt. Existing D017-D020 characterizations remain.
+Interactive events, other hosts/ABIs, native failure injection, whole-scene importer
+transactions and production memory/scale remain unvalidated. M4_REPORT.md states
+scope and current ownership; M4_CALL_SITES.json retains the translator parse failure.

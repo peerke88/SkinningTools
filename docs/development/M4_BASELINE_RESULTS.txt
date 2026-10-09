@@ -1,0 +1,33 @@
+Expected failure evidence, not a desired passing test run.
+Original accepted M3 bodies; original table method uses the current equivalent writer validation.
+
+D022 original single-slider callback reproduced: guard remains True
+
+test_editor_final_zero_row_does_not_drop_an_earlier_edit (tests.test_maya_architecture.ArchitectureTests.test_editor_final_zero_row_does_not_drop_an_earlier_edit) ... ERROR
+
+======================================================================
+ERROR: test_editor_final_zero_row_does_not_drop_an_earlier_edit (tests.test_maya_architecture.ArchitectureTests.test_editor_final_zero_row_does_not_drop_an_earlier_edit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\dev\SkinningTools\tests\test_maya_architecture.py", line 108, in test_editor_final_zero_row_does_not_drop_an_earlier_edit
+    WeightEditorWindow.tryNormalizeWeights(state)
+  File "<string>", line 112, in tryNormalizeWeights
+  File "C:\dev\SkinningTools\Maya\tools\shared.py", line 859, in setWeightsBatch
+    cmds.SkinEditor(prepared[0]['mesh'], prepared[0]['skinCluster'], bt=payload)
+  File "<string>", line 2, in SkinEditor
+RuntimeError: Influence indices must be unique physical indices
+# Traceback (most recent call last):
+#   File "C:/dev/SkinningTools/Maya/plugin/SkinEditPlugin.py", line 21, in doIt
+#     self.parseArguments(args)
+#   File "C:/dev/SkinningTools/Maya/plugin/SkinEditPlugin.py", line 50, in parseArguments
+#     operation = self._prepare(request)
+#   File "C:\dev\SkinningTools\Maya\tools\weightWrite.py", line 68, in _prepare
+#     raise ValueError('Influence indices must be unique physical indices')
+# ValueError: Influence indices must be unique physical indices
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.059s
+
+FAILED (errors=1)
+EXPECTED BASELINE FAILURE CONFIRMED: final zero row leaves earlier batch weights empty

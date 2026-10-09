@@ -1,0 +1,1530 @@
+{
+  "calls": [
+    {
+      "file": "Maya/SmoothBrush/globalskinsmooth.py",
+      "line": 29,
+      "scope": "GlobalSkinSmoothBrush.setValue",
+      "call": "cmds.AverageVtxWeight",
+      "arguments": "cmds.AverageVtxWeight(indexedPath, sc=self.__skin, wt=value)"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 73,
+      "scope": "selectedSkinnedShapes",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(skinCluster, q=True, g=True)"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 81,
+      "scope": "startUndo",
+      "call": "cmds.undoInfo",
+      "arguments": "cmds.undoInfo(ock=True, cn=chunkName)"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 85,
+      "scope": "endUndo",
+      "call": "cmds.undoInfo",
+      "arguments": "cmds.undoInfo(cck=True, cn=chunkName)"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 94,
+      "scope": "loadPlugin",
+      "call": "cmds.loadPlugin",
+      "arguments": "cmds.loadPlugin(plugin)"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 217,
+      "scope": "setSkinWeights",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinCluster, geometry, tv=zip(influenceIndices, weights))"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 219,
+      "scope": "setSkinWeights",
+      "call": "shared.setWeightsBatch",
+      "arguments": "shared.setWeightsBatch([{'mesh': geometry, 'skinCluster': skinCluster, 'weights': weights, 'normalize': False}])"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 237,
+      "scope": "getSingleVertexWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, t=influenceHandle)"
+    },
+    {
+      "file": "Maya/api.py",
+      "line": 252,
+      "scope": "getSingleVertexWeights",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinClusterHandle, vertexHandle, q=True, v=True)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 75,
+      "scope": "setJointLocked",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.liw' % inJoint, inValue)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 95,
+      "scope": "forceLoadPlugin",
+      "call": "cmds.loadPlugin",
+      "arguments": "cmds.loadPlugin(pluginPath)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 283,
+      "scope": "resetPose",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(mesh, True)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 589,
+      "scope": "initBpBrush",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(selection[0])"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 635,
+      "scope": "vertexWeight.getVtxWeight",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(vtxs[0].split('.')[0])"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 641,
+      "scope": "vertexWeight.getVtxWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vtx, q=1, v=1)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 657,
+      "scope": "vertexWeight.setVtxWeight",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(mesh)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 667,
+      "scope": "vertexWeight.setVtxWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 686,
+      "scope": "skinWeight.getSkinWeight",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(mesh)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 710,
+      "scope": "skinWeight.setSkinWeights",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(mesh, True)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 712,
+      "scope": "skinWeight.setSkinWeights",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(mesh, self.boneInfo, tsb=1)"
+    },
+    {
+      "file": "Maya/interface.py",
+      "line": 718,
+      "scope": "skinWeight.setSkinWeights",
+      "call": "shared.setWeights",
+      "arguments": "shared.setWeights(mesh, self.weightInfo)"
+    },
+    {
+      "file": "Maya/plugin/averageWeightPlugin.py",
+      "line": 51,
+      "scope": "AverageWghtCtx.calcWeights",
+      "call": "weightMath.blendWeights",
+      "arguments": "weightMath.blendWeights(value, origWeights, nbWeigths, amountComps, normalize=self.normalize == 1, maximum=self.maxInfluences if self.maintainMaxInfl else None, locked=getattr(self, 'locked', None))"
+    },
+    {
+      "file": "Maya/plugin/averageWeightPlugin.py",
+      "line": 73,
+      "scope": "AverageWghtCtx.setWeights",
+      "call": "weightWrite.influenceMapping",
+      "arguments": "weightWrite.influenceMapping(self.skinCluster)"
+    },
+    {
+      "file": "Maya/plugin/averageWeightPlugin.py",
+      "line": 75,
+      "scope": "AverageWghtCtx.setWeights",
+      "call": "weightWrite.influenceLocks",
+      "arguments": "weightWrite.influenceLocks(mapping)"
+    },
+    {
+      "file": "Maya/plugin/averageWeightPlugin.py",
+      "line": 121,
+      "scope": "AverageWghtCtxUpdate.doIt",
+      "call": "smoothWeights.setWeights",
+      "arguments": "smoothWeights.setWeights(self.index, self.value)"
+    },
+    {
+      "file": "Maya/tools/apiWeights.py",
+      "line": 89,
+      "scope": "ApiWeights.getSkinFn",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(dagPath.fullPathName(), True)"
+    },
+    {
+      "file": "Maya/tools/apiWeights.py",
+      "line": 166,
+      "scope": "ApiWeights.getData",
+      "call": "weightWrite.influenceMapping",
+      "arguments": "weightWrite.influenceMapping(skinFn)"
+    },
+    {
+      "file": "Maya/tools/initialWeight.py",
+      "line": 105,
+      "scope": "buildSkinCluster",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/initialWeight.py",
+      "line": 108,
+      "scope": "buildSkinCluster",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(inJoints, inMesh, dropoffRate=0.1)"
+    },
+    {
+      "file": "Maya/tools/initialWeight.py",
+      "line": 186,
+      "scope": "setInitialWeights",
+      "call": "shared.setWeights",
+      "arguments": "shared.setWeights(inMesh, weightData)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 28,
+      "scope": "autoLabelJoints.SetAttrs",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.%s' % (bone, attr), l=0)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 30,
+      "scope": "autoLabelJoints.SetAttrs",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(bone + '.side', side)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 31,
+      "scope": "autoLabelJoints.SetAttrs",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(bone + '.type', type)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 32,
+      "scope": "autoLabelJoints.SetAttrs",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(bone + '.otherType', name, type='string')"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 33,
+      "scope": "autoLabelJoints.SetAttrs",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(bone + '.drawLabel', 1)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 68,
+      "scope": "autoLabelJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(bone + '.drawLabel', 0)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 84,
+      "scope": "resetToBindPoseobject",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inObject, silent=True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 118,
+      "scope": "resetBindPoseNodeSkinCluster",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(skinClusterName, query=True, inf=True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 124,
+      "scope": "resetBindPoseNodeSkinCluster",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('{0}.bindPreMatrix[ {1} ]'.format(skinClusterName, i), *curInvMat, type='matrix')"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 171,
+      "scope": "resetSkinnedJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.bindPreMatrix[%s]' % (skinCluster, index), *curInvMat, type='matrix')"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 173,
+      "scope": "resetSkinnedJoints",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(skinCluster, e=True, recacheBindMatrices=True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 237,
+      "scope": "freezeRotate",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(joint + '.jo', *jo)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 241,
+      "scope": "freezeRotate",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(joint + '.r', 0, 0, 0)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 313,
+      "scope": "addCleanJoint",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, silent=True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 322,
+      "scope": "addCleanJoint",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=joint)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 343,
+      "scope": "BoneMove",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(skin, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 373,
+      "scope": "BoneMove",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.liw' % joint, 1)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 375,
+      "scope": "BoneMove",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.liw' % sourceJoint, 0)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 376,
+      "scope": "BoneMove",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.liw' % targetJoint, 0)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 379,
+      "scope": "BoneMove",
+      "call": "shared.setWeights",
+      "arguments": "shared.setWeights(skin, outInfluencesArray)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 382,
+      "scope": "BoneMove",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.liw' % joint, value)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 404,
+      "scope": "BoneSwitch",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(skin, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 439,
+      "scope": "ShowInfluencedVerts",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 490,
+      "scope": "removeJointBySkinPercent",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, tv=jnts, normalize=True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 552,
+      "scope": "removeJoints",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(skinObject, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 603,
+      "scope": "removeJoints",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=True, removeInfluence=jnt)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 628,
+      "scope": "comparejointInfluences",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(obj, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 670,
+      "scope": "getMeshesInfluencedByJoint",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(scl, q=1, g=1)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 695,
+      "scope": "getInfluencingJoints",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inObject, silent=True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 714,
+      "scope": "removeUnusedInfluences",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inObject)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 716,
+      "scope": "removeUnusedInfluences",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, q=1, wi=1)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 721,
+      "scope": "removeUnusedInfluences",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.nodeState' % sc, 1)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 725,
+      "scope": "removeUnusedInfluences",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=1, ri=jnt)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 728,
+      "scope": "removeUnusedInfluences",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.nodeState' % sc, nodeState)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 763,
+      "scope": "convertClusterToJoint",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 764,
+      "scope": "convertClusterToJoint",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=jnt)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 771,
+      "scope": "convertClusterToJoint",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex, tv=[jnt, values[indices[index]]])"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 841,
+      "scope": "convertVerticesToJoint",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 846,
+      "scope": "convertVerticesToJoint",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vert, tv=[jnt, weights[index]])"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 849,
+      "scope": "convertVerticesToJoint",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, verts, tv=[jnt, 1])"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 871,
+      "scope": "toggleMoveSkinnedJoints",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 880,
+      "scope": "toggleMoveSkinnedJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(driven, *curInvMat, type='matrix')"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 896,
+      "scope": "toggleMoveSkinnedJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.notes' % nJnt, _buildInfo, type='string')"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 897,
+      "scope": "toggleMoveSkinnedJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.notes' % nJnt, l=1)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 913,
+      "scope": "toggleMoveSkinnedJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.jointOrient' % child, *ro[0])"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 914,
+      "scope": "toggleMoveSkinnedJoints",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.rotate' % child, 0, 0, 0)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 942,
+      "scope": "drawStyle",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.drawStyle' % jnt, int(not style) * 2)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 951,
+      "scope": "segmentScale",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.segmentScaleCompensate' % jnt, compensate)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 960,
+      "scope": "localRotateAxis",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.displayLocalAxis' % jnt, showAxis)"
+    },
+    {
+      "file": "Maya/tools/joints.py",
+      "line": 1102,
+      "scope": "jointRotation.createJointRotators",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.displayLocalAxis' % loc, 1)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 325,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(sphere + '.scaleX', radius)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 326,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(sphere + '.scaleY', radius)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 327,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(sphere + '.scaleZ', radius)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 335,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(cone + '.translateY', 1)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 341,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(cone + '.scaleX', radius)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 342,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(cone + '.scaleY', radius)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 343,
+      "scope": "polySkeleton",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr(cone + '.scaleZ', radius)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 464,
+      "scope": "cutCharacterFromSkin",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inObject, silent=True)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 477,
+      "scope": "cutCharacterFromSkin",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinClusterName, vtx, q=1, v=True)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 479,
+      "scope": "cutCharacterFromSkin",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinClusterName, vtx, q=1, t=None)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 529,
+      "scope": "setOrigShapeColor",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.displayColors' % inShape, 1)"
+    },
+    {
+      "file": "Maya/tools/mesh.py",
+      "line": 549,
+      "scope": "toggleDisplayOrigShape",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.intermediateObject' % shape, not cmds.getAttr('%s.intermediateObject' % shape))"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 32,
+      "scope": "dec_undo._undo_func",
+      "call": "cmds.undoInfo",
+      "arguments": "cmds.undoInfo(ock=True)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 42,
+      "scope": "dec_undo._undo_func",
+      "call": "cmds.undoInfo",
+      "arguments": "cmds.undoInfo(cck=True)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 172,
+      "scope": "dec_loadPlugin._loadPlugin_func.inner",
+      "call": "cmds.loadPlugin",
+      "arguments": "cmds.loadPlugin(plugin)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 592,
+      "scope": "getMfnSkinCluster",
+      "call": "skinCluster",
+      "arguments": "skinCluster(mDag.fullPathName())"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 594,
+      "scope": "getMfnSkinCluster",
+      "call": "skinCluster",
+      "arguments": "skinCluster(mDag)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 782,
+      "scope": "_getSetData",
+      "call": "skinCluster",
+      "arguments": "skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 802,
+      "scope": "_getSetData",
+      "call": "weightWrite.physicalInfluences",
+      "arguments": "weightWrite.physicalInfluences(skinFn)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 828,
+      "scope": "setWeights",
+      "call": "setWeightsBatch",
+      "arguments": "setWeightsBatch([{'mesh': inMesh, 'weights': weightData}])"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 858,
+      "scope": "setWeightsBatch",
+      "call": "cmds.loadPlugin",
+      "arguments": "cmds.loadPlugin(plugin, quiet=True)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 859,
+      "scope": "setWeightsBatch",
+      "call": "cmds.SkinEditor",
+      "arguments": "cmds.SkinEditor(prepared[0]['mesh'], prepared[0]['skinCluster'], bt=payload)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 923,
+      "scope": "getTriWeight",
+      "call": "skinCluster",
+      "arguments": "skinCluster(inMesh)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 931,
+      "scope": "getTriWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinClusterName, '%s.vtx[%s]' % (inMesh, vertId), query=True, value=True)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 958,
+      "scope": "skinConstraint",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.operation' % vec1, 4)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 959,
+      "scope": "skinConstraint",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.operation' % vec2, 4)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 961,
+      "scope": "skinConstraint",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.input1' % vec1, *point)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 1003,
+      "scope": "createWeightedMM",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.matrixIn[0]' % mmNode, mmInv, type='matrix')"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 1007,
+      "scope": "createWeightedMM",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.wtMatrix[%s].weightIn' % (addMM, i), weight)"
+    },
+    {
+      "file": "Maya/tools/shared.py",
+      "line": 1010,
+      "scope": "createWeightedMM",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.%s' % (addMM, trsNode), lock=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 49,
+      "scope": "forceCompareInfluences",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 90,
+      "scope": "getVertOverMaxInfluence",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inObject, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 126,
+      "scope": "setMaxJointInfluences",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inObject, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 130,
+      "scope": "setMaxJointInfluences",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex, q=1, v=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 135,
+      "scope": "setMaxJointInfluences",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex, pruneWeights=pruneFix)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 138,
+      "scope": "setMaxJointInfluences",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=True, fnw=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 140,
+      "scope": "setMaxJointInfluences",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.maxInfluences' % sc, maxInfValue)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 141,
+      "scope": "setMaxJointInfluences",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.maintainMaxInfluences' % sc, 1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 260,
+      "scope": "execCopySourceTarget",
+      "call": "shared.setWeights",
+      "arguments": "shared.setWeights(targetMesh, targetInflArray)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 282,
+      "scope": "transferClosestSkinning",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(baseObject)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 290,
+      "scope": "transferClosestSkinning",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(currentObj, silent=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 292,
+      "scope": "transferClosestSkinning",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(currentObj, origJoints)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 323,
+      "scope": "transferSkinning",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(baseSkin, silent=False)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 336,
+      "scope": "transferSkinning",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(toSkinMesh, silent=False)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 339,
+      "scope": "transferSkinning",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(skincluster, e=True, ub=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 342,
+      "scope": "transferSkinning",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, q=True, mi=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 344,
+      "scope": "transferSkinning",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(jointInfls, toSkinMesh, mi=maxInfls)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 346,
+      "scope": "transferSkinning",
+      "call": "cmds.copySkinWeights",
+      "arguments": "cmds.copySkinWeights(ss=sc, ds=newSkinCl[0], nm=True, surfaceAssociation=surfaceAssociation, uv=['map1', 'map1'], influenceAssociation=['label', 'oneToOne', 'name'], normalize=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 349,
+      "scope": "transferSkinning",
+      "call": "cmds.copySkinWeights",
+      "arguments": "cmds.copySkinWeights(ss=sc, ds=newSkinCl[0], nm=True, surfaceAssociation=surfaceAssociation, influenceAssociation=['label', 'oneToOne', 'name'], normalize=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 371,
+      "scope": "Copy2MultVertex",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(currentMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 374,
+      "scope": "Copy2MultVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, lastSelected, q=1, value=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 382,
+      "scope": "Copy2MultVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, selection, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 402,
+      "scope": "hammerVerts",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(currentMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 406,
+      "scope": "hammerVerts",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=1, sw=0.0, swi=5, omi=True, forceNormalizeWeights=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 428,
+      "scope": "switchVertexWeight",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(currentMesh)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 429,
+      "scope": "switchVertexWeight",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(currentMesh, e=True, nw=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 432,
+      "scope": "switchVertexWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex1, q=True, value=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 433,
+      "scope": "switchVertexWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex2, q=True, value=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 443,
+      "scope": "switchVertexWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex1, transformValue=pointsWeightsList2)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 444,
+      "scope": "switchVertexWeight",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex2, transformValue=pointsWeightsList1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 480,
+      "scope": "transferUvToSkinnedObject",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.intermediateObject' % mesh_orig, 0)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 492,
+      "scope": "transferUvToSkinnedObject",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.intermediateObject' % mesh_orig, 1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 591,
+      "scope": "extractSkinnedShells",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 634,
+      "scope": "keepOnlySelectedInfluences",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 647,
+      "scope": "keepOnlySelectedInfluences",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinCluster, vertices, tv=jointsToRemoveValues, normalize=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 675,
+      "scope": "smoothAndSmoothNeighbours",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 678,
+      "scope": "smoothAndSmoothNeighbours",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, geometry=vertices, e=True, sw=1e-06, swi=5, omi=matchMaxInfl, forceNormalizeWeights=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 690,
+      "scope": "smoothAndSmoothNeighbours",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, geometry=fixedList, e=True, sw=1e-06, swi=5, omi=matchMaxInfl, forceNormalizeWeights=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 716,
+      "scope": "avgVertex",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 723,
+      "scope": "avgVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, point, transform=joint, q=True, value=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 733,
+      "scope": "avgVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, lastSelected, transformValue=transformValueList, normalize=1, zeroRemainingInfluences=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 750,
+      "scope": "freezeSkinnedMesh",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 758,
+      "scope": "freezeSkinnedMesh",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(shape, e=True, ub=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 763,
+      "scope": "freezeSkinnedMesh",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(attachedJoints, inMesh, tsb=True, bm=0, nw=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 764,
+      "scope": "freezeSkinnedMesh",
+      "call": "shared.setWeights",
+      "arguments": "shared.setWeights(inMesh, outInfluencesArray)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 784,
+      "scope": "hardSkinSelectionShells",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 785,
+      "scope": "hardSkinSelectionShells",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, q=True, inf=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 799,
+      "scope": "hardSkinSelectionShells",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex, transform=jnt, query=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 806,
+      "scope": "hardSkinSelectionShells",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertices, transformValue=jointValueList, normalize=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 841,
+      "scope": "AvarageVertex",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(selectedMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 844,
+      "scope": "AvarageVertex",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(selectedMesh, e=True, nw=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 852,
+      "scope": "AvarageVertex",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.envelope' % sc, 0)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 857,
+      "scope": "AvarageVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertlist[0], q=True, v=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 858,
+      "scope": "AvarageVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertlist[1], q=True, v=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 866,
+      "scope": "AvarageVertex",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertex, transformValue=newWeightsList)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 875,
+      "scope": "AvarageVertex",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.envelope' % sc, 1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 909,
+      "scope": "neighbourAverage",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 912,
+      "scope": "neighbourAverage",
+      "call": "cmds.AverageVtxWeight",
+      "arguments": "cmds.AverageVtxWeight(vertex, sc=sc, wt=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 945,
+      "scope": "doSkinPercent",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 956,
+      "scope": "doSkinPercent",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(sc, e=True, lw=False, wt=0.0, ai=bone)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 963,
+      "scope": "doSkinPercent",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vert, r=_rel, tv=[bone, newVal], normalize=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 966,
+      "scope": "doSkinPercent",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(sc, vertices, r=_rel, tv=[bone, newVal], normalize=True)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 1070,
+      "scope": "SoftSkinBuilder.setSoftSkinInfo",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 1072,
+      "scope": "SoftSkinBuilder.setSoftSkinInfo",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(inMesh, self.boneWeights.keys(), tsb=1)"
+    },
+    {
+      "file": "Maya/tools/skinCluster.py",
+      "line": 1093,
+      "scope": "SoftSkinBuilder.setSoftSkinInfo",
+      "call": "cmds.SkinEditor",
+      "arguments": "cmds.SkinEditor(inMesh, sc, vid=vertIds, nw=_weights, jid=jnts, ow=_origWeights)"
+    },
+    {
+      "file": "Maya/tools/softSelectWeight.py",
+      "line": 30,
+      "scope": "setSkinWeights",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "Maya/tools/softSelectWeight.py",
+      "line": 33,
+      "scope": "setSkinWeights",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(inMesh, filler, omi=True, mi=4, tsb=True)"
+    },
+    {
+      "file": "Maya/tools/softSelectWeight.py",
+      "line": 56,
+      "scope": "setSkinWeights",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinCluster, vertex, query=True, transform=None)"
+    },
+    {
+      "file": "Maya/tools/softSelectWeight.py",
+      "line": 59,
+      "scope": "setSkinWeights",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinCluster, vertex, query=True, value=True)"
+    },
+    {
+      "file": "Maya/tools/softSelectWeight.py",
+      "line": 82,
+      "scope": "setSkinWeights",
+      "call": "cmds.skinPercent",
+      "arguments": "cmds.skinPercent(skinCluster, vertex, transformValue=weights)"
+    },
+    {
+      "file": "Maya/tools/weightMath.py",
+      "line": 20,
+      "scope": "normalizeWeights",
+      "call": "normalizeWeightsInPlace",
+      "arguments": "normalizeWeightsInPlace(result, locked)"
+    },
+    {
+      "file": "Maya/tools/weightMath.py",
+      "line": 74,
+      "scope": "blendWeights",
+      "call": "limitInfluences",
+      "arguments": "limitInfluences(result, locked, maximum)"
+    },
+    {
+      "file": "Maya/tools/weightMath.py",
+      "line": 76,
+      "scope": "blendWeights",
+      "call": "normalizeWeights",
+      "arguments": "normalizeWeights(result, locked)"
+    },
+    {
+      "file": "Maya/tools/weightWrite.py",
+      "line": 16,
+      "scope": "physicalInfluences",
+      "call": "influenceMapping",
+      "arguments": "influenceMapping(skin)"
+    },
+    {
+      "file": "Maya/tools/weightWrite.py",
+      "line": 48,
+      "scope": "WeightBatch._signature",
+      "call": "influenceMapping",
+      "arguments": "influenceMapping(skin)"
+    },
+    {
+      "file": "Maya/tools/weightWrite.py",
+      "line": 88,
+      "scope": "WeightBatch._prepare",
+      "call": "influenceLocks",
+      "arguments": "influenceLocks(influenceMapping(skin))"
+    },
+    {
+      "file": "Maya/tools/weightWrite.py",
+      "line": 88,
+      "scope": "WeightBatch._prepare",
+      "call": "influenceMapping",
+      "arguments": "influenceMapping(skin)"
+    },
+    {
+      "file": "Maya/tools/weightWrite.py",
+      "line": 97,
+      "scope": "WeightBatch._prepare",
+      "call": "weightMath.normalizeWeightsInPlace",
+      "arguments": "weightMath.normalizeWeightsInPlace(new, locked, offset)"
+    },
+    {
+      "file": "Maya/tools/weightWrite.py",
+      "line": 121,
+      "scope": "WeightBatch._writeExact",
+      "call": "skin.setWeights",
+      "arguments": "skin.setWeights(operation['dag'], operation['component'], operation['indices'], weights, False)"
+    },
+    {
+      "file": "Maya/tools/weightsManager.py",
+      "line": 190,
+      "scope": "WeightsManager.importData",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(toMesh)"
+    },
+    {
+      "file": "Maya/tools/weightsManager.py",
+      "line": 193,
+      "scope": "WeightsManager.importData",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(toMesh, jnts, tsb=1)"
+    },
+    {
+      "file": "Maya/tools/weightsManager.py",
+      "line": 201,
+      "scope": "WeightsManager.importData",
+      "call": "shared.setWeightsBatch",
+      "arguments": "shared.setWeightsBatch(requests)"
+    },
+    {
+      "file": "UI/ControlSlider/vertexinfluenceeditor.py",
+      "line": 149,
+      "scope": "VertexInfluenceEditor.__updateWeights",
+      "call": "api.skinPercent",
+      "arguments": "api.skinPercent(*self.__target, normalize=True, transformValue=stack)"
+    },
+    {
+      "file": "UI/ControlSlider/vertexinfluenceeditor.py",
+      "line": 159,
+      "scope": "VertexInfluenceEditor.uniformNormalisation",
+      "call": "weightMath.sliderWeights",
+      "arguments": "weightMath.sliderWeights(values, enabled, setId, newValue, solver)"
+    },
+    {
+      "file": "UI/SkinningToolsUI.py",
+      "line": 442,
+      "scope": "SkinningToolsUI.__componentEditSetup",
+      "call": "interface.forceLoadPlugin",
+      "arguments": "interface.forceLoadPlugin('SkinEditPlugin')"
+    },
+    {
+      "file": "UI/SkinningToolsUI.py",
+      "line": 456,
+      "scope": "SkinningToolsUI.__weightManagerSetup",
+      "call": "interface.forceLoadPlugin",
+      "arguments": "interface.forceLoadPlugin('SkinEditPlugin')"
+    },
+    {
+      "file": "UI/tabs/skinBrushes.py",
+      "line": 55,
+      "scope": "getSelectedSKinCLuster",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(dag.fullPathName())"
+    },
+    {
+      "file": "UI/tabs/softSelectUI.py",
+      "line": 292,
+      "scope": "SoftSelectionToWeightsWidget.setEnableInfluence",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(influence.ssActive, True)"
+    },
+    {
+      "file": "UI/tabs/softSelectUI.py",
+      "line": 328,
+      "scope": "SoftSelectionToWeightsWidget.skin",
+      "call": "shared.skinCluster",
+      "arguments": "shared.skinCluster(inMesh, True)"
+    },
+    {
+      "file": "UI/tabs/vertAndBoneFunction.py",
+      "line": 220,
+      "scope": "VertAndBoneFunction.__addVertNBoneFunc",
+      "call": "api.loadPlugin",
+      "arguments": "api.loadPlugin(pathToSmoothBrushPlugin())"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 102,
+      "scope": "TransferWeightsWidget.__grabSkinCl",
+      "call": "skinCluster",
+      "arguments": "skinCluster()"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 205,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(target, q=True, influence=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 206,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(source, q=True, influence=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 213,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(target, addInfluence=add, wt=0, e=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 215,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(source, q=True, g=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 216,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(target, q=True, g=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 218,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.skinCluster",
+      "arguments": "cmds.skinCluster(target, q=True, influence=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 231,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.SkinWeights",
+      "arguments": "cmds.SkinWeights(sourceGeo, source, q=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 232,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.SkinWeights",
+      "arguments": "cmds.SkinWeights(targetGeo, target, q=True)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 256,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.SkinWeights",
+      "arguments": "cmds.SkinWeights(targetGeo, target, nwt=outWeights)"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 280,
+      "scope": "TransferWeightsWidget.__copySkinDataCB",
+      "call": "cmds.copySkinWeights",
+      "arguments": "cmds.copySkinWeights(sourceVerts, targetVerts, noMirror=True, surfaceAssociation='closestPoint', ia=['oneToOne', 'name'])"
+    },
+    {
+      "file": "UI/tabs/vertexWeightMatcher.py",
+      "line": 392,
+      "scope": "ClosestVertexWeightWidget.__storeVerts",
+      "call": "skinCluster",
+      "arguments": "skinCluster(Mesh)"
+    },
+    {
+      "file": "UI/tabs/weightsUI.py",
+      "line": 468,
+      "scope": "WeightsUI._makeBB",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.overrideEnabled' % shape, 1)"
+    },
+    {
+      "file": "UI/tabs/weightsUI.py",
+      "line": 469,
+      "scope": "WeightsUI._makeBB",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.overrideShading' % shape, 0)"
+    },
+    {
+      "file": "UI/tabs/weightsUI.py",
+      "line": 475,
+      "scope": "WeightsUI._scaleBBox",
+      "call": "cmds.setAttr",
+      "arguments": "cmds.setAttr('%s.scale%s' % (cube, ax), inValue)"
+    },
+    {
+      "file": "UI/weightEditor/weightEditor.py",
+      "line": 786,
+      "scope": "WeightEditorWindow.tryNormalizeWeights",
+      "call": "weightMath.normalizeEditedWeights",
+      "arguments": "weightMath.normalizeEditedWeights(self.weightTable._data[row], self.meshWeights[mesh][vtx], self.vtxlockedData[vertex], selected, currentJointIDs)"
+    },
+    {
+      "file": "UI/weightEditor/weightEditor.py",
+      "line": 799,
+      "scope": "WeightEditorWindow.tryNormalizeWeights",
+      "call": "shared.setWeightsBatch",
+      "arguments": "shared.setWeightsBatch(list(groups.values()))"
+    }
+  ],
+  "parse_failures": [
+    {
+      "file": "UI/translator.py",
+      "line": 142,
+      "error": "Missing parentheses in call to 'print'. Did you mean print(...)?"
+    }
+  ]
+}

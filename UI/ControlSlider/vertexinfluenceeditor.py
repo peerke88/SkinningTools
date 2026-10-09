@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import functools
+from functools import partial
 from SkinningTools.Maya import api
+from SkinningTools.Maya.tools import weightMath
 from SkinningTools.py23 import *
-from SkinningTools.UI.qt_util import *
-from SkinningTools.UI.utils import *
+from SkinningTools.UI.qt_util import QGroupBox, QIcon, QWidget, QPushButton
+from SkinningTools.UI.utils import WeightSolver, nullVBoxLayout, nullHBoxLayout
 from SkinningTools.UI.ControlSlider.sliderControl import SliderControl
 
 
@@ -131,13 +133,13 @@ class VertexInfluenceEditor(QGroupBox):
             return
         self.__busyWithCallback = True
 
-        numSliders = len(self.__sliders)
-        if numSliders - 1 == 0:
-            return  # no other sliders to edit
-
-        weights = self.uniformNormalisation(setId, numSliders, newValue)
-        
-        self.__busyWithCallback = False
+        try:
+            numSliders = len(self.__sliders)
+            if numSliders < 2:
+                return
+            weights = self.uniformNormalisation(setId, numSliders, newValue)
+        finally:
+            self.__busyWithCallback = False
 
         # apply to skincluster
         stack = []
@@ -148,59 +150,14 @@ class VertexInfluenceEditor(QGroupBox):
 
     
     def uniformNormalisation(self, setId, numSliders, newValue):
-        """
-        updated formula to add new normalisation elements (low priority and high priority)
-        based on code supplied by Rémi Deletrain
-        """
-        offset = newValue
-        totalValue = 0.0
-        totalLength = 0.0
-        for i in range(numSliders):
-            if i == setId:
-                continue
-            slider, __ = self.__sliders[i]
-            if not slider.isEnabled():
-                totalLength += slider.slider.value()
-
-        if offset > (1.0 - totalLength):
-            offset = (1.0 - totalLength)
-            newValue = offset
-
-        weights = [0.0] * numSliders
-        for i in range(numSliders):
-            if i == setId:
-                continue
-            slider, __ = self.__sliders[i]
-            if not slider.isEnabled():
-                offset += slider.slider.value()
-                continue
-            weights[i] = slider.slider.value()
-            totalValue += weights[i]
-
-        weights[setId] = newValue
-        if totalValue == 0:
-            scale = (1.0 - offset) / (numSliders - 1)
-        else:
-            scale = (1.0 - offset) / totalValue
-        for i in range(numSliders):
-            if i == setId:
-                continue
-            slider, __ = self.__sliders[i]
-            if not slider.isEnabled():
-                if slider.slider.value() == 0.0:
-                    continue
-                else:
-                    weights[i] = slider.slider.value()
-                continue
-            
-            if self._solver == WeightSolver.PriorityLow:
-                weights[i] = max(1e-8, weights[i]) * scale
-            elif self._solver == WeightSolver.PriorityHigh:
-                weights[i] *= (weights[i] / totalValue) if totalValue > 0 else scale
-            elif totalValue == 0:
-                weights[i] = scale
-            else:
-                weights[i] *= scale
-            
-            slider.slider.setValue(weights[i])
+        """Apply the pure slider policy, then update the enabled controls."""
+        sliders = self.__sliders[:numSliders]
+        values = [control.slider.value() for control, button in sliders]
+        enabled = [control.isEnabled() for control, button in sliders]
+        solver = {WeightSolver.Uniform: 'uniform', WeightSolver.PriorityLow: 'low',
+                  WeightSolver.PriorityHigh: 'high'}.get(self._solver, 'uniform')
+        weights = weightMath.sliderWeights(values, enabled, setId, newValue, solver)
+        for i, (control, button) in enumerate(sliders):
+            if i != setId and enabled[i]:
+                control.slider.setValue(weights[i])
         return weights

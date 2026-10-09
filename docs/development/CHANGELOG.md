@@ -87,7 +87,7 @@ reproduced and unchanged. Full importer binding/remap transaction unvalidated.
 Maya 2022/PySide2, interactive workflows and native builds remain deferred.
 Stop for acceptance before M3.
 
-## M3 — 2026-10-09 — local delivery, awaiting acceptance
+## M3 — 2026-10-09 — accepted by continuation to M4
 
 Parent: `effbb7fd2ad49f249411dc40238f002486abc03d`. User accepted M2 and
 requested continuation. Same local branch; no GitHub push, PR or publication.
@@ -117,3 +117,23 @@ the original-source smoke (incorrect math and cmds errors; not a certified speed
 Memory/production scale, interactive events, Maya2022/PySide2, other ABI/platform
 binaries and native post-mutation fault injection remain unvalidated.
 Stop for acceptance before M4.
+
+## M4 — 2026-10-09 — local delivery, awaiting acceptance
+
+Parent: `6ca6e494460d136fe08811064e06f503f8092ee0`. User accepted M3 and
+requested M4. Local branch only; no GitHub push, PR or publication.
+
+Extract weightMath deterministic policies and weightWrite canonical Maya
+layout/exact batch machinery. SkinEditor and Python brush own undo and share the
+writer. Table/slider methods delegate math; table groups interleaved rows into
+one batch. D022 callback cleanup and D023 final-zero-row flushing are corrected.
+Public APIs and distinct solver policies remain. Native duplicate sources include
+the primary implementation; both projects compile and remain. Remove confirmed
+unused caches/private fields, redundant rethrows and slider Qt/util wildcards.
+
+Validation: 23 Python tests, 52 Maya2025 tests using delivered primary bytes,
+four duplicate setter tests, 864 exact slider and 256 table policy comparisons.
+Final command-only 1089-vertex median is about 4.5% above M3 with overlapping ranges.
+Only the matching primary Maya2025 binary is updated. M4_REPORT.md and associated
+results record evidence/limits. D017-D020, interactive and secondary hosts remain
+deferred. Stop for acceptance before M5.

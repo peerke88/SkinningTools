@@ -59,3 +59,12 @@ The override is shared by the existing native smoke class so colliding plugins
 are not loaded together. SKINNINGTOOLS_MAYA_TEST_NAME runs a named case/class in
 its own disposable process. See docs/development/M3_BUILD.md for build/test commands
 and the four-case duplicate setter run. Characterizations D017-D020 remain unchanged.
+
+M4 adds seven actual pure-module tests and four real-host architecture cases:
+23 Python and 52 Maya cases (75 discovered, 52 skips in ordinary Python).
+The delivered primary override executes all 52 Maya cases; without it ten native
+cases skip and 42 execute. UI methods use controlled metadata, not interactive
+event wiring. `python tests/compare_weight_policies.py` compares 864 slider/256
+table cases with accepted M3 Git source read-only. The guarded disposable
+`mayapy tests/benchmark_weight_batches.py --plugin <SkinEditPlugin.py>` measures
+command-only timings. M4_REPORT.md records native consolidation and limitations.

@@ -4,7 +4,7 @@ from maya import cmds
 
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface
-from SkinningTools.Maya.tools import shared, mathUtils
+from SkinningTools.Maya.tools import shared, mathUtils, weightWrite
 
 
 class ApiWeights():
@@ -163,10 +163,9 @@ class ApiWeights():
             singleIdComp.addElements(vtxArry)
 
             jPos = []
-            infDags = skinFn.influenceObjects()
-            infIndices = OpenMaya.MIntArray(len(infDags), 0)
-            for x, jntDag in enumerate(infDags):
-                infIndices[x] = int(skinFn.indexForInfluenceObject(infDags[x]))
+            mapping = weightWrite.influenceMapping(skinFn)
+            infIndices = OpenMaya.MIntArray([logical for dag, physical, logical in mapping])
+            for x, (jntDag, physical, logical) in enumerate(mapping):
 
                 if self.__extraInfo:
                     floatMat = cmds.getAttr("%s.bindPreMatrix[%i]" % (skinName, infIndices[x]))
@@ -189,7 +188,7 @@ class ApiWeights():
             weights = [[_wght[int(i + j * amountInfluences)] for i in range(amountInfluences)] for j in range(int(len(_wght) / amountInfluences))]
             self.meshWeights[node] = weights
 
-            jointInfluences = [infDags[x].fullPathName() for x in range(len(infIndices))]
+            jointInfluences = [dag.fullPathName() for dag, physical, logical in mapping]
             self.meshInfluences[node] = jointInfluences
             self.allInfJoints += jointInfluences
             if progressBar:
