@@ -1,10 +1,11 @@
 # Defect verification ledger
 
-Historical M0 evidence is retained; M1 status updates identify corrected targets.
+Historical M0 evidence is retained; M1/M2 updates identify corrected targets.
 Status is not acceptance. Runtime evidence
 is explicitly distinguished from isolated Python execution and source inspection.
-D001-D013 retain the supplied register; D014-D018 are additional observations,
-not authorized milestone expansion. All remain unchecked until accepted.
+D001-D013 retain the supplied register; D014-D020 are additional observations.
+M1 was accepted by continuation; M2 remains awaiting acceptance. Unchecked boxes
+are retained for explicit ledger review; verification evidence is stated per entry.
 
 - [ ] D001
 
@@ -26,7 +27,7 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Implementation status: Fixed in M1. Retains resolved cluster names; missing cluster returns False before comparison. Pose/confirmation branches tested with explicit source collaborators; real Maya cluster comparison and missing input pass. D018 remains separate.
 
-    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
+    Verification status: Tested in M1; accepted by user continuation on 2026-10-09. Historical observed behavior above is M0 evidence.
 
 - [ ] D002
 
@@ -48,7 +49,7 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Implementation status: Fixed in M1. Registers changed rows/columns; skips empty/header/missing-influence/unavailable column targets. Source single/rectangle checks and real two-mesh paste/locks/exact undo-redo pass.
 
-    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
+    Verification status: Tested in M1; accepted by user continuation on 2026-10-09. Historical observed behavior above is M0 evidence.
 
 - [ ] D003
 
@@ -68,9 +69,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Real direct-write test; existing SkinEditor two-vertex exact repeated undo/redo characterization.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M2 at shared/full-mesh/table batch boundaries using the existing SkinEditor command. Staged importer weights use one batch; arbitrary binding/remap/scene changes are not transactional.
 
-    Verification status: Reproduced. Real Maya 2025; no M2 redesign implemented.
+    Verification status: Tested in Maya 2025: exact repeated/consecutive undo/redo, multi-mesh failure after mutation, raw snapshots, settings and locks. Other native/brush/skinPercent workflows remain separate.
 
 - [ ] D004
 
@@ -90,9 +91,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Real sparse shared-write test passed with distinct per-influence weights; lock fixture captured only.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: M2 retains physical indices, documents index spaces, validates ownership and captures ordered influence/logical signatures. Reorders component rows explicitly.
 
-    Verification status: Unverified. Not reproduced for shared.py in Maya 2025. Do not replace physical indices with logical indices on audit evidence alone.
+    Verification status: Tested in Maya 2025 with removed/added influences, sparse logical indices, partial/reordered rows/columns and locks. Original shared-writer corruption hypothesis remains unreproduced; other writers deferred.
 
 - [ ] D005
 
@@ -180,7 +181,7 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Implementation status: Fixed in M1. Both checks flag absolute deviation greater than 1e-6, tested at zero/under/over totals and tolerance boundaries.
 
-    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
+    Verification status: Tested in M1; accepted by user continuation on 2026-10-09. Historical observed behavior above is M0 evidence.
 
 - [ ] D009
 
@@ -202,7 +203,7 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Implementation status: Fixed in M1. Filters selection using canonical owning transform/shape before index extraction. Real Maya aliases, ranges, mixed object/components and empty selection pass.
 
-    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
+    Verification status: Tested in M1; accepted by user continuation on 2026-10-09. Historical observed behavior above is M0 evidence.
 
 - [ ] D010
 
@@ -246,7 +247,7 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Implementation status: Fixed in M1. Emits self.index(row,col); real PySide6 verifies both input forms and valid model/row/column identity.
 
-    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
+    Verification status: Tested in M1; accepted by user continuation on 2026-10-09. Historical observed behavior above is M0 evidence.
 
 - [ ] D012
 
@@ -268,7 +269,7 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Implementation status: Fixed in M1. Interface Linux suffix corrected to .so; both functions agree under Windows/macOS/Linux simulated platforms. Real Linux loading unavailable.
 
-    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
+    Verification status: Tested in M1; accepted by user continuation on 2026-10-09. Historical observed behavior above is M0 evidence.
 
 - [ ] D013
 
@@ -310,9 +311,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Real list-input exception and unchanged full snapshot test.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed incidentally in M2 by removing the direct writer and routing list/array forms to the same validated command; required for the M2 write contract.
 
-    Verification status: Reproduced. New M0 discovery only; seek explicit approval to add correction scope.
+    Verification status: Tested in Maya 2025 with list/array parity, invalid dimensions/values and exact undo/redo.
 
 - [ ] D015
 
@@ -332,9 +333,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Isolated decorator injection and real D001 decorated call.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed as M2 support: close chunks in finally and re-raise original exceptions. Decorators still do not roll back arbitrary scene changes.
 
-    Verification status: Reproduced. New M0 observation; relevant to M2, no correction.
+    Verification status: Tested with the same injected source exception and chunk closure; command batch rollback tested separately in real Maya. No general scene-transaction claim.
 
 - [ ] D016
 
@@ -405,3 +406,47 @@ not authorized milestone expansion. All remain unchecked until accepted.
     Implementation status: Unchanged; outside the six accepted M1 corrections.
 
     Verification status: Reproduced; no complete bind-pose correctness claim.
+
+- [ ] D019
+
+    Category: Product defect, discovered during M2 integration.
+
+    Severity: High.
+
+    Source location: UI/utils.py:683 remapClosestPoints; WeightsManager.importData closest branch.
+
+    Observed behavior: Valid list coordinates used as target dictionary keys raise TypeError: unhashable type: list.
+
+    Expected behavior: Map target vertices by stable component/index identity while accepting JSON/list coordinates.
+
+    Reproduction: remapClosestPoints([[0,0,0]], [[0,0,0]], 1); import a file requiring closest-position matching.
+
+    Root cause: remap[target] uses a coordinate list as a key; importer expects vertex-index lookups.
+
+    Test coverage: Real-host helper reproduction test_D019_closest_point_remap_rejects_list_target_positions; importer run also reached the failing branch.
+
+    Implementation status: Unchanged; outside M2 weight-write ownership correction.
+
+    Verification status: Reproduced in Maya 2025; complete remapping repair deferred.
+
+- [ ] D020
+
+    Category: Product defect, discovered during M2 integration.
+
+    Severity: High.
+
+    Source location: Maya/tools/weightsManager.py:242 checkNeedsClosestVtxSearch.
+
+    Observed behavior: Sampling nine vertices calls randint(0,9); choosing 9 indexes beyond the nine exported positions and raises IndexError.
+
+    Expected behavior: Sample existing exported vertex IDs only, including noncontiguous selections safely.
+
+    Reproduction: Valid nine-position metadata and patched randint returning its inclusive upper bound; verify call (0,9) and failure.
+
+    Root cause: Inclusive randint upper bound is last vertex ID plus one; list offsets also assume contiguous IDs.
+
+    Test coverage: test_D020_import_sampling_includes_invalid_upper_vertex runs the production helper in Maya 2025 with deterministic random collaborator.
+
+    Implementation status: Unchanged; outside M2 weight-write ownership correction.
+
+    Verification status: Reproduced for contiguous nine-vertex fixture; noncontiguous behavior remains source-inferred.

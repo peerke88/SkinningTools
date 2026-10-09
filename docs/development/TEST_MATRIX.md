@@ -77,3 +77,14 @@ assert broken behavior. No corrected-defect acceptance is claimed.
 
 Every finding's expected behavior and reproduction plan is in DEFECT_LEDGER.md.
 M1 corrections need desired-behavior regressions, not merely these baseline checks.
+
+## M2 evidence update
+
+Historical tables above remain M0 evidence. M2 executes 16 Python and 33 Maya
+cases; see M2_TEST_RESULTS.txt and M2_REPORT.md. D003 and D014 now assert corrected
+behavior, D015 preserves exceptions, and sparse physical mapping is retained.
+Exact command batch rollback, locked weights, normalization modes 0/1/2, raw
+arrays and single-entry multi-mesh undo are tested. Full importer geometry matching
+is isolated in its write-boundary test; D019/D020 separately assert remaining
+remapping/sampling defects. Arbitrary full-scene transactions, production memory
+and scale, native rebuilds, interactive UI and Maya 2022 remain unvalidated.

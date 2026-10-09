@@ -43,14 +43,15 @@ class BaselinePythonTests(unittest.TestCase):
             self.assertEqual(compare.call_count, 2 if expected else 1)
             dialog.assert_called_once()
 
-    def test_undo_decorator_closes_chunk_but_swallows_error(self):
+    def test_undo_decorator_closes_chunk_and_propagates_error(self):
         cmds = SimpleNamespace(undoInfo=Mock())
         decorate = definition('Maya/tools/shared.py', 'dec_undo', {
             'cmds': cmds, 'wraps': functools.wraps, '_DEBUG': False})
         @decorate
         def fail():
             raise ValueError('original error')
-        self.assertIsNone(fail())
+        with self.assertRaisesRegex(ValueError, 'original error'):
+            fail()
         self.assertEqual(cmds.undoInfo.call_args_list[0].kwargs, {'ock': True})
         self.assertEqual(cmds.undoInfo.call_args_list[-1].kwargs, {'cck': True})
 

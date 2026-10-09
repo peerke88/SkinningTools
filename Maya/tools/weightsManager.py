@@ -138,6 +138,7 @@ class WeightsManager(object):
         setProgress(20, self.progressBar, "loading mesh data")
         percentage = 79.0 / (len(remapMesh.keys()))
         # for each mesh we now do the skinning operation
+        requests = []
         for iterIdx, (inMesh, toMesh) in enumerate(remapMesh.items()):
             closest = self.checkNeedsClosestVtxSearch(_data, inMesh, toMesh)
 
@@ -194,9 +195,10 @@ class WeightsManager(object):
             verts = shared.convertToVertexList(toMesh)
             vertIds = shared.convertToIndexList(verts)
 
-            shared.setWeights(toMesh, jointWeights)
+            requests.append({'mesh': toMesh, 'weights': jointWeights})
             setProgress(20 + (percentage * iterIdx), self.progressBar, "loading %s Data" % toMesh)
 
+        shared.setWeightsBatch(requests)
         setProgress(100, self.progressBar, "imported Data")
 
     def _getPosAndUvCoords(self, inMesh):

@@ -216,7 +216,8 @@ def setSkinWeights(geometry, skinCluster, weights, influenceIndices=None):
     if influenceIndices:
         cmds.skinPercent(skinCluster, geometry, tv=zip(influenceIndices, weights))
     else:
-        cmds.SkinWeights(geometry, skinCluster, nwt=weights)
+        shared.setWeightsBatch([{'mesh': geometry, 'skinCluster': skinCluster,
+                                 'weights': weights, 'normalize': False}])
 
 
 def getSingleVertexWeight(skinClusterHandle, vertexHandle, influenceHandle):

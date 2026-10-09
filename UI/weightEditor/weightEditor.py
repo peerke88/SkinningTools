@@ -2,6 +2,7 @@
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
 from SkinningTools.Maya import interface, api
+from SkinningTools.Maya.tools import shared
 from SkinningTools.py23 import *
 
 #@todo: make sure all cmds modules are moved over to interface/api
@@ -895,12 +896,14 @@ class WeightEditorWindow(QWidget):
             
             self.weightTable.overMaxInfDict[row] = amountJoints - nWeight.count(0.0)
         
+        requests = []
         for mesh, vertIds in self.meshIDdict.items():
             sc = self.meshSkinClusters[mesh]
             newWeight = self.meshWeigthDict[mesh]
             jnts = self.meshInfDict[mesh]
-            orig = self.origMeshWeights[mesh]
-            cmds.SkinEditor(mesh, sc, vid=vertIds, nw = newWeight, jid = jnts, ow = orig )
+            requests.append({'mesh': mesh, 'skinCluster': sc, 'vertices': vertIds,
+                             'influences': jnts, 'weights': newWeight})
+        shared.setWeightsBatch(requests)
         
         self.refreshTable()
         

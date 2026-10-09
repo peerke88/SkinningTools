@@ -104,3 +104,10 @@ The target responsibility split can start with these existing modules. Investiga
 reusing SkinEditor for M2 before introducing any command/plugin. M4 can extract
 deterministic weight math after contracts and regression coverage are established;
 no such restructuring is done in M0.
+
+## M2 routing update
+
+The tables and CALL_SITES.json above preserve the M0 baseline. Current shared,
+full-mesh API, table and staged importer weight writes route through the existing
+SkinEditor command. See WEIGHT_WRITE_CONTRACT.md for the current ownership map
+and exact atomicity boundaries. Native/brush/skinPercent paths remain separate.

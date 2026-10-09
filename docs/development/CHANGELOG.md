@@ -34,7 +34,7 @@ and release compatibility require later milestones. User acceptance is required
 before M1. Keep proposed M1 targets D001/D002/D008/D009/D011/D012; seek explicit
 scope acceptance for D014, and reconsider original D004 assumptions for M2.
 
-## M1 — 2026-10-09 — local delivery, awaiting acceptance
+## M1 — 2026-10-09 — accepted by continuation 2026-10-09
 
 Parent: `4d6d3f026dc5025a734274691cf2649d534a4391`. Same working branch.
 The user accepted M0 and requested continuation. No GitHub push, PR or merge.
@@ -61,3 +61,28 @@ It remains unchanged and explicitly characterized. D014 also remains unchanged.
 Neither additional correction scope nor M2-M5 implementation was included.
 Maya 2022/PySide2 and complete interactive workflows remain unvalidated.
 Stop for user acceptance before M2.
+
+## M2 — 2026-10-09 — local delivery, awaiting acceptance
+
+Parent: `bd19472ce1b3521fbe5c9edba4a60d6ab50dd029`. Same working branch.
+User accepted M1 and requested continuation. No GitHub push, PR or publication.
+
+D003 now uses the existing SkinEditor owner for shared/full-mesh/table writes,
+with exact snapshots, one multi-mesh undo entry and verified failure rollback.
+D004 retains physical indices and explicit mapping/component identity. D014 list
+support and D015 exception propagation are necessary incidental M2 corrections.
+
+Five production files changed: Maya/api.py, Maya/plugin/SkinEditPlugin.py,
+Maya/tools/shared.py, Maya/tools/weightsManager.py, UI/weightEditor/weightEditor.py.
+Existing APIs/flags retained; batch helper/flags and normalization flag added.
+Tests update corrected expectations and add tests/test_maya_weight_integrity.py.
+Documentation: M2_REPORT.md, WEIGHT_WRITE_CONTRACT.md, M2_TEST_RESULTS.txt and
+updates to the defect ledger, architecture, matrix and test README.
+
+Validation: 16 Python cases and 33 Maya 2025 cases pass. Bulk 1,089-vertex writes
+are approximately five times slower than M1 in uncontrolled smoke measurements;
+production memory/scale unmeasured. Exact writer does not enforce max influences.
+D019 closest-coordinate remapping and D020 out-of-range random sampling are
+reproduced and unchanged. Full importer binding/remap transaction unvalidated.
+Maya 2022/PySide2, interactive workflows and native builds remain deferred.
+Stop for acceptance before M3.

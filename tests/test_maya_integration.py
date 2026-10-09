@@ -92,14 +92,19 @@ class MayaBaselineTests(unittest.TestCase):
         self.assertFalse(skinCluster.forceCompareInfluences([self.mesh, unskinned]))
         self.assertEqual(snapshot(self.mesh, self.skin), before)
 
-    def test_D003_direct_write_has_no_undo_record(self):
+    def test_D003_bulk_write_has_exact_undo_and_redo(self):
         before = snapshot(self.mesh, self.skin)
         weights = [v for _ in range(9) for v in (0.25, 0.75, 0.0)]
         cmds.flushUndo()
         shared.setWeights(self.mesh, om.MDoubleArray(weights))
         self.assertEqual(snapshot(self.mesh, self.skin)['weights'], weights)
         self.assertNotEqual(before['weights'], weights)
-        self.assertTrue(cmds.undoInfo(query=True, undoQueueEmpty=True))
+        self.assertFalse(cmds.undoInfo(query=True, undoQueueEmpty=True))
+        after = snapshot(self.mesh, self.skin)
+        cmds.undo()
+        self.assertEqual(snapshot(self.mesh, self.skin), before)
+        cmds.redo()
+        self.assertEqual(snapshot(self.mesh, self.skin), after)
 
     def test_D004_physical_indices_work_with_sparse_logical_indices(self):
         mesh, skin = self.fixture.create(sparse=True)
@@ -125,11 +130,12 @@ class MayaBaselineTests(unittest.TestCase):
         cmds.select(clear=True)
         self.assertIsNone(reader.selectedVertIds(self.mesh))
 
-    def test_D014_list_input_constructor_fails_before_write(self):
-        before = snapshot(self.mesh, self.skin)
-        with self.assertRaisesRegex(TypeError, 'No matching constructor'):
-            shared.setWeights(self.mesh, [0.0] * 27)
-        self.assertEqual(snapshot(self.mesh, self.skin), before)
+    def test_D014_list_and_array_inputs_share_the_same_command(self):
+        weights = [v for _ in range(9) for v in (0.25, 0.75, 0.0)]
+        shared.setWeights(self.mesh, weights)
+        self.assertEqual(snapshot(self.mesh, self.skin)['weights'], weights)
+        shared.setWeights(self.mesh, om.MDoubleArray(weights))
+        self.assertEqual(snapshot(self.mesh, self.skin)['weights'], weights)
 
     def test_D011_real_qt_signal_arguments(self):
         window = SimpleNamespace(vtxDataDict={0: [None]*6 + [self.mesh]}, jointIndexList={self.mesh: [0, 1]})
@@ -194,11 +200,9 @@ class MayaBaselineTests(unittest.TestCase):
         self.assertEqual(after[0]['locks'], before[0]['locks'])
         self.assertEqual(after[0]['weights'][6:], before[0]['weights'][6:])
         self.assertEqual(after[1]['weights'][2:], before[1]['weights'][2:])
-        for _ in range(2):
-            cmds.undo()
+        cmds.undo()
         self.assertEqual([snapshot(self.mesh, self.skin), snapshot(other, other_skin)], before)
-        for _ in range(2):
-            cmds.redo()
+        cmds.redo()
         self.assertEqual([snapshot(self.mesh, self.skin), snapshot(other, other_skin)], after)
 
     def test_skin_editor_exact_repeated_undo_redo_and_unrelated_mesh(self):

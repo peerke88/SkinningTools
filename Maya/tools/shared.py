@@ -15,8 +15,9 @@ _DEBUG = getDebugState()
 def dec_undo(func):
     """ undo decorator
     will allow the objects created and changed in maya to be part of a single chunk where possible
-    the decorators is wrapped within a try except finally function to make sure everything is always undoable
-    :note: object created with the use of OpenMaya will not be part of this
+    Errors propagate after the undo chunk is closed. Chunks group recorded commands;
+    they do not themselves roll back scene changes after a failure.
+    :note: direct OpenMaya mutations require their own undoable command owner
 
 
     :param func: function this decorator is attached to
@@ -35,6 +36,7 @@ def dec_undo(func):
                 print(e.__class__)
                 print(sys.exc_info())
                 cmds.warning(traceback.format_exc())
+            raise
         finally:
             cmds.undoInfo(cck=True)
 
@@ -782,7 +784,9 @@ def _getSetData(inMesh):
         sc = inMesh
         inMesh = cmds.listConnections(inMesh, s=0, d=1, type="shape")[0]
     else:
-        sc = skinCluster(inMesh)
+        sc = skinCluster(inMesh, True)
+    if not sc:
+        raise ValueError('No skinCluster found for %s' % inMesh)
 
     inMesh = getParentShape(inMesh)
     shape = cmds.listRelatives(inMesh, s=1, fullPath=1)[0]
@@ -801,6 +805,7 @@ def _getSetData(inMesh):
     vertexComp.addElements(indices)
 
     infDags = skinFn.influenceObjects()
+    # Weight arrays use physical positions, not sparse logical matrix plug indices.
     infIndexes = OpenMaya.MIntArray(len(infDags), 0)
     for i in range(len(infDags)):
         infIndexes[i] = i
@@ -829,16 +834,38 @@ def setWeights(inMesh, weightData):
     :param weightData: full list of weight data as MDoubleArray
     :type weightData: MDoubleArray or list
     """
-    skinFn, meshPath, vertexComp, infIndexes = _getSetData(inMesh)
-    
-    if not isinstance(weightData, OpenMaya.MDoubleArray):
-        newWeightData = OpenMaya.MDoubleArray(len(weightData))
-        for i, w in enumerate(weightData):
-            newWeightData[i] = w
-    else:
-        newWeightData = weightData
+    setWeightsBatch([{'mesh': inMesh, 'weights': weightData}])
 
-    skinFn.setWeights(meshPath, vertexComp, infIndexes, newWeightData)
+
+def setWeightsBatch(requests):
+    """Atomically commit one or more full-mesh or explicit component requests.
+
+    Indices are physical influence positions. normalize defaults to True and
+    preserves locked values. Undo/redo always restores exact captured arrays.
+    """
+    prepared = []
+    for request in requests:
+        operation = dict(request)
+        operation['weights'] = list(operation['weights'])
+        if 'vertices' not in operation:
+            skinFn, meshPath, component, indices = _getSetData(operation['mesh'])
+            supplied_skin = operation.get('skinCluster')
+            if supplied_skin and OpenMayaAnim.MFnSkinCluster(getDagpath(supplied_skin)).object() != skinFn.object():
+                raise ValueError('Mesh does not belong to the supplied skinCluster')
+            operation.update(mesh=meshPath.fullPathName(), skinCluster=skinFn.name(),
+                             vertices=list(OpenMaya.MFnSingleIndexedComponent(component).getElements()),
+                             influences=list(indices))
+        else:
+            operation['vertices'] = list(operation['vertices'])
+            operation['influences'] = list(operation['influences'])
+        prepared.append(operation)
+    if not prepared:
+        return
+    payload = json.dumps(prepared, allow_nan=False)
+    plugin = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugin', 'SkinEditPlugin.py'))
+    if not cmds.pluginInfo(plugin, query=True, loaded=True):
+        cmds.loadPlugin(plugin, quiet=True)
+    cmds.SkinEditor(prepared[0]['mesh'], prepared[0]['skinCluster'], bt=payload)
 
 
 # -------------

@@ -42,3 +42,11 @@ removes it afterwards. A run without it logged NameError while returning success
 Bulk timings use 9, 121 and 1089 vertices and three influences. They are smoke
 measurements without thresholds, not production performance certification.
 See `docs/development/TEST_MATRIX.md` for blocked and deferred cases.
+
+M2 adds desired weight-contract cases in test_maya_weight_integrity.py. D003/D014
+now assert corrected writes and exact undo/redo; D015 asserts propagation. There
+are 16 Python cases and 33 Maya cases. Import batching is tested with existing
+clusters and geometry matching isolated; D019/D020 explicitly characterize the
+unchanged remap/sampling errors. File-import tests use a disposable temporary JSON
+file, removed on exit. No test fixture data or scene files are delivered to GitHub.
+M2_TEST_RESULTS.txt and WEIGHT_WRITE_CONTRACT.md describe evidence and boundaries.
