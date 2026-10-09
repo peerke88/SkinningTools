@@ -44,10 +44,16 @@ def forceCompareInfluences(meshes):
     :return: `True` if the joints are the same for all meshes, `False` if not
     :rtype: bool
     """
+    skinClusters = []
+    for inMesh in meshes:
+        skinClusterName = shared.skinCluster(inMesh, True)
+        if skinClusterName is None:
+            return False
+        skinClusters.append(skinClusterName)
+
     compared = joints.comparejointInfluences(meshes, True)
     outOfPose = False
-    for inMesh in meshes:
-        shared.skinCluster(inMesh, True)
+    for skinClusterName in skinClusters:
         if checkBasePose(skinClusterName):
             continue
         outOfPose = True

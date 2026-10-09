@@ -318,6 +318,8 @@ class WeightEditorWindow(QWidget):
         """ paste cell information
         """
         pastedCells = self.selectedCells
+        if not pastedCells or not self.copyValues:
+            return
        
         startCell = pastedCells[0]
         startRow = startCell.row()
@@ -342,14 +344,17 @@ class WeightEditorWindow(QWidget):
                 col = startCol + pos[1]
                 if (row, col) in self.lockedCells:
                     continue
+                if row not in self.vtxDataDict:
+                    continue
                 wghtList = self._data[row]
                 node = self.vtxDataDict[row][6]
                 jointIdx = self.jointIndexList[node]
+                if not 0 <= col < len(jointIdx) or jointIdx[col] is None:
+                    continue
                 wghtList[jointIdx[col]] = value
-                
-                if row in self.cellDict.keys():
-                    self.rowsToUpdate.add(row)
-                    self.cellDict[row].append(col)
+
+                self.rowsToUpdate.add(row)
+                self.cellDict.setdefault(row, []).append(col)
         
         self.tryNormalizeWeights()
             
@@ -647,7 +652,7 @@ class WeightEditorWindow(QWidget):
                 totalInfluences = amountInfluences - weightList.count(0.0)
                 self.overMaxInfDict[_allRows] = totalInfluences
 
-                if not round(sumWeights-1.0, 10) < 1e-6:
+                if abs(round(sumWeights-1.0, 10)) > 1e-6:
                     self.totalNotNormalized.add(_allRows)
                     
                 self.vtxDataDict[_allRows] = [v, skinCluster, influences, [], jointIdx, vertex, node, nodeId]
@@ -882,7 +887,7 @@ class WeightEditorWindow(QWidget):
             for i, w in enumerate(nWeight):
                 wghtList[i] = w
                     
-            if not round(sum(nWeight) - 1.0, 10) < 1e-6 :
+            if abs(round(sum(nWeight) - 1.0, 10)) > 1e-6:
                 self.weightTable.totalNotNormalized.add(row)
             else:
                 if row in self.weightTable.totalNotNormalized:

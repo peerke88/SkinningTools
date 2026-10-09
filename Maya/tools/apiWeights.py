@@ -61,8 +61,17 @@ class ApiWeights():
         :rtype: list
         """
         selection = interface.getSelection()
+        if not selection:
+            return None
+        parent = shared.getParentShape(node)
+        nodeNames = set(cmds.ls(parent, long=True) or [])
+        nodeNames.update(cmds.listRelatives(parent, shapes=True, fullPath=True) or [])
+        selection = [item for item in selection
+                     if nodeNames.intersection(cmds.ls(item.split('.', 1)[0], long=True) or [])]
+        if not selection:
+            return None
         vertices = shared.convertToVertexList(selection)
-        if vertices == []:
+        if not vertices:
             return None
         vtxArrays = shared.convertToIndexList(vertices)
         return vtxArrays

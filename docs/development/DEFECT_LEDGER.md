@@ -1,8 +1,9 @@
 # Defect verification ledger
 
-M0 records evidence without corrections. Status is not acceptance. Runtime evidence
+Historical M0 evidence is retained; M1 status updates identify corrected targets.
+Status is not acceptance. Runtime evidence
 is explicitly distinguished from isolated Python execution and source inspection.
-D001-D013 retain the supplied register; D014-D017 are additional observations,
+D001-D013 retain the supplied register; D014-D018 are additional observations,
 not authorized milestone expansion. All remain unchecked until accepted.
 
 - [ ] D001
@@ -23,9 +24,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Isolated source and real Maya 2025 call; bind pose acceptance scenarios deferred to M1.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M1. Retains resolved cluster names; missing cluster returns False before comparison. Pose/confirmation branches tested with explicit source collaborators; real Maya cluster comparison and missing input pass. D018 remains separate.
 
-    Verification status: Reproduced. Real Maya 2025; unchanged.
+    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
 
 - [ ] D002
 
@@ -45,9 +46,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Two source-method cases (ordinary and locked cell); Qt/Maya complete paste workflow still unverified.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M1. Registers changed rows/columns; skips empty/header/missing-influence/unavailable column targets. Source single/rectangle checks and real two-mesh paste/locks/exact undo-redo pass.
 
-    Verification status: Reproduced. Python definition executed with fake view/state, not actual UI events.
+    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
 
 - [ ] D003
 
@@ -177,9 +178,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Both actual source AST condition expressions executed for .5/1/1.5.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M1. Both checks flag absolute deviation greater than 1e-6, tested at zero/under/over totals and tolerance boundaries.
 
-    Verification status: Reproduced. Expression execution; full Qt status interaction deferred.
+    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
 
 - [ ] D009
 
@@ -199,9 +200,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Source isolation and real Maya two-mesh selection test.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M1. Filters selection using canonical owning transform/shape before index extraction. Real Maya aliases, ranges, mixed object/components and empty selection pass.
 
-    Verification status: Reproduced. Real Maya 2025.
+    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
 
 - [ ] D010
 
@@ -243,9 +244,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Real PySide6 model emission with slot; initial TypeError assumption corrected.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M1. Emits self.index(row,col); real PySide6 verifies both input forms and valid model/row/column identity.
 
-    Verification status: Reproduced. Real Maya 2025/PySide6; PySide2 unavailable.
+    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
 
 - [ ] D012
 
@@ -265,9 +266,9 @@ not authorized milestone expansion. All remain unchecked until accepted.
 
     Test coverage: Source functions executed with platform collaborators, agreement on Windows/macOS.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M1. Interface Linux suffix corrected to .so; both functions agree under Windows/macOS/Linux simulated platforms. Real Linux loading unavailable.
 
-    Verification status: Reproduced. Resolver logic executed; actual Linux/macOS loading unavailable.
+    Verification status: Tested in M1; awaiting acceptance. Historical observed behavior above is M0 evidence.
 
 - [ ] D013
 
@@ -378,3 +379,29 @@ not authorized milestone expansion. All remain unchecked until accepted.
     Implementation status: Unchanged; M0 characterization only.
 
     Verification status: Confirmed. Source syntax confirmed; UI path runtime unverified; out of current correction scope.
+- [ ] D018
+
+    Category: Product defect, newly discovered during M1.
+
+    Severity: High.
+
+    Source location: Maya/tools/skinCluster.py:16 checkBasePose.
+
+    Observed behavior: Fresh Maya 2025 untouched bind returns None from
+    cmds.dagPose(pose, query=True, atPose=True), but helper returns False and
+    comparison can prompt for an out-of-pose confirmation.
+
+    Expected behavior: Distinguish at-pose and out-of-pose bindings correctly.
+
+    Reproduction: Create a disposable mesh/joint binding, query its pose/helper;
+    repeat after moving a joint, multiple poses, missing pose and fallback.
+
+    Root cause: Existing helper treats non-None dagPose result as at-pose;
+    broader pose/fallback semantics require separate review.
+
+    Test coverage: Real Maya test_D018_bind_pose_helper_misclassifies_untouched_bind;
+    fresh-process diagnostic returned POSE ['bindPose1'] None False.
+
+    Implementation status: Unchanged; outside the six accepted M1 corrections.
+
+    Verification status: Reproduced; no complete bind-pose correctness claim.

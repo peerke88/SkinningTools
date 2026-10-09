@@ -571,7 +571,7 @@ def getPluginSuffix():
     if platform.system() == "Darwin":
         pluginSuffix = ".bundle"
     if platform.system() == "Linux":
-        pluginSuffix = ".bundle"
+        pluginSuffix = ".so"
     return pluginSuffix
 
 

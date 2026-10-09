@@ -4,6 +4,7 @@ import sys
 import time
 import unittest
 from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 READY = 'maya.standalone' in sys.modules
 
@@ -16,6 +17,7 @@ if READY:
     from SkinningTools.Maya.tools import shared, skinCluster, apiWeights
     from SkinningTools.UI.weightEditor.weightsTableModel import WeightsTableModel
     from SkinningTools.UI.qt_util import Qt
+    from SkinningTools.UI.weightEditor.weightEditor import WeightEditorWindow
     from tests.maya_fixtures import SceneFixture, snapshot, write_raw, skin_data
 
 
@@ -77,11 +79,18 @@ class MayaBaselineTests(unittest.TestCase):
         self.assertEqual(set(cmds.ls(long=True)), before)
         self.assertEqual(cmds.ls(selection=True, long=True), selection)
 
-    def test_D001_real_call_swallows_nameerror(self):
-        # The actual decorated function returns None; undecorated call exposes it.
-        self.assertIsNone(skinCluster.forceCompareInfluences([self.mesh]))
-        with self.assertRaisesRegex(NameError, 'skinClusterName'):
-            skinCluster.forceCompareInfluences.__wrapped__([self.mesh])
+    def test_D001_real_cluster_and_missing_cluster(self):
+        with patch.object(cmds, 'confirmDialog', return_value='Yes'):
+            self.assertTrue(skinCluster.forceCompareInfluences([self.mesh]))
+        other, skin = self.fixture.create(different=True)
+        with patch.object(cmds, 'confirmDialog', return_value='Yes'):
+            self.assertTrue(skinCluster.forceCompareInfluences([self.mesh, other]))
+        self.assertEqual(set(cmds.skinCluster(self.skin, query=True, influence=True)),
+                         set(cmds.skinCluster(skin, query=True, influence=True)))
+        unskinned = cmds.polyCube(name=self.fixture.namespace + ':noSkin')[0]
+        before = snapshot(self.mesh, self.skin)
+        self.assertFalse(skinCluster.forceCompareInfluences([self.mesh, unskinned]))
+        self.assertEqual(snapshot(self.mesh, self.skin), before)
 
     def test_D003_direct_write_has_no_undo_record(self):
         before = snapshot(self.mesh, self.skin)
@@ -102,12 +111,19 @@ class MayaBaselineTests(unittest.TestCase):
         self.assertEqual(after['weights'], weights)
         self.assertEqual(after['logical_indices'], before['logical_indices'])
 
-    def test_D009_real_selection_leaks_between_meshes(self):
+    def test_D009_real_selection_is_scoped_to_mesh(self):
         other, skin = self.fixture.create(different=True)
         cmds.select([self.mesh + '.vtx[0]', other + '.vtx[7]'], replace=True)
         reader = apiWeights.ApiWeights()
-        self.assertEqual(sorted(reader.selectedVertIds(self.mesh)), [0, 7])
-        self.assertEqual(sorted(reader.selectedVertIds(other)), [0, 7])
+        self.assertEqual(sorted(reader.selectedVertIds(self.mesh)), [0])
+        self.assertEqual(sorted(reader.selectedVertIds(other)), [7])
+        shape = cmds.listRelatives(self.mesh, shapes=True, fullPath=True)[0]
+        self.assertEqual(reader.selectedVertIds(shape), [0])
+        cmds.select([shape + '.vtx[1:3]', other], replace=True)
+        self.assertEqual(sorted(reader.selectedVertIds(self.mesh)), [1, 2, 3])
+        self.assertEqual(sorted(reader.selectedVertIds(other)), list(range(9)))
+        cmds.select(clear=True)
+        self.assertIsNone(reader.selectedVertIds(self.mesh))
 
     def test_D014_list_input_constructor_fails_before_write(self):
         before = snapshot(self.mesh, self.skin)
@@ -117,15 +133,73 @@ class MayaBaselineTests(unittest.TestCase):
 
     def test_D011_real_qt_signal_arguments(self):
         window = SimpleNamespace(vtxDataDict={0: [None]*6 + [self.mesh]}, jointIndexList={self.mesh: [0, 1]})
-        model = WeightsTableModel([[0.25, 0.75]], window=window)
+        model = WeightsTableModel([[0.25, 0.75, None]], window=window)
         delivered = []
         model.dataChanged.connect(lambda first, last, roles: delivered.append((first, last, roles)))
         self.assertTrue(model.setData((0, 0), 0.5, Qt.EditRole))
         self.assertEqual(model._data[0][0], 0.5)
         self.assertEqual(len(delivered), 1)
         print('D011 delivered indices:', delivered[0][0], delivered[0][1])
-        self.assertFalse(delivered[0][0].isValid())
-        self.assertFalse(delivered[0][1].isValid())
+        self.assertTrue(delivered[0][0].isValid())
+        self.assertEqual((delivered[0][0].row(), delivered[0][0].column()), (0, 0))
+        self.assertEqual(delivered[0][0].model(), model)
+        self.assertEqual(delivered[0][1], delivered[0][0])
+        self.assertTrue(model.setData(model.index(0, 1), 0.6, Qt.EditRole))
+        self.assertEqual((delivered[1][0].row(), delivered[1][0].column()), (0, 1))
+
+    def test_D018_bind_pose_helper_misclassifies_untouched_bind(self):
+        pose = cmds.listConnections(self.skin + '.bindPose', source=True)[0]
+        self.assertIsNone(cmds.dagPose(pose, query=True, atPose=True))
+        self.assertFalse(skinCluster.checkBasePose(self.skin))
+
+    def test_D002_paste_commits_multiple_meshes_vertices_locks_and_undo_redo(self):
+        plugin = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Maya', 'plugin', 'SkinEditPlugin.py')
+        cmds.loadPlugin(plugin, quiet=True)
+        other, other_skin = self.fixture.create(different=True)
+        write_raw(self.mesh, self.skin, [v for _ in range(9) for v in (0.25, 0.5, 0.25)])
+        write_raw(other, other_skin, [v for _ in range(9) for v in (0.25, 0.75)])
+        lock_joint = snapshot(self.mesh, self.skin)['influences'][2]
+        cmds.setAttr(lock_joint + '.liw', True)
+        before = [snapshot(self.mesh, self.skin), snapshot(other, other_skin)]
+        header = dict.fromkeys(range(6))
+        data = [header, [0.25, 0.5, 0.25], [0.25, 0.5, 0.25], header, [0.25, 0.75]]
+        state = SimpleNamespace(_data=data, rowLen=1, colLen=1,
+            copyValues=[0.5], copyCellPos=[[0, 0]], vtxDataDict={},
+            jointIndexList={self.mesh: [0, 1, 2, None, None], other: [None, None, None, 0, 1]},
+            meshWeights={self.mesh: [before[0]['weights'][i:i+3] for i in range(0, 27, 3)],
+                         other: [before[1]['weights'][i:i+2] for i in range(0, 18, 2)]},
+            meshSkinClusters={self.mesh: self.skin, other: other_skin},
+            vtxlockedData={}, nodeVtxIndexList={}, refreshTable=Mock())
+        for row, vertex, mesh, snap, locks in ((1, 0, self.mesh, before[0], [2]),
+                                               (2, 1, self.mesh, before[0], [2]),
+                                               (4, 0, other, before[1], [])):
+            name = mesh + '.vtx[%d]' % vertex
+            state.vtxDataDict[row] = [vertex, None, snap['influences'], [],
+                                     list(range(len(snap['influences']))), name, mesh]
+            state.vtxlockedData[name] = locks
+            state.nodeVtxIndexList[name] = data[row]
+        model = WeightsTableModel(data, window=state)
+        model.lockedWeigths = {(1, 2), (2, 2)}
+        state.weightTable = model
+        state.selectedCells = [model.index(1, 0), model.index(2, 0), model.index(4, 3),
+                               model.index(1, 2), model.index(1, 4), model.index(3, 0)]
+        state.getIgnoreList = lambda *args: WeightEditorWindow.getIgnoreList(state, *args)
+        state.tryNormalizeWeights = lambda: WeightEditorWindow.tryNormalizeWeights(state)
+        cmds.flushUndo()
+        WeightEditorWindow.pasteCells(state)
+        self.assertEqual(state.cellDict, {1: [0], 2: [0], 4: [3]})
+        after = [snapshot(self.mesh, self.skin), snapshot(other, other_skin)]
+        self.assertEqual(after[0]['weights'][:6], [0.5, 0.25, 0.25] * 2)
+        self.assertEqual(after[1]['weights'][:2], [0.5, 0.5])
+        self.assertEqual(after[0]['locks'], before[0]['locks'])
+        self.assertEqual(after[0]['weights'][6:], before[0]['weights'][6:])
+        self.assertEqual(after[1]['weights'][2:], before[1]['weights'][2:])
+        for _ in range(2):
+            cmds.undo()
+        self.assertEqual([snapshot(self.mesh, self.skin), snapshot(other, other_skin)], before)
+        for _ in range(2):
+            cmds.redo()
+        self.assertEqual([snapshot(self.mesh, self.skin), snapshot(other, other_skin)], after)
 
     def test_skin_editor_exact_repeated_undo_redo_and_unrelated_mesh(self):
         plugin = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Maya', 'plugin', 'SkinEditPlugin.py')

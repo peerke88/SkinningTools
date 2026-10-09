@@ -1,6 +1,7 @@
 # M0 baseline characterization
 
-Recorded 2026-10-09 (Asia/Tokyo). M0 only; awaiting user acceptance. No production
+Recorded 2026-10-09 (Asia/Tokyo). Historical M0 snapshot; accepted 2026-10-09.
+See M1_REPORT.md for subsequent work. At M0, no production
 code changes, supported-version changes, plugin removal, installer execution,
 network publication or GitHub push is authorized by this milestone.
 
@@ -13,7 +14,7 @@ network publication or GitHub push is authorized by this milestone.
 - Delivery branch: `codex/skinningtools-reliability`.
 - No repository or ancestor AGENTS.md was found in the inspected paths.
 - All M0 deliverables are under `tests/` and `docs/development/`. The local M0
-  commit is discoverable with `git log -1 codex/skinningtools-reliability`.
+  commit is `4d6d3f026dc5025a734274691cf2649d534a4391`.
   No remote branch or pull request is created. The user explicitly prohibited
   committing data to GitHub; all commits and evidence remain local.
 

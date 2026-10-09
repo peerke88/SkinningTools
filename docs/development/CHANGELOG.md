@@ -1,10 +1,10 @@
 # Development change ledger
 
-## M0 — 2026-10-09 — local delivery, awaiting acceptance
+## M0 — 2026-10-09 — accepted 2026-10-09
 
 Baseline: `2d712f9dd844112d7457324b85e6c351e60f66b1`.
-Branch: `codex/skinningtools-reliability`. Commit: use
-`git log -1 --format=%H codex/skinningtools-reliability` for the local delivery hash.
+Branch: `codex/skinningtools-reliability`. Local M0 commit:
+`4d6d3f026dc5025a734274691cf2649d534a4391`.
 No GitHub push, PR, merge or publication. Production files and binaries unchanged.
 
 Added:
@@ -33,3 +33,31 @@ failure atomicity, locks/normalization, unsafe native arguments, installer rollb
 and release compatibility require later milestones. User acceptance is required
 before M1. Keep proposed M1 targets D001/D002/D008/D009/D011/D012; seek explicit
 scope acceptance for D014, and reconsider original D004 assumptions for M2.
+
+## M1 — 2026-10-09 — local delivery, awaiting acceptance
+
+Parent: `4d6d3f026dc5025a734274691cf2649d534a4391`. Same working branch.
+The user accepted M0 and requested continuation. No GitHub push, PR or merge.
+
+D001 retains resolved clusters and refuses missing clusters before comparison.
+D002 registers paste rows/columns and skips unavailable targets. D008 checks
+absolute normalization error. D009 scopes selection to its owning mesh/shape.
+D011 emits actual model indices. D012 resolves the Linux suffix as .so.
+
+Production changes: Maya/interface.py, Maya/tools/apiWeights.py,
+Maya/tools/skinCluster.py, UI/weightEditor/weightEditor.py and
+UI/weightEditor/weightsTableModel.py. Tests/test_characterization.py and
+tests/test_maya_integration.py include desired-behavior regressions for corrected
+targets and retain untouched defect characterizations. Public signatures, native
+plugins, weight algorithms and undo implementation unchanged. Original production
+CRLF/EOF conventions preserved; check whitespace with Git cr-at-eol enabled.
+
+Validation: 16 host-independent cases and 18 Maya 2025/PySide6 cases pass,
+including two-mesh paste with locked weights and exact undo/redo. Full evidence:
+M1_TEST_RESULTS.txt. Scope, test investigations and limitations: M1_REPORT.md.
+
+New D018: existing checkBasePose misclassifies an untouched bind in Maya 2025.
+It remains unchanged and explicitly characterized. D014 also remains unchanged.
+Neither additional correction scope nor M2-M5 implementation was included.
+Maya 2022/PySide2 and complete interactive workflows remain unvalidated.
+Stop for user acceptance before M2.

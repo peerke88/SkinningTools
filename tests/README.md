@@ -1,4 +1,4 @@
-# Baseline characterization
+# Reliability characterization and regressions
 
 Run from the repository root:
 
@@ -19,11 +19,11 @@ cleanup. Undo queue flushing is restricted to the disposable batch process.
 
 Source-definition tests compile the original selected function body with explicit
 fake collaborators. They do not validate full imports, UI event wiring, Maya
-types or native binaries. Tests named with defect IDs deliberately assert
-**observed baseline behavior**, including erroneous results. Green M0 tests do
-not mean those defects are corrected. M1 and later should add desired-behavior
-regressions and replace obsolete characterization expectations in the same
-reviewable correction, without weakening assertions to hide failures.
+types or native binaries. Tests for D001/D002/D008/D009/D011/D012 now assert
+desired M1 behavior. Tests for untouched defects deliberately assert observed
+baseline behavior, including erroneous results. Passing suites do not certify
+all defects as corrected. Original M0 expectations/evidence remain in the M0
+commit and TEST_RESULTS.txt. D018 is an explicit bind-pose characterization.
 
 Snapshots include weights, ordered influence names, physical and logical indices,
 locks, normalization/max-influence settings, selection and associated bind poses.

@@ -226,7 +226,8 @@ class WeightsTableModel(QAbstractTableModel):
             local_column = influencesList[col]
             
             self._data[row][local_column] = value
-            self.dataChanged.emit((row, col), (row, col))
+            modelIndex = self.index(row, col)
+            self.dataChanged.emit(modelIndex, modelIndex)
             return True
         else:
             return False
