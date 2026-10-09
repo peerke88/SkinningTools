@@ -1,3 +1,0 @@
-Read-only comparisons against accepted M3 Git source; exact Python result equality.
-Exact M3 slider policy comparisons: 864
-Exact M3 table policy comparisons: 256
