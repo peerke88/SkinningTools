@@ -36,11 +36,7 @@ Run `python packageCreator.py --output package/SkinningTools.zip` with Python 3.
 to create a local release ZIP, extract it and install through the MEL file.
 The builder does not run on import or rewrite source versions. Release tooling
 requirements are separate from the retained Maya runtime requirements above.
-See [the release and compatibility contract](docs/development/RELEASE_PROCESS.md)
-and [the bundled dependency audit](docs/development/THIRD_PARTY.md) for verified
-hosts, deterministic plugin ownership, rollback and license limitations.
-or place the skinningtools folder in a location maya can find (mydocuments/maya/scripts for example)
-after that use the following python commands:
+use the following python commands:
 
 - for development:
 ```python
