@@ -50,3 +50,12 @@ clusters and geometry matching isolated; D019/D020 explicitly characterize the
 unchanged remap/sampling errors. File-import tests use a disposable temporary JSON
 file, removed on exit. No test fixture data or scene files are delivered to GitHub.
 M2_TEST_RESULTS.txt and WEIGHT_WRITE_CONTRACT.md describe evidence and boundaries.
+
+M3 adds tests/test_maya_smoothing.py: independent row math, real Python callback
+commands and explicitly selected native builds. There are 16 Python cases and
+48 Maya cases. Without SKINNINGTOOLS_NATIVE_TEST_PLUGIN, ten new native cases
+skip and 38 Maya cases execute; with the delivered primary binary all 48 execute.
+The override is shared by the existing native smoke class so colliding plugins
+are not loaded together. SKINNINGTOOLS_MAYA_TEST_NAME runs a named case/class in
+its own disposable process. See docs/development/M3_BUILD.md for build/test commands
+and the four-case duplicate setter run. Characterizations D017-D020 remain unchanged.

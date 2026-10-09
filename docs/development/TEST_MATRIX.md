@@ -88,3 +88,18 @@ arrays and single-entry multi-mesh undo are tested. Full importer geometry match
 is isolated in its write-boundary test; D019/D020 separately assert remaining
 remapping/sampling defects. Arbitrary full-scene transactions, production memory
 and scale, native rebuilds, interactive UI and Maya 2022 remain unvalidated.
+
+## M3 evidence update
+
+16 Python cases pass. All 48 Maya2025 cases pass against the delivered primary
+build; four duplicate setter regressions pass in another process. Native invalid
+setter/brush cases additionally execute in isolated fresh processes. Python/C++
+weights match an independent row reference at 1e-12 across strengths, modes and
+per-vertex limits. Locks, sparse influence maps, reordered components, exact
+zero/isolated behavior, repeated/consecutive undo/redo and context changes pass.
+D007 contiguous valid-call index corruption remains unreproduced, despite the
+source concern; missing empty-setter failure is reproduced and corrected. Original
+native numerical failures and cmds errors are retained in M3_BASELINE_RESULTS.txt.
+New D021 default selection is corrected within the native argument audit.
+Native post-mutation fault injection, interactive strokes, NURBS/lattice setters,
+Maya2022/PySide2, other platform/ABI builds and production memory/scale are deferred.

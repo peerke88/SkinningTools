@@ -111,3 +111,14 @@ The tables and CALL_SITES.json above preserve the M0 baseline. Current shared,
 full-mesh API, table and staged importer weight writes route through the existing
 SkinEditor command. See WEIGHT_WRITE_CONTRACT.md for the current ownership map
 and exact atomicity boundaries. Native/brush/skinPercent paths remain separate.
+
+## M3 routing/build update
+
+Python brush callback MPxCommands reuse M2 SkinEditClass preparation/application
+and own exact cached undo/redo. Native AverageVtxWeight remains a native owner,
+using checked plugs, physical indices, per-row math and exact write helpers.
+Both native SkinWeights copies are patched; helpers intentionally remain duplicated
+pending M4. Maya2025 averageWeightPerryCpp bundled binary is rebuilt and validated.
+skinToolWeightsCpp root target registers only SkinWeights despite being named
+smooth_brush_maya; it was built/tested separately without overwriting any brush
+engine binary. See M3_BUILD.md and M3_REPORT.md for provenance and deferred hosts.

@@ -62,7 +62,7 @@ Neither additional correction scope nor M2-M5 implementation was included.
 Maya 2022/PySide2 and complete interactive workflows remain unvalidated.
 Stop for user acceptance before M2.
 
-## M2 — 2026-10-09 — local delivery, awaiting acceptance
+## M2 — 2026-10-09 — accepted by continuation 2026-10-09
 
 Parent: `bd19472ce1b3521fbe5c9edba4a60d6ab50dd029`. Same working branch.
 User accepted M1 and requested continuation. No GitHub push, PR or publication.
@@ -86,3 +86,34 @@ D019 closest-coordinate remapping and D020 out-of-range random sampling are
 reproduced and unchanged. Full importer binding/remap transaction unvalidated.
 Maya 2022/PySide2, interactive workflows and native builds remain deferred.
 Stop for acceptance before M3.
+
+## M3 — 2026-10-09 — local delivery, awaiting acceptance
+
+Parent: `effbb7fd2ad49f249411dc40238f002486abc03d`. User accepted M2 and
+requested continuation. Same local branch; no GitHub push, PR or publication.
+
+D005/D006 correct Python brush interpolation, zero/isolated policy and cached
+undo/redo. D010 corrects native per-vertex limiting/normalization. D007 parsers
+are hardened in both native copies; valid-call corruption was not reproduced,
+while missing invalid-input failure was reproduced. D016 settings queries now
+use native plugs; D021 default-selection fallback is fixed during argument audit.
+Native physical indices, locks, status propagation and exact writes are validated.
+
+Production: averageWeightPlugin.py; averageWeightPerryCpp/projects
+averagevtxweight.cpp/.h, skinweights.cpp/.h, utils.hpp; skinToolWeightsCpp/projects
+skinweights.cpp/.h, utils.hpp; primary Maya2025 averageWeightPerryCpp skinCommands.mll.
+Only that bundled binary is replaced. Duplicate setter build remains under ignored
+build/; no plugin removed or unrelated smoothBrushRodCpp engine changed.
+
+Validation: 16 Python tests; 48 Maya2025 tests against delivered primary binary;
+four setter cases against the independently rebuilt duplicate. Separate invalid
+native cases execute in fresh processes. Evidence: M3_TEST_RESULTS.txt,
+M3_BASELINE_RESULTS.txt, M3_REPORT.md and M3_BUILD.md. New mathematical reference
+and host regressions: tests/test_maya_smoothing.py. M2 class-selection injection
+harness corrected to distinguish registered/imported command classes.
+
+1,089-vertex native smoothing costs about 10-11 ms versus approximately 15 ms in
+the original-source smoke (incorrect math and cmds errors; not a certified speedup).
+Memory/production scale, interactive events, Maya2022/PySide2, other ABI/platform
+binaries and native post-mutation fault injection remain unvalidated.
+Stop for acceptance before M4.

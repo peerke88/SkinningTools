@@ -1,6 +1,8 @@
+import math
 from maya import cmds
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.Maya.tools import shared
+from SkinningTools.Maya.plugin.SkinEditPlugin import SkinEditClass
 
 CONTEXT_INIT = "paintAverageWghtCtxInitialize"
 CONTEXT_UPDATE = "paintAverageWghtCtxUpdate"
@@ -20,7 +22,7 @@ class AverageWghtCtx(object):
             self.reset()
             return
 
-        self.dag = shared.getDagpath(obj)
+        self.dag = shared.getDagpath(obj, True)
         self.obj = self.dag.node()
 
         self.skinCluster = shared.getMfnSkinCluster(self.dag)
@@ -47,72 +49,77 @@ class AverageWghtCtx(object):
         self.infl = OpenMaya.MDagPathArray()
 
     def calcWeights(self, value, origWeights, nbWeigths, influences, amountComps):
-        infAmount = len(influences)
-        newWeigths = [0.0] * infAmount
-        amountNeighbors = len(nbWeigths)
-        for i, joint in enumerate(influences):
-
-            for j in range(i, amountNeighbors, infAmount):
-                w = ((origWeights[i] / amountNeighbors) * (1 - value)) + ((nbWeigths[j] / amountComps) * value)
-                newWeigths[i] += w
-
+        if math.isnan(value) or math.isinf(value) or not 0.0 <= value <= 1.0:
+            raise ValueError('Smoothing strength must be finite in [0, 1]')
+        count = len(influences)
+        if not count or len(origWeights) != count or len(nbWeigths) != count * amountComps:
+            raise ValueError('Smoothing weight dimensions do not match')
+        if any(math.isnan(w) or math.isinf(w) or not 0.0 <= w <= 1.0
+               for w in list(origWeights) + list(nbWeigths)):
+            raise ValueError('Smoothing weights must be finite in [0, 1]')
+        # Strength zero and isolated vertices are exact no-ops, including limits.
+        if value == 0.0 or amountComps == 0:
+            return list(origWeights), influences
+        locked = getattr(self, 'locked', [False] * count)
+        newWeigths = [origWeights[i] if locked[i] else
+                      origWeights[i] * (1.0-value) +
+                      sum(nbWeigths[j] for j in range(i, len(nbWeigths), count)) / amountComps * value
+                      for i in range(count)]
         if self.maintainMaxInfl:
-            weights = zip(newWeigths, influences)
-            excess = sorted(weights, reverse=True)[self.maxInfluences:]
-            for e in excess:
-                newWeigths[e[1]] = 0.0
-
+            if self.maxInfluences < 1:
+                raise ValueError('Maximum influences must be positive')
+            locked_count = sum(locked[i] and newWeigths[i] > 0.0 for i in range(count))
+            if locked_count > self.maxInfluences:
+                raise ValueError('Locked influences exceed maximum influences')
+            ranked = sorted((i for i in range(count) if not locked[i]),
+                            key=lambda i: (-newWeigths[i], i))
+            for i in ranked[self.maxInfluences-locked_count:]:
+                newWeigths[i] = 0.0
         if self.normalize == 1:
-            total = sum(newWeigths)
-
-            if total < 1e-6:
-                factor = 0
-            else:
-                factor = 1.0 / total
-
-            for i, weight in enumerate(newWeigths):
-                newWeigths[i] = weight * factor
-
+            locked_sum = sum(newWeigths[i] for i in range(count) if locked[i])
+            if locked_sum > 1.0 + 1e-6:
+                raise ValueError('Locked weights exceed normalization budget')
+            total = sum(newWeigths[i] for i in range(count) if not locked[i])
+            if total:
+                factor = max(0.0, 1.0-locked_sum) / total
+                for i in range(count):
+                    if not locked[i]:
+                        newWeigths[i] *= factor
+            elif 0.0 < locked_sum < 1.0-1e-6 and any(not item for item in locked):
+                raise ValueError('No unlocked weight to fill normalization budget')
         return newWeigths, influences
 
     def setWeights(self, index, value):
-        if not self.obj:
+        if self.obj is None:
             return [None] * 5
-
+        if index < 0 or index >= OpenMaya.MFnMesh(self.dag).numVertices:
+            raise ValueError('Invalid smoothing vertex')
         singleIdComp = OpenMaya.MFnSingleIndexedComponent()
         vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
         singleIdComp.addElement(index)
-
-        origWeigths = self.skinCluster.getWeights(self.dag, vertexComp)[0]
-
-        iterVertLoop = OpenMaya.MItMeshVertex(self.obj)
-        iterVertLoop.setIndex(index)
-        intArray = iterVertLoop.getConnectedVertices()
-
-        vertexComps = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
-        singleIdComp.addElements(intArray)
-        compAmount = len(intArray)
-
-        nbWeights = self.skinCluster.getWeights(self.dag, vertexComps)[0]
-
-        infDags = self.skinCluster.influenceObjects()
-        infIndexes = OpenMaya.MIntArray(len(infDags), 0)
-        for x in range(len(infDags)):
-            infIndexes[x] = int(self.skinCluster.indexForInfluenceObject(infDags[x]))
-
-        newWeights, newInfl = self.calcWeights(value, origWeigths, nbWeights, infIndexes, compAmount)
-
-        singleIdComp = OpenMaya.MFnSingleIndexedComponent()
-        vertexComp = singleIdComp.create(OpenMaya.MFn.kMeshVertComponent)
-        singleIdComp.addElement(index)
-
-        skinWeights = OpenMaya.MDoubleArray(len(newWeights), 0)
-        for i in range(len(newWeights)):
-            skinWeights[i] = newWeights[i]
-
-        self.skinCluster.setWeights(self.dag, vertexComp, newInfl, skinWeights)# newWeights
-
-        return [self.skinCluster, self.dag, vertexComp, newInfl, origWeigths]
+        origWeights = self.skinCluster.getWeights(self.dag, vertexComp)[0]
+        iterator = OpenMaya.MItMeshVertex(self.dag)
+        iterator.setIndex(index)
+        neighbors = iterator.getConnectedVertices()
+        componentFn = OpenMaya.MFnSingleIndexedComponent()
+        neighborComp = componentFn.create(OpenMaya.MFn.kMeshVertComponent)
+        componentFn.addElements(neighbors)
+        neighborWeights = self.skinCluster.getWeights(self.dag, neighborComp)[0] if neighbors else []
+        influences = self.skinCluster.influenceObjects()
+        indices = OpenMaya.MIntArray(range(len(influences)))
+        self.locked = [cmds.getAttr(inf.fullPathName() + '.liw') for inf in influences]
+        # Read current settings for each edit, not cached initialization settings.
+        self.maxInfluences = self.skinCluster.findPlug('maxInfluences', True).asInt()
+        self.maintainMaxInfl = self.skinCluster.findPlug('maintainMaxInfluences', True).asBool()
+        self.normalize = self.skinCluster.findPlug('normalizeWeights', True).asInt()
+        weights, unused = self.calcWeights(value, origWeights, neighborWeights, indices, len(neighbors))
+        self.writer = SkinEditClass()
+        operation = self.writer._prepare({'mesh': self.dag.fullPathName(),
+            'skinCluster': self.skinCluster.name(), 'vertices': [index],
+            'influences': list(indices), 'weights': weights, 'normalize': False})
+        self.writer.operations = [operation]
+        self.writer._apply([operation['newWeights']])
+        return [self.skinCluster, self.dag, vertexComp, indices, origWeights]
 
 
 
@@ -141,28 +148,30 @@ def initialize():
 class AverageWghtCtxUpdate(OpenMaya.MPxCommand):
     def __init__(self):
         OpenMaya.MPxCommand.__init__(self)
+        self._ready = False
 
     def doIt(self, args):
         self.index = args.asInt(1)
         self.value = args.asDouble(2)
-
         self.data = smoothWeights.setWeights(self.index, self.value)
+        if self.data[0] is None:
+            raise RuntimeError('Smoothing context is not initialized')
+        self.writer = smoothWeights.writer
+        self.before = self.writer.operations[0]['oldWeights']
+        self.after = self.writer.operations[0]['newWeights']
+        self._ready = True
+
+    def _apply(self, weights):
+        self.writer._apply([weights])
 
     def undoIt(self):
-        if not all(self.data):
-            return
-
-        skinCluster, dag, component, influences, weights = self.data
-        skinCluster.setWeights(dag, component, influences, weights, 1)
+        self._apply(self.before)
 
     def redoIt(self):
-        if not self.index or not self.value:
-            return
-
-        self.data = smoothWeights.setWeights(self.index, self.value)
+        self._apply(self.after)
 
     def isUndoable(self):
-        return True
+        return self._ready
 
 
 def creatorUpdate():

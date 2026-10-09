@@ -1,6 +1,7 @@
 #ifndef AVERAGE_VTX_WEIGHT_H
 
 #include <maya/MPxCommand.h>
+#include "utils.hpp"
 
 #include <maya/MFnSingleIndexedComponent.h>
 #include <maya/MFnSkinCluster.h>
@@ -29,7 +30,8 @@ private:
 	MObject mTargetComponents;
 
 	MFnSkinCluster mSkinFn;
-	MIntArray mInfluenceIndices;
+	WeightMapping mMapping;
+	bool mReady;
 
 	bool mNormalize;
 	double mWeight;
@@ -41,10 +43,10 @@ private:
 	MStatus ParseArgs(const MArgList& args, MString* outSkinClusterName, MStringArray* outTargetNames);
 	
 public:
-	AverageVtxWeight() {  }
-	virtual ~AverageVtxWeight() {  }
+	AverageVtxWeight() : mReady(false), mNormalize(false), mWeight(1.0), mMaxinf(0) {}
+	virtual ~AverageVtxWeight() {}
 	static void* sCreator(){ return new AverageVtxWeight(); }
-	virtual bool isUndoable() const override { return true; }
+	virtual bool isUndoable() const override { return mReady; }
 	virtual bool hasSyntax() const override { return true; }
 
 	static MSyntax sNewSyntax();

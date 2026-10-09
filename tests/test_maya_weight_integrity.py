@@ -167,7 +167,8 @@ class WeightIntegrityTests(unittest.TestCase):
         shared.setWeights(self.mesh, om.MDoubleArray(self.before[0]['weights']))
         before = self.snapshots()
         command_class = next(value for value in gc.get_objects()
-                             if isinstance(value, type) and value.__name__ == 'SkinEditClass')
+                             if isinstance(value, type) and value.__name__ == 'SkinEditClass'
+                             and not value.__module__.startswith('SkinningTools.'))
         original = command_class._write
         calls = []
         def fail_after_write(command, operation, weights):
@@ -245,7 +246,8 @@ class WeightIntegrityTests(unittest.TestCase):
             {'mesh': self.other, 'weights': [v for _ in range(9) for v in (0.5, 0.5)]}])
         before = self.snapshots()
         command_class = next(value for value in gc.get_objects()
-                             if isinstance(value, type) and value.__name__ == 'SkinEditClass')
+                             if isinstance(value, type) and value.__name__ == 'SkinEditClass'
+                             and not value.__module__.startswith('SkinningTools.'))
         original = command_class._write
         calls = []
         def fail_after_write(command, operation, weights):

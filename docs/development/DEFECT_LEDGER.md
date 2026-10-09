@@ -3,8 +3,8 @@
 Historical M0 evidence is retained; M1/M2 updates identify corrected targets.
 Status is not acceptance. Runtime evidence
 is explicitly distinguished from isolated Python execution and source inspection.
-D001-D013 retain the supplied register; D014-D020 are additional observations.
-M1 was accepted by continuation; M2 remains awaiting acceptance. Unchecked boxes
+D001-D013 retain the supplied register; D014-D021 are additional observations.
+M1/M2 were accepted by continuation; M3 remains awaiting acceptance. Unchecked boxes
 are retained for explicit ledger review; verification evidence is stated per entry.
 
 - [ ] D001
@@ -113,9 +113,9 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Test coverage: Source execution endpoints/intermediate/normalization/empty neighbors; real callback deferred.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M3: original/neighbor interpolation, exact zero-strength/isolated-row policy, physical indexing, lock-aware per-row limiting and explicit normalization.
 
-    Verification status: Reproduced. Python algorithm executed; full Maya brush not validated.
+    Verification status: Tested with independent reference and real Python brush callbacks in Maya 2025; Python/C++ agree within 1e-12. Interactive stroke events and secondary hosts unvalidated.
 
 - [ ] D006
 
@@ -135,9 +135,9 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Test coverage: Source redo method: two rejected cases and positive control.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M3: redo restores cached committed arrays, rather than rejecting zero or recalculating from the global context; exact undo uses M2 write machinery.
 
-    Verification status: Reproduced. Python definition executed; complete paint command deferred.
+    Verification status: Tested vertex zero, zero strength, repeated undo/redo and context switch across meshes in Maya 2025.
 
 - [ ] D007
 
@@ -157,9 +157,9 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Test coverage: Native binary load/query/basic AverageVtxWeight smoke only; parser finding source-inspected.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: M3 hardens both existing native parsers: intra-list index zero with status checks, dimensions/finite bounded values, ownership and propagated API failures.
 
-    Verification status: Unverified. Source evidence only; native setter not run and binaries not rebuilt.
+    Verification status: Tested both rebuilt native implementations in Maya 2025. Original compiled-source contiguous valid-call test passed, so index corruption remains unreproduced. Original empty setter payload failed to raise; corrected invalid-input cases reject without mutation.
 
 - [ ] D008
 
@@ -223,9 +223,9 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Test coverage: Source inspection; constant single-vertex native smoke does not verify this.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M3: limit and normalize per vertex, deterministic ties, locks consume budget, settings queried via plugs, exact cached snapshots retained.
 
-    Verification status: Unverified. Native per-vertex numerical reproduction and binary/source correspondence deferred.
+    Verification status: Original-source multi-vertex enabled-limit reference case failed; corrected rebuilt C++ agrees with Python/reference across modes/strengths/limits and exact undo/redo. Other prebuilt hosts remain unchanged.
 
 - [ ] D011
 
@@ -355,9 +355,9 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Test coverage: Actual 2025 bundled binary emitted NameError in unseeded smoke; seeded constant numerical smoke passes.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M3 AverageVtxWeight source and delivered Maya2025 binary: query settings with checked API plugs; no Python global dependency or string-pointer-to-bool cast remains.
 
-    Verification status: Reproduced. Binary dependency reproduced; pointer-cast behavior/source equivalence still unverified. No added implementation scope.
+    Verification status: Tested corrected native smoothing without __main__.cmds. Original rebuilt source again emitted NameError while returning success in smoke timing/reference calls. Other old binaries retain previous behavior.
 
 - [ ] D017
 
@@ -450,3 +450,25 @@ are retained for explicit ledger review; verification evidence is stated per ent
     Implementation status: Unchanged; outside M2 weight-write ownership correction.
 
     Verification status: Reproduced for contiguous nine-vertex fixture; noncontiguous behavior remains source-inferred.
+
+- [ ] D021
+
+    Category: Product input-contract defect, discovered during M3 native argument audit.
+
+    Severity: Medium.
+
+    Source location: AverageVtxWeight.sNewSyntax / ParseArgs in averageWeightPerryCpp.
+
+    Observed behavior: Advertised useSelectionAsDefault with string objects/minimum one still raises TypeError: Not enough objects when a mesh is selected and positional input is omitted.
+
+    Expected behavior: Resolve active selection consistently when the caller relies on the declared default-selection contract; reject empty/invalid selection safely.
+
+    Reproduction: cmds.select(mesh); cmds.AverageVtxWeight(sc=skin, wt=.5, n=False) in fresh standalone.
+
+    Root cause: String-object minimum validation precedes an explicit selection fallback.
+
+    Test coverage: Native object/default-selection regression failed before the parser repair and passes with the revised build.
+
+    Implementation status: Fixed during the authorized M3 native argument audit: optional positional strings plus checked active-selection fallback; no public flag removed.
+
+    Verification status: Tested in Maya 2025; interactive viewport invocation remains unexecuted.

@@ -2,6 +2,7 @@
 
 
 #include <maya/MPxCommand.h>
+#include "utils.hpp"
 #include <maya/MDoubleArray.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MStringArray.h>
@@ -22,6 +23,8 @@ class SkinWeights : public MPxCommand
 {  
 private:
 	bool isQueryInstance;
+	bool mReady;
+	WeightMapping mMapping;
 	MDoubleArray mSetWeights;
 	MDoubleArray mUndoWeights;
 	MDagPath mMeshPath;

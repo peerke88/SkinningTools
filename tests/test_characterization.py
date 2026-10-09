@@ -101,38 +101,36 @@ class BaselinePythonTests(unittest.TestCase):
         state.tryNormalizeWeights.assert_not_called()
 
     def test_D005_blend_endpoints_and_intermediate_without_normalization(self):
-        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', owner='AverageWghtCtx')
+        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'math': __import__('math')}, owner='AverageWghtCtx')
         state = SimpleNamespace(maintainMaxInfl=False, normalize=0)
         for strength in (0.0, 0.5, 1.0):
             actual, indices = calc(state, strength, [0.8, 0.2], [0.2, 0.8, 0.4, 0.6], [0, 1], 2)
-            expected_baseline = [0.8 * (1-strength) / 2 + 0.3 * strength,
-                                 0.2 * (1-strength) / 2 + 0.7 * strength]
+            expected_baseline = [0.8 * (1-strength) + 0.3 * strength,
+                                 0.2 * (1-strength) + 0.7 * strength]
             for a, b in zip(actual, expected_baseline):
                 self.assertAlmostEqual(a, b)
             self.assertEqual(indices, [0, 1])
 
     def test_D005_normalization_masks_strength_zero_scaling(self):
-        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', owner='AverageWghtCtx')
+        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'math': __import__('math')}, owner='AverageWghtCtx')
         result, _ = calc(SimpleNamespace(maintainMaxInfl=False, normalize=1),
                          0.0, [0.8, 0.2], [0.2, 0.8, 0.4, 0.6], [0, 1], 2)
         self.assertEqual(result, [0.8, 0.2])
 
-    def test_D005_zero_neighbors_returns_zero_weights(self):
-        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', owner='AverageWghtCtx')
+    def test_D005_zero_neighbors_preserves_original_weights(self):
+        calc = definition('Maya/plugin/averageWeightPlugin.py', 'calcWeights', {'math': __import__('math')}, owner='AverageWghtCtx')
         result, _ = calc(SimpleNamespace(maintainMaxInfl=False, normalize=1),
                          0.0, [0.8, 0.2], [], [0, 1], 0)
-        self.assertEqual(result, [0.0, 0.0])
+        self.assertEqual(result, [0.8, 0.2])
 
-    def test_D006_redo_skips_vertex_zero_and_strength_zero(self):
-        smooth = SimpleNamespace(setWeights=Mock(return_value='written'))
+    def test_D006_redo_restores_cached_snapshot_for_zero_vertex_and_strength(self):
+        apply = Mock()
         redo = definition('Maya/plugin/averageWeightPlugin.py', 'redoIt',
-                          {'smoothWeights': smooth}, owner='AverageWghtCtxUpdate')
+                          owner='AverageWghtCtxUpdate')
         for index, value in ((0, 0.5), (1, 0.0)):
-            redo(SimpleNamespace(index=index, value=value))
-        smooth.setWeights.assert_not_called()
-        state = SimpleNamespace(index=1, value=0.5)
-        redo(state)
-        self.assertEqual(state.data, 'written')
+            state = SimpleNamespace(index=index, value=value, _apply=apply, after='committed')
+            redo(state)
+        self.assertEqual(apply.call_args_list, [unittest.mock.call('committed')] * 2)
 
     def test_D008_both_checks_detect_absolute_normalization_error(self):
         path = 'UI/weightEditor/weightEditor.py'

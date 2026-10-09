@@ -18,7 +18,7 @@ class NativeBaselineTests(unittest.TestCase):
     def setUpClass(cls):
         version = cmds.about(version=True)
         root = os.path.dirname(os.path.dirname(__file__))
-        cls.plugin = os.path.join(root, 'Maya', 'plugin', 'averageWeightPerryCpp',
+        cls.plugin = os.environ.get('SKINNINGTOOLS_NATIVE_TEST_PLUGIN') or os.path.join(root, 'Maya', 'plugin', 'averageWeightPerryCpp',
                                  'comp', 'Maya' + version, 'plug-ins', 'skinCommands.mll')
         if sys.platform != 'win32' or not os.path.isfile(cls.plugin):
             raise unittest.SkipTest('No matching bundled Windows native plugin: ' + cls.plugin)
@@ -38,6 +38,8 @@ class NativeBaselineTests(unittest.TestCase):
                          snapshot(self.mesh, self.skin)['weights'])
 
     def test_native_average_single_vertex_strength_one_undo_redo(self):
+        if 'AverageVtxWeight' not in cmds.pluginInfo(self.plugin, query=True, command=True):
+            self.skipTest('This existing native project registers only SkinWeights')
         # Native ParseArgs evaluates Python against Maya's global namespace.
         # Supply the dependency explicitly; source does not import it itself.
         import __main__

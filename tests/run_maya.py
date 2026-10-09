@@ -19,7 +19,9 @@ def main():
             raise RuntimeError('Interactive Maya is forbidden')
         print('Host: Maya %s; Python %s' % (cmds.about(version=True), sys.version))
         start = time.perf_counter()
-        suite = unittest.defaultTestLoader.discover(os.path.join(root, 'tests'), pattern='test_maya_*.py', top_level_dir=root)
+        test_name = os.environ.get('SKINNINGTOOLS_MAYA_TEST_NAME')
+        suite = (unittest.defaultTestLoader.loadTestsFromName(test_name) if test_name else
+                 unittest.defaultTestLoader.discover(os.path.join(root, 'tests'), pattern='test_maya_*.py', top_level_dir=root))
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         print('Elapsed test seconds: %.3f' % (time.perf_counter() - start))
         return 0 if result.wasSuccessful() else 1

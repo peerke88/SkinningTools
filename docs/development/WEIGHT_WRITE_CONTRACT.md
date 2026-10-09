@@ -84,3 +84,13 @@ Python/Maya minimum versions and public signatures are unchanged. Runtime eviden
 is Maya 2025/Python 3.11/PySide6 only; secondary-host and interactive compatibility
 are unvalidated. Full-array capture, JSON preparation and readback add time/memory
 cost; production-scale capacity requires separate measurement.
+
+## M3 owner update
+
+The Python brush now reuses SkinEditClass validation and exact application inside
+its existing callback MPxCommand; the callback owns its cached before/after arrays.
+Native SkinWeights and AverageVtxWeight use corresponding checked native helpers,
+with the same physical-index/exact-restoration/settings-control rules. Algorithms
+remain separate until M4; brush/native smoothing now enforce limits per row.
+Only the Maya2025 primary bundled native binary is rebuilt. Earlier boundary
+limits for arbitrary whole-scene changes and persistent rollback failures remain.
