@@ -143,3 +143,16 @@ averageWeightPerryCpp/projects. Both builds/registrations remain; smoothBrushRod
 stays separate. Maya built-in writes retain their own ownership and semantics.
 Loader/build naming is M5 work. M4_REPORT.md records current ownership and limits;
 M4_CALL_SITES.json is the updated inventory.
+
+## M5 current maintenance ownership
+
+Maya/pluginPaths.py owns version/suffix/native-owner resolution and checked loading.
+API/interface/brush adapters delegate; shared decorators resolve lazily. Native
+setter builds share primary FindMaya and command-appropriate artifact destinations.
+The independent brush and legacy binary trees are preserved.
+
+packageCreator.py is explicit import-safe release tooling. installCore.py owns
+verified directory staging/promotion/rollback; InstallWindow supplies options and
+optional stage-only downloads. Runtime package hashes are canonical and release
+inputs are tracked/allowlisted. RELEASE_PROCESS.md records supported-host evidence,
+release/build/installer contracts; THIRD_PARTY.md records preserved notices and gaps.

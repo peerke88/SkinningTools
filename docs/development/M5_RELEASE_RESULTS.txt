@@ -1,0 +1,29 @@
+Final actual tracked-input release: equal hashes, fixed ZIP metadata, private installation, preserved licenses/binary and README links.
+{
+  "builds": [
+    {
+      "version": "5.0.20250819",
+      "files": 926,
+      "sha256": "730c68bb8c3cc6345a8fe7418fb29071513fb08eae06b249feb5e514d482dcb5",
+      "path": "C:\\dev\\SkinningTools\\build\\m5-verified-delivery\\release1.zip"
+    },
+    {
+      "version": "5.0.20250819",
+      "files": 926,
+      "sha256": "730c68bb8c3cc6345a8fe7418fb29071513fb08eae06b249feb5e514d482dcb5",
+      "path": "C:\\dev\\SkinningTools\\build\\m5-verified-delivery\\release2.zip"
+    }
+  ],
+  "zip_bytes": 146093962,
+  "verified_runtime_files": 923,
+  "license_notices_preserved": true,
+  "primary_binary_matches": true,
+  "readme_links_resolve": true,
+  "private_first_install_verified": true
+}
+
+Undo:
+Redo:
+EXTRACTED_RELEASE_MAYA2025: imports, release debug policy, native owner, sparse write and exact undo/redo passed
+
+Qt versions: system PySide6 6.11.1; Maya2025 PySide6 6.5.3. PySide2 unavailable.

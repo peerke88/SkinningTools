@@ -6,6 +6,7 @@
 from maya import cmds, OpenMaya as OldOpenMaya, OpenMayaUI as OldOpenMayaUI
 from SkinningTools.Maya.mayaWidget import *
 from SkinningTools.Maya.api import *
+from SkinningTools.Maya import pluginPaths
 from SkinningTools.Maya.tools import shared, joints, mesh, skinCluster, mathUtils, holdFetch
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
@@ -85,14 +86,9 @@ def getLockData(inObject):
 
 
 def forceLoadPlugin(inPlugin):
-    if not inPlugin.endswith(".py"):
-        inPlugin = "%s.py" % inPlugin
-    pluginPath = os.path.join(getInterfaceDir(), "plugin/%s" % inPlugin)
-    loaded = cmds.pluginInfo(pluginPath, q=True, loaded=True)
-    registered = cmds.pluginInfo(pluginPath, q=True, registered=True)
-
-    if not registered or not loaded:
-        cmds.loadPlugin(pluginPath)
+    if not inPlugin.endswith('.py'):
+        inPlugin += '.py'
+    return pluginPaths.loadPlugin(os.path.join(getInterfaceDir(), 'plugin', inPlugin), cmds)
 
 # --- maya menus ---
 
@@ -558,32 +554,18 @@ def deleteBindPoses(progressBar=None):
 
 
 def getMayaVersion():
-    mayaVersion = str(cmds.about(apiVersion=True))[:-2]
-    if "maya" in sys.executable and platform.system() == "Windows":
-        mayaVersion = sys.executable.split("Maya")[-1].split(os.sep)[0]
-    elif platform.system() != "Windows":
-        mayaVersion = cmds.about(version=1)
-    return mayaVersion
+    return pluginPaths.mayaVersion(cmds)
 
 
 def getPluginSuffix():
-    pluginSuffix = ".mll"
-    if platform.system() == "Darwin":
-        pluginSuffix = ".bundle"
-    if platform.system() == "Linux":
-        pluginSuffix = ".so"
-    return pluginSuffix
+    return pluginPaths.pluginSuffix(platform.system())
 
 
 def pathToPlugin(pluginName):
-    pluginFile = "%s%s" % (pluginName, getPluginSuffix())
-    version = getMayaVersion()
-    for dirName, __, fList in os.walk(getInterfaceDir()):
-        if version in dirName and pluginFile in fList:
-            return os.path.join(dirName, pluginFile)
+    return pluginPaths.resolve(pluginName, getMayaVersion(), root=os.path.join(getInterfaceDir(), 'plugin'))
 
 
-@shared.dec_loadPlugin(pathToPlugin("smooth_brush_maya"))
+@shared.dec_loadPlugin(lambda: pathToPlugin("smooth_brush_maya"))
 def initBpBrush():
     selection = getSelection()
     sc = shared.skinCluster(selection[0])

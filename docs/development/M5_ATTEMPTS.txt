@@ -1,0 +1,193 @@
+Incomplete/failed attempts retained; these are not passing verification evidence.
+
+MAYA STANDALONE WIDGET ENVIRONMENT LIMITATION
+Native probe exit -1073740791. Maya owns QGuiApplication, so QWidget construction aborts.
+HOST READY
+QT IMPORT pyside6
+INSTANCE <PySide6.QtGui.QGuiApplication(0x1dac201b230) at 0x000001DAC9D4F000>
+APP <PySide6.QtGui.QGuiApplication(0x1dac201b230) at 0x000001DAC9D4F000>
+
+SYSTEM QT TEST ISOLATION DEFECT
+Original test imported the eager Maya-only root package, reaching bundled Requests/cgi under Python3.13. Corrected to directly load the actual qt_util module. Requests cgi compatibility limitation remains documented.
+
+SYSTEM QT TEST CLASS EXTRACTION DEFECT
+Function-only source loader raised StopIteration for a class. Corrected to compile the actual AST class with real Qt exports.
+
+NATIVE OVERRIDE TEST DEFECT
+Maintenance test loaded bundled M4 binary while the suite requested M5 build. Collision caused native metadata failures; corrected maintenance test to honor the same explicit override. Product loader now rejects same-basename ownership mismatches.
+Host: Maya 2025; Python 3.11.4 (tags/v3.11.4:d2340ef, Jun  7 2023, 05:45:37) [MSC v.1934 64 bit (AMD64)]
+test_editor_final_zero_row_does_not_drop_an_earlier_edit (tests.test_maya_architecture.ArchitectureTests.test_editor_final_zero_row_does_not_drop_an_earlier_edit) ... Undo:
+ok
+test_editor_interleaved_mesh_rows_delegate_to_one_batch_without_snapshots (tests.test_maya_architecture.ArchitectureTests.test_editor_interleaved_mesh_rows_delegate_to_one_batch_without_snapshots) ... Undo:
+Redo:
+ok
+test_mapping_distinguishes_physical_array_positions_from_logical_plugs (tests.test_maya_architecture.ArchitectureTests.test_mapping_distinguishes_physical_array_positions_from_logical_plugs) ... ok
+test_slider_public_policy_delegates_and_callback_guard_resets (tests.test_maya_architecture.ArchitectureTests.test_slider_public_policy_delegates_and_callback_guard_resets) ... ok
+test_D001_real_cluster_and_missing_cluster (tests.test_maya_integration.MayaBaselineTests.test_D001_real_cluster_and_missing_cluster) ... [###-------] 33.0%, get joint maps
+[#######---] 66.0%, find differences
+[##########] 100.0%, found missing influences
+[###-------] 33.0%, get joint maps
+[#######---] 66.0%, find differences
+[##########] 100.0%, adding joints
+[##########] 100.0%, unified joint maps
+[###-------] 33.0%, get joint maps
+[#######---] 66.0%, find differences
+[##########] 100.0%, found missing influences
+[###-------] 33.0%, get joint maps
+[#######---] 66.0%, find differences
+[######----] 59.4%, adding joints
+[########--] 79.2%, adding joints
+[##########] 100.0%, adding joints
+[----------] 0.0%, adding joints
+[##--------] 19.8%, adding joints
+[####------] 39.6%, adding joints
+[##########] 100.0%, adding joints
+[##########] 100.0%, unified joint maps
+ok
+test_D002_paste_commits_multiple_meshes_vertices_locks_and_undo_redo (tests.test_maya_integration.MayaBaselineTests.test_D002_paste_commits_multiple_meshes_vertices_locks_and_undo_redo) ... Undo:
+Redo:
+ok
+test_D003_bulk_write_has_exact_undo_and_redo (tests.test_maya_integration.MayaBaselineTests.test_D003_bulk_write_has_exact_undo_and_redo) ... Undo:
+Redo:
+ok
+test_D004_physical_indices_work_with_sparse_logical_indices (tests.test_maya_integration.MayaBaselineTests.test_D004_physical_indices_work_with_sparse_logical_indices) ... ok
+test_D009_real_selection_is_scoped_to_mesh (tests.test_maya_integration.MayaBaselineTests.test_D009_real_selection_is_scoped_to_mesh) ... ok
+test_D011_real_qt_signal_arguments (tests.test_maya_integration.MayaBaselineTests.test_D011_real_qt_signal_arguments) ... ok
+test_D014_list_and_array_inputs_share_the_same_command (tests.test_maya_integration.MayaBaselineTests.test_D014_list_and_array_inputs_share_the_same_command) ... ok
+test_D018_bind_pose_helper_misclassifies_untouched_bind (tests.test_maya_integration.MayaBaselineTests.test_D018_bind_pose_helper_misclassifies_untouched_bind) ... ok
+test_fixture_boundary_and_isolated_vertices (tests.test_maya_integration.MayaBaselineTests.test_fixture_boundary_and_isolated_vertices) ... ok
+test_fixture_captures_sparse_mapping_locks_and_settings (tests.test_maya_integration.MayaBaselineTests.test_fixture_captures_sparse_mapping_locks_and_settings) ... ok
+test_fixture_cleanup_after_failure_preserves_existing_nodes_and_selection (tests.test_maya_integration.MayaBaselineTests.test_fixture_cleanup_after_failure_preserves_existing_nodes_and_selection) ... ok
+test_fixture_rejects_invalid_dimensions_and_nonfinite_before_write (tests.test_maya_integration.MayaBaselineTests.test_fixture_rejects_invalid_dimensions_and_nonfinite_before_write) ... ok
+test_fixture_under_over_zero_weights_and_different_meshes (tests.test_maya_integration.MayaBaselineTests.test_fixture_under_over_zero_weights_and_different_meshes) ... ok
+test_missing_skincluster_returns_none_silently (tests.test_maya_integration.MayaBaselineTests.test_missing_skincluster_returns_none_silently) ... ok
+test_shared_bulk_read_write_timing (tests.test_maya_integration.MayaBaselineTests.test_shared_bulk_read_write_timing) ... ok
+test_skin_editor_exact_repeated_undo_redo_and_unrelated_mesh (tests.test_maya_integration.MayaBaselineTests.test_skin_editor_exact_repeated_undo_redo_and_unrelated_mesh) ... Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+ok
+test_actual_qt_core_wrapper_screen_and_translation_import (tests.test_maya_maintenance.MayaMaintenanceTests.test_actual_qt_core_wrapper_screen_and_translation_import) ... ok
+test_installer_actual_ui_method_delegates_to_verified_local_transaction (tests.test_maya_maintenance.MayaMaintenanceTests.test_installer_actual_ui_method_delegates_to_verified_local_transaction) ... ok
+test_lazy_decorator_missing_plugin_preserves_scene_and_queue (tests.test_maya_maintenance.MayaMaintenanceTests.test_lazy_decorator_missing_plugin_preserves_scene_and_queue) ... ok
+test_real_host_version_and_native_owner_agreement (tests.test_maya_maintenance.MayaMaintenanceTests.test_real_host_version_and_native_owner_agreement) ... ok
+Error:  (skinCommands)
+setUpClass (tests.test_maya_native.NativeBaselineTests) ... ERROR
+test_native_distinct_multiuse_values_sparse_mapping_exact_undo_redo (tests.test_maya_smoothing.NativeSetterTests.test_native_distinct_multiuse_values_sparse_mapping_exact_undo_redo) ... Error:  (skinCommands)
+Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+ok
+test_native_parser_contiguous_distinct_values (tests.test_maya_smoothing.NativeSetterTests.test_native_parser_contiguous_distinct_values) ... Error:  (skinCommands)
+ok
+test_native_setter_invalid_arguments_leave_weights_and_queue_unchanged (tests.test_maya_smoothing.NativeSetterTests.test_native_setter_invalid_arguments_leave_weights_and_queue_unchanged) ... Error:  (skinCommands)
+C:\dev\SkinningTools\Maya\plugin\averageWeightPerryCpp\projects\skinweights.cpp: (kInvalidParameter): Object is incompatible with this method
+ok
+test_native_setter_locked_influence_and_locked_setting (tests.test_maya_smoothing.NativeSetterTests.test_native_setter_locked_influence_and_locked_setting) ... Error:  (skinCommands)
+Undo:
+C:\dev\SkinningTools\Maya\plugin\averageWeightPerryCpp\projects\skinweights.cpp: (kInvalidParameter): Unexpected Internal Failure
+ok
+test_native_bulk_smoothing_timing (tests.test_maya_smoothing.NativeSmoothingTests.test_native_bulk_smoothing_timing) ... Error:  (skinCommands)
+ERROR
+test_native_consecutive_edits_restore_intermediate_and_original (tests.test_maya_smoothing.NativeSmoothingTests.test_native_consecutive_edits_restore_intermediate_and_original) ... Error:  (skinCommands)
+ERROR
+test_native_invalid_strength_components_cluster_and_lock_budget (tests.test_maya_smoothing.NativeSmoothingTests.test_native_invalid_strength_components_cluster_and_lock_budget) ... Error:  (skinCommands)
+ERROR
+test_native_locks_preserved_explicit_normalization_and_isolated_vertex (tests.test_maya_smoothing.NativeSmoothingTests.test_native_locks_preserved_explicit_normalization_and_isolated_vertex) ... Error:  (skinCommands)
+ERROR
+test_native_object_and_default_selection_resolve_all_vertices (tests.test_maya_smoothing.NativeSmoothingTests.test_native_object_and_default_selection_resolve_all_vertices) ... Error:  (skinCommands)
+ERROR
+test_native_two_vertices_match_reference_python_and_per_vertex_limits (tests.test_maya_smoothing.NativeSmoothingTests.test_native_two_vertices_match_reference_python_and_per_vertex_limits) ... Error:  (skinCommands)
+ERROR
+test_python_cached_redo_survives_context_switch (tests.test_maya_smoothing.PythonSmoothingTests.test_python_cached_redo_survives_context_switch) ... Undo:
+Redo:
+ok
+test_python_invalid_strength_index_and_lock_budget_are_failure_safe (tests.test_maya_smoothing.PythonSmoothingTests.test_python_invalid_strength_index_and_lock_budget_are_failure_safe) ... ok
+test_python_math_reference_strength_modes_limits_locks_and_ties (tests.test_maya_smoothing.PythonSmoothingTests.test_python_math_reference_strength_modes_limits_locks_and_ties) ... ok
+test_python_vertex_zero_raw_original_and_cached_redo (tests.test_maya_smoothing.PythonSmoothingTests.test_python_vertex_zero_raw_original_and_cached_redo) ... Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+ok
+test_python_zero_strength_and_isolated_vertex_preserve_exact_rows (tests.test_maya_smoothing.PythonSmoothingTests.test_python_zero_strength_and_isolated_vertex_preserve_exact_rows) ... Undo:
+Redo:
+ok
+test_D019_closest_point_remap_rejects_list_target_positions (tests.test_maya_weight_integrity.WeightIntegrityTests.test_D019_closest_point_remap_rejects_list_target_positions) ... ok
+test_D020_import_sampling_includes_invalid_upper_vertex (tests.test_maya_weight_integrity.WeightIntegrityTests.test_D020_import_sampling_includes_invalid_upper_vertex) ... ok
+test_api_full_mesh_setter_uses_same_command_and_validates_cluster (tests.test_maya_weight_integrity.WeightIntegrityTests.test_api_full_mesh_setter_uses_same_command_and_validates_cluster) ... Undo:
+Redo:
+ok
+test_batch_invalid_second_mesh_has_no_partial_write (tests.test_maya_weight_integrity.WeightIntegrityTests.test_batch_invalid_second_mesh_has_no_partial_write) ... ok
+test_batch_two_meshes_single_undo_entry (tests.test_maya_weight_integrity.WeightIntegrityTests.test_batch_two_meshes_single_undo_entry) ... Undo:
+Redo:
+ok
+test_bulk_list_write_exact_undo_redo_of_unnormalized_original (tests.test_maya_weight_integrity.WeightIntegrityTests.test_bulk_list_write_exact_undo_redo_of_unnormalized_original) ... Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+ok
+test_command_partial_reordered_vertices_and_physical_influences (tests.test_maya_weight_integrity.WeightIntegrityTests.test_command_partial_reordered_vertices_and_physical_influences) ... Undo:
+Redo:
+ok
+test_explicit_normalization_off_and_zero_weights_all_scene_modes (tests.test_maya_weight_integrity.WeightIntegrityTests.test_explicit_normalization_off_and_zero_weights_all_scene_modes) ... Undo:
+Redo:
+Undo:
+Redo:
+Undo:
+Redo:
+ok
+test_invalid_values_rejected_before_mutation (tests.test_maya_weight_integrity.WeightIntegrityTests.test_invalid_values_rejected_before_mutation) ... ok
+test_locked_sparse_influence_preserved_and_unlocked_normalized (tests.test_maya_weight_integrity.WeightIntegrityTests.test_locked_sparse_influence_preserved_and_unlocked_normalized) ... Undo:
+Redo:
+ok
+test_mismatched_cluster_duplicate_vertices_and_invalid_physical_index (tests.test_maya_weight_integrity.WeightIntegrityTests.test_mismatched_cluster_duplicate_vertices_and_invalid_physical_index) ... ok
+test_two_consecutive_operations_restore_intermediate_and_original_states (tests.test_maya_weight_integrity.WeightIntegrityTests.test_two_consecutive_operations_restore_intermediate_and_original_states) ... Undo:
+Undo:
+Redo:
+Redo:
+ok
+test_undo_failure_after_mutation_restores_pre_undo_weights (tests.test_maya_weight_integrity.WeightIntegrityTests.test_undo_failure_after_mutation_restores_pre_undo_weights) ... Undo:
+Error: RuntimeError: injected undo failure
+ok
+test_weight_file_import_uses_atomic_batch_for_existing_clusters (tests.test_maya_weight_integrity.WeightIntegrityTests.test_weight_file_import_uses_atomic_batch_for_existing_clusters) ... [----------] 0.0%, start gathering skinData
+[##########] 100.0%, data saved
+[----------] 0.0%, start loading data
+[##--------] 20.0%, loading mesh data
+[##--------] 20.0%, loading |reliability_3369261333584ee8bf689d7b4c1e795d:mesh0 Data
+[######----] 59.5%, loading |reliability_3369261333584ee8bf689d7b4c1e795d:mesh1 Data
+[##########] 100.0%, imported Data
+Undo:
+Redo:
+[----------] 0.0%, start loading data
+[##--------] 20.0%, loading mesh data
+[##--------] 20.0%, loading |reliability_3369261333584ee8bf689d7b4c1e795d:mesh0 Data
+[######----] 59.5%, loading |reliability_3369261333584ee8bf689d7b4c1e795d:mesh1 Data
+ok
+test_write_failure_after_second_mutation_rolls_back_both (tests.test_maya_weight_integrity.WeightIntegrityTests.test_write_failure_after_second_mutation_rolls_back_both) ... ok
+
+
+Final tests and extracted release smoke pass; see M5_TEST_RESULTS.txt.

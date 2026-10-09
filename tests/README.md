@@ -68,3 +68,12 @@ event wiring. `python tests/compare_weight_policies.py` compares 864 slider/256
 table cases with accepted M3 Git source read-only. The guarded disposable
 `mayapy tests/benchmark_weight_batches.py --plugin <SkinEditPlugin.py>` measures
 command-only timings. M4_REPORT.md records native consolidation and limitations.
+
+M5 adds 14 pure/filesystem cases, two Qt binding cases (Qt6 passes, Qt2 skips when
+unavailable) and five Maya maintenance cases. Ordinary discovery: 96 total,
+38 pass and 58 skips. Explicit delivered override: all 57 Maya cases pass.
+QT_QPA_PLATFORM=offscreen is used for the Qt subprocess; do not construct QWidgets
+inside this mayapy standalone host's QGuiApplication. The Qt6 widget test loads
+qt_util directly and compiles the translator combobox class with real Qt exports;
+it is not a full Maya UI test. Fresh Maya tests import actual modules/core APIs and
+exercise real adapter writes. M5_REPORT.md records filesystem/release/host evidence.

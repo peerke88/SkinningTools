@@ -23,7 +23,7 @@ except Exception as e:
         from PySide.QtSvg import *
         from PySide import QtGui
         from PySide.QtUiTools import *
-        import sip
+        import shiboken
 
         QString = None
         QT_VERSION = "pyside"
@@ -49,7 +49,7 @@ except Exception as e:
                 from PyQt4.QtSvg import *
                 from PyQt4 import QtGui
                 from PyQt4.QtUiTools import *
-                import shiboken
+                import sip
 
                 QT_VERSION = "pyqt4"
             except Exception as e:
@@ -87,3 +87,12 @@ def wrapinstance(ptr, base=None):
         return sip.wrapinstance(int(ptr), base)
     else:
         return None
+
+
+def screenGeometry(point=None):
+    """Qt5/6 screen query with the retained Qt4 desktop fallback."""
+    if hasattr(QApplication, 'primaryScreen'):
+        screen = QApplication.screenAt(point) if point is not None and hasattr(QApplication, 'screenAt') else None
+        screen = screen or QApplication.primaryScreen()
+        return screen.geometry() if screen is not None else QRect()
+    return QApplication.desktop().screenGeometry()

@@ -1,0 +1,4 @@
+M4 version resolver with relocated Maya launcher: 'C:' (expected 2025)
+D013 ORIGINAL INSTALLER: missing replacement raises FileNotFoundError after deleting the disposable old installation. Reproduced.
+
+Packaging import/top-level source mutation and exclusions are source-confirmed; original creator was not executed on user files.

@@ -5,6 +5,7 @@ The idea is to make this file as short as possible
 while leaving room for other packages to implement features.
 """
 import functools, os, sys, platform
+from SkinningTools.Maya import pluginPaths
 from SkinningTools.Maya.tools import shared, joints
 from SkinningTools.Maya.tools import weightPaintUtils
 from SkinningTools.UI.qt_util import QObject, QApplication
@@ -86,55 +87,22 @@ def endUndo(chunkName):
 
 
 def loadPlugin(plugin):
-    loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
-    registered = cmds.pluginInfo(plugin, q=True, registered=True)
-
-    if not registered or not loaded:
-        try:
-            cmds.loadPlugin(plugin)
-        except Exception as e:
-            print(e)
+    return pluginPaths.loadPlugin(plugin, cmds)
 
 
 def getMayaVersion():
-    """ get the current general mayaversion in which this tool is launched
-
-    :return: maya version number as string
-    :rtype: string
-    """
-    mayaVersion = str(cmds.about(apiVersion=True))[:-2]
-    if "maya" in sys.executable and platform.system() == "Windows":
-        mayaVersion = sys.executable.split("Maya")[-1].split(os.sep)[0]
-    elif platform.system() != "Windows":
-        mayaVersion = cmds.about(version=1)
-    return mayaVersion
+    """Return Maya's API year as a string."""
+    return pluginPaths.mayaVersion(cmds)
 
 
 def getPluginSuffix():
-    """ get the current plugin suffix based on the os that we are running
-
-    :return: suffix for plugin files specific to a particular os
-    :rtype: string
-    """
-    pluginSuffix = ".mll"
-    if platform.system() == "Darwin":
-        pluginSuffix = ".bundle"
-    if platform.system() == "Linux":
-        pluginSuffix = ".so"
-    return pluginSuffix
+    """Return this platform's native plugin suffix."""
+    return pluginPaths.pluginSuffix(platform.system())
 
 
 def getPlugin():
-    """ get the smoothbrush plugin based on information gathered on how maya is run
-
-    :return: the path of the plugin to load
-    :rtype: string
-    """
-    mayaVersion = getMayaVersion()
-    suffix = getPluginSuffix()
-    currentPath = os.path.dirname(__file__)
-    _plugin = os.path.join(currentPath, "plugin/skinToolWeightsCpp/comp/Maya%s/plug-ins/SkinCommands%s" % (mayaVersion, suffix))
-    return _plugin
+    """Return the exact-host SkinWeights command plugin, or None if unavailable."""
+    return pluginPaths.resolve('skinCommands', getMayaVersion(), root=os.path.join(getApiDir(), 'plugin'))
 
 
 def connectSelectionChangedCallback(callback):

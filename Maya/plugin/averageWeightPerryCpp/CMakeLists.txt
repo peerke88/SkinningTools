@@ -4,7 +4,15 @@
 cmake_minimum_required(VERSION 3.6) 
 # this is required by osx, might be depricated in the future
 set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_CXX_STANDARD 11)
+if(NOT DEFINED MAYA_VERSION)
+    message(FATAL_ERROR "Specify -DMAYA_VERSION=<year> for the target SDK/ABI")
+endif()
+set(_SKINNINGTOOLS_STANDARD 11)
+if(MAYA_VERSION GREATER_EQUAL 2022)
+    set(_SKINNINGTOOLS_STANDARD 17)
+endif()
+set(CMAKE_CXX_STANDARD ${_SKINNINGTOOLS_STANDARD} CACHE STRING "C++ standard for the selected Maya SDK")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 project(skinCommands)
@@ -18,7 +26,9 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_BINARY_DIR} PATH)
 
-set(CMAKE_INSTALL_PREFIX ${PARENT_DIR}/comp/Maya${MAYA_VERSION} )
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/comp/Maya${MAYA_VERSION}" CACHE PATH "Native package destination" FORCE)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 

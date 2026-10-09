@@ -3,7 +3,10 @@
 # version : 1.1.9
 import json, random, re
 
-from urllib import quote
+try:
+    from urllib.parse import quote
+except ImportError:  # Python 2
+    from urllib import quote
 from SkinningTools.ThirdParty import requests
 from SkinningTools.ThirdParty.requests.packages import urllib3
 import logging

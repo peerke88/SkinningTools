@@ -6,6 +6,7 @@ from maya import cmds, mel, OpenMaya as oldOpenMaya
 from maya.api import OpenMaya, OpenMayaAnim
 from SkinningTools.UI.qt_util import *
 from SkinningTools.UI.utils import *
+from SkinningTools.Maya import pluginPaths
 from SkinningTools.Maya.tools import weightWrite
 from SkinningTools.ThirdParty import pyprof2calltree
 from SkinningTools.ThirdParty.kdtree import KDTree
@@ -162,14 +163,8 @@ def dec_loadPlugin(plugin):
     def _loadPlugin_func(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            if not os.path.exists(plugin) and _DEBUG:
-                print("could not locate: %s" % plugin)
-                return None
-            loaded = cmds.pluginInfo(plugin, q=True, loaded=True)
-            registered = cmds.pluginInfo(plugin, q=True, registered=True)
-
-            if not registered or not loaded:
-                cmds.loadPlugin(plugin)
+            path = plugin() if callable(plugin) else plugin
+            pluginPaths.loadPlugin(path, cmds)
 
             _ret = func(*args, **kwargs)
             return _ret
@@ -854,8 +849,7 @@ def setWeightsBatch(requests):
         return
     payload = json.dumps(prepared, allow_nan=False)
     plugin = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugin', 'SkinEditPlugin.py'))
-    if not cmds.pluginInfo(plugin, query=True, loaded=True):
-        cmds.loadPlugin(plugin, quiet=True)
+    pluginPaths.loadPlugin(plugin, cmds)
     cmds.SkinEditor(prepared[0]['mesh'], prepared[0]['skinCluster'], bt=payload)
 
 

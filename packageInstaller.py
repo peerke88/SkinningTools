@@ -44,6 +44,7 @@ import os, shutil, datetime, tempfile, zipfile, warnings, sys
 
 CURRENTFOLDER = os.path.dirname(__file__)
 
+from SkinningTools import installCore
 from SkinningTools.UI.qt_util import *
 from SkinningTools.py23 import * 
 from SkinningTools.UI import utils
@@ -152,42 +153,16 @@ class InstallWindow(QDialog):
         self.__oldEnhToolTip = os.path.normpath(os.path.join(self.__skinFile, "Maya/tooltips"))
 
     def install(self):
-        utils.setProgress(0, self.progress, "start installing the skinningtools")
-        if self.__exists:
-            # ---- copy old settings file 
-            if os.path.exists(self.__oldSettings) and self.oldSettings.isChecked():
-                newIni = os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools/UI/settings.ini"))
-                with open(newIni, "w") as fh: pass
-                shutil.copy2(self.__oldSettings, newIni)
-                utils.setProgress(10, self.progress, "copied old settings")
-            
-            # ---- copy or download enhanced tooltips
-            if not self.downloadChk.isChecked():
-                newETT = os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools/Maya/tooltips"))
-                if os.path.exists(self.__oldEnhToolTip):
-                    shutil.move(self.__oldEnhToolTip, newETT)
-
-            # ---- check what to do with previous version
-            if self.cbx.currentIndex() == 1:
-                shutil.rmtree(self.__skinFile)
-                utils.setProgress(30, self.progress, "removed original folder")
-            else:
-                now = datetime.datetime.now( )
-                versionDate = "%s%02d%02d" % (now.year, now.month, now.day)
-                backup = os.path.normpath(os.path.join(self.__scriptDir, "Backup_%s"%versionDate))
-                if os.path.exists(backup):
-                    print("backup already created: %s"%backup)
-                else:
-                    shutil.move(self.__skinFile, backup)
-                    utils.setProgress(30, self.progress, "backed up folder as: Backup_%s"%versionDate)
-
-        if self.downloadChk.isChecked():
-            self.downloadExtraFiles(os.path.join(CURRENTFOLDER, "SkinningTools"))
-
-        utils.setProgress(40, self.progress, "move skinningtools")
-        shutil.move(os.path.normpath(os.path.join(CURRENTFOLDER, "SkinningTools")), os.path.normpath(os.path.join(self.__scriptDir, "SkinningTools")))
-        utils.setProgress(100, self.progress, "skinningtools installed")
-
+        utils.setProgress(0, self.progress, "validating replacement package")
+        source = os.path.join(CURRENTFOLDER, "SkinningTools")
+        prepare = self.downloadExtraFiles if self.downloadChk.isChecked() else None
+        backup = installCore.installPackage(source, self.__skinFile,
+            keepSettings=self.oldSettings.isChecked(),
+            keepTooltips=True,
+            keepBackup=self.cbx.currentIndex() == 0, prepare=prepare)
+        if backup:
+            utils.setProgress(90, self.progress, "previous installation backed up: %s" % backup)
+        utils.setProgress(100, self.progress, "skinningtools installed; restart Maya")
         self.close()
 
 
@@ -198,7 +173,7 @@ class InstallWindow(QDialog):
 
         we only need the download id and the place to put it
         """
-        tooltip = os.path.join(currentSkinningFolder, "Maya/toolTips")
+        tooltip = os.path.join(currentSkinningFolder, "Maya/tooltips")
         if not os.path.exists(tooltip):
             os.makedirs(tooltip)
         print("gdrive install to folder: %s"%tooltip)
@@ -211,11 +186,17 @@ class InstallWindow(QDialog):
             utils.gDriveDownload(files, tooltip, None )
             
             with zipfile.ZipFile(os.path.join(tooltip, "toolTips.zip")) as zip_ref:
-                zip_ref.extractall(tooltip)
+                for member in zip_ref.infolist():
+                    name = member.filename
+                    if name.endswith('/'):
+                        continue
+                    if '/' in name or '\\' in name or not name.lower().endswith('.gif'):
+                        raise ValueError('Invalid tooltip archive member: %s' % name)
+                    zip_ref.extract(member, tooltip)
             utils.setProgress(80, self.progress, "unzipped tooltips")
-        except:
+        except Exception as error:
             utils.setProgress(80, self.progress, "possible failure downloading tooltips")
-            warnings.warn("could not download tooltips, tool will continue installing and request download later")
+            warnings.warn("could not download tooltips: %s; installation will continue" % error)
 
 
 def doFunction(useLocalMayaFolder = True):

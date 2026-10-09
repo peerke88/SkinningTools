@@ -624,8 +624,8 @@ class SkinningToolsUI(interface.DockWidget):
             return
 
         size = 250
-        if QDesktopWidget().screenGeometry().height() > 1080:
-            size *= 1.5
+        if screenGeometry(QCursor.pos()).height() > 1080:
+            size = int(size * 1.5)
         rect = QRect(QCursor.pos().x() + 20, QCursor.pos().y() - (40 + size), size, size)
         if (self.window().pos().y() + (self.height() / 2)) > QCursor.pos().y():
             rect = QRect(QCursor.pos().x() + 20, QCursor.pos().y() + 20, size, size)

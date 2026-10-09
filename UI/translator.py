@@ -81,7 +81,7 @@ class TranslatorDialog(QDialog):
         self._translator = google_translator()
         _id = 0
         if defaultLanguage in LANGUAGES.values():
-            _id = LANGUAGES.values().index(defaultLanguage)
+            _id = list(LANGUAGES.values()).index(defaultLanguage)
 
         self.combo.setCurrentIndex(_id)
         self.__inDict = inDict
@@ -116,8 +116,8 @@ class TranslatorDialog(QDialog):
         :rtype: string
         """
         _txt = self.combo.currentText()
-        _keyList = LANGUAGES.keys()
-        _valList = LANGUAGES.values()
+        _keyList = list(LANGUAGES.keys())
+        _valList = list(LANGUAGES.values())
         _id = _valList.index(_txt)
         return _keyList[_id]
 
@@ -139,7 +139,7 @@ class TranslatorDialog(QDialog):
         else:
             label = QLabel(self.__inDict[key])
         txt = inText
-        print inText, self.getLangValue()
+        print(inText, self.getLangValue())
         if doTranslate:
             txt = self._translator.translate(inText, lang_tgt=self.getLangValue())
 

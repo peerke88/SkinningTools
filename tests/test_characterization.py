@@ -8,6 +8,7 @@ from unittest.mock import Mock
 
 from tests.source_loader import ROOT, definition
 from Maya.tools import weightMath
+from Maya import pluginPaths
 
 
 class BaselinePythonTests(unittest.TestCase):
@@ -158,8 +159,8 @@ class BaselinePythonTests(unittest.TestCase):
 
     def test_D012_linux_suffix_agreement(self):
         linux = SimpleNamespace(system=lambda: 'Linux')
-        api = definition('Maya/api.py', 'getPluginSuffix', {'platform': linux})
-        interface = definition('Maya/interface.py', 'getPluginSuffix', {'platform': linux})
+        api = definition('Maya/api.py', 'getPluginSuffix', {'platform': linux, 'pluginPaths': pluginPaths})
+        interface = definition('Maya/interface.py', 'getPluginSuffix', {'platform': linux, 'pluginPaths': pluginPaths})
         self.assertEqual(api(), '.so')
         self.assertEqual(interface(), '.so')
 
@@ -167,7 +168,7 @@ class BaselinePythonTests(unittest.TestCase):
         for system, suffix in (('Windows', '.mll'), ('Darwin', '.bundle')):
             host = SimpleNamespace(system=lambda: system)
             for path in ('Maya/api.py', 'Maya/interface.py'):
-                self.assertEqual(definition(path, 'getPluginSuffix', {'platform': host})(), suffix)
+                self.assertEqual(definition(path, 'getPluginSuffix', {'platform': host, 'pluginPaths': pluginPaths})(), suffix)
 
 
 if __name__ == '__main__':

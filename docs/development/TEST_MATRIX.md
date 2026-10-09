@@ -117,3 +117,22 @@ see M4_PERFORMANCE_RESULTS.txt. Existing D017-D020 characterizations remain.
 Interactive events, other hosts/ABIs, native failure injection, whole-scene importer
 transactions and production memory/scale remain unvalidated. M4_REPORT.md states
 scope and current ownership; M4_CALL_SITES.json retains the translator parse failure.
+
+## M5 evidence update
+
+38 Python/filesystem/Qt6 cases pass; ordinary discovery runs 96 cases with 58 skips
+(57 Maya-only plus unavailable PySide2). All 57 Maya2025 cases pass using delivered
+primary bytes; four independent setter cases pass. Core/screen/import APIs execute
+inside Maya; actual widget/wrapper/screen/combobox checks run in a separate system
+Python QApplication. The first Maya QWidget attempt aborted because standalone
+owns QGuiApplication; no completed-suite claim is made for that attempt. A test
+loader path mismatch caused a native collision and was corrected to honor the
+explicit binary override, preserving failure evidence.
+
+Real-directory installer failure injection covers source/copy/preparation/promotion/
+readback and persistent rollback failure, with backup bytes preserved and recovery
+path reported. D013 original deletion failure is reproduced privately. Repeated
+actual release hashes, notice/primary-byte checks, private installation and extracted
+Maya smoke pass. Python3 translator parsing/imports are corrected. D018-D020 remain
+characterized defects outside M5. Interactive Maya/MEL installation, PySide2/Python2,
+other ABI/platform execution, remote services and power-loss recovery remain untested.

@@ -53,6 +53,8 @@ def unload(silent=True, packages=None, newScene = True):
         cmds.file(force=True, new=True)
 
     for path in PLUGINS:
+        if path is None:
+            continue
         try:
             if cmds.pluginInfo(path, q=True, loaded=True):
                 name = cmds.pluginInfo(path, query=True, name=True)

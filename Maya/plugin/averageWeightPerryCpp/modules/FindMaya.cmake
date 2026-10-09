@@ -49,7 +49,7 @@ else()
     # maya install folder    
     set(MAYA_INSTALL_BASE_DEFAULT /usr/autodesk)
     # Compiler
-    add_compile_definitions(LINUX)
+    add_definitions(-DLINUX)
     set(MAYA_COMPILE_DEFINITIONS "${MAYA_COMPILE_DEFINITIONS};LINUX;_LINUX;LINUX_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")  #compiler flags += -fPIC
     if(MAYA_VERSION LESS 2016)

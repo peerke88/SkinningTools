@@ -118,7 +118,7 @@ Memory/production scale, interactive events, Maya2022/PySide2, other ABI/platfor
 binaries and native post-mutation fault injection remain unvalidated.
 Stop for acceptance before M4.
 
-## M4 — 2026-10-09 — local delivery, awaiting acceptance
+## M4 — 2026-10-09 — accepted by continuation to M5
 
 Parent: `6ca6e494460d136fe08811064e06f503f8092ee0`. User accepted M3 and
 requested M4. Local branch only; no GitHub push, PR or publication.
@@ -137,3 +137,22 @@ Final command-only 1089-vertex median is about 4.5% above M3 with overlapping ra
 Only the matching primary Maya2025 binary is updated. M4_REPORT.md and associated
 results record evidence/limits. D017-D020, interactive and secondary hosts remain
 deferred. Stop for acceptance before M5.
+
+## M5 — 2026-10-09 — local delivery, awaiting acceptance
+
+Parent: dc8068eb7aa00982a94646a4c08a5f38915df9dc. User accepted M4 by continuing.
+Local refactor branch; no GitHub push, PR, merge, publication or live installation.
+
+D013 staged installer recovery, D017 Python3 translation imports, D024 canonical
+plugin/version resolution, D025 deterministic packaging and D026 native build
+ownership are corrected. Existing API entry points, legacy dependencies/binaries
+and minimum runtime claims remain. Qt wrappers/screen query and missing-plugin
+reloader handling are updated; the independent SBR engine is preserved.
+
+Validation: 38 ordinary Python/filesystem/Qt6 cases pass; 58 skips identify 57 Maya
+cases and one unavailable PySide2 case. All 57 Maya2025 cases pass; four separate
+native setter cases pass. Actual release ZIPs match byte-for-byte, runtime manifests
+validate, existing dedicated notices and primary bytes match, private installation
+and extracted release Maya sparse-write/exact-undo smoke pass. Full dependency,
+compatibility and remaining-license/interactive limits are recorded in M5_REPORT.md,
+RELEASE_PROCESS.md and THIRD_PARTY.md. Stop after M5 for acceptance.

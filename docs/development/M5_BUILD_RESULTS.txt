@@ -1,0 +1,97 @@
+PRIMARY CONFIGURE
+CMake Warning (deprecated) at CMakeLists.txt:4 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+This warning is for project developers.  Use -Wno-author or -Wno-deprecated
+to suppress it.
+
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- The C compiler identification is MSVC 19.44.35228.0
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found OpenGL: opengl32
+----------------------------------------------
+building for maya version: 2025
+----------------------------------------------
+
+-------------- we are building on WINDOWS ------------
+maya location C:/Program Files/Autodesk/maya2025
+[Log] Maya include location:  C:/Program Files/Autodesk/maya2025/include
+[Log] Maya libs location: C:/Program Files/Autodesk/Maya2025/lib/OpenMaya.lib
+-- Found Maya: C:/Program Files/Autodesk/maya2025/include
+-- Configuring done (3.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/dev/SkinningTools/build/m5-average
+
+
+PRIMARY BUILD
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  averagevtxweight.cpp
+  main.cpp
+  skinweights.cpp
+  Generating Code...
+     Creating library C:/dev/SkinningTools/build/m5-average/projects/Release/skinCommands.lib and object C:/dev/SkinningTools/build/m5-average/projects/Release/skinCommands.exp
+  skinCommands.vcxproj -> C:\dev\SkinningTools\build\m5-average\projects\Release\skinCommands.mll
+
+
+DUPLICATE CONFIGURE
+CMake Warning (deprecated) at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+This warning is for project developers.  Use -Wno-author or -Wno-deprecated
+to suppress it.
+
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- The C compiler identification is MSVC 19.44.35228.0
+-- The CXX compiler identification is MSVC 19.44.35228.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found OpenGL: opengl32
+----------------------------------------------
+building for maya version: 2025
+----------------------------------------------
+
+-------------- we are building on WINDOWS ------------
+maya location C:/Program Files/Autodesk/maya2025
+[Log] Maya include location:  C:/Program Files/Autodesk/maya2025/include
+[Log] Maya libs location: C:/Program Files/Autodesk/Maya2025/lib/OpenMaya.lib
+-- Found Maya: C:/Program Files/Autodesk/maya2025/include
+-- Configuring done (3.5s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/dev/SkinningTools/build/m5-setter
+
+
+DUPLICATE BUILD
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  main.cpp
+  skinweights.cpp
+  Generating Code...
+     Creating library C:/dev/SkinningTools/build/m5-setter/Release/skinCommands.lib and object C:/dev/SkinningTools/build/m5-setter/Release/skinCommands.exp
+  smooth_brush_maya.vcxproj -> C:\dev\SkinningTools\build\m5-setter\Release\skinCommands.mll

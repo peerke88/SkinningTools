@@ -15,13 +15,11 @@ _CTX = "artUserPaintContext"  # "AverageWghtCtx"
 
 
 def pathToSmoothBrushPlugin():
-    version = api.getMayaVersion()
-    extension = api.getPluginSuffix()
-    return getInterfaceDir() + "/plugin/smoothBrushRodCpp/lib/maya%s/release/smooth_brush_maya%s" % (version, extension)
+    return interface.pathToPlugin('smooth_brush_maya')
     # return getInterfaceDir()+"/plugin/smoothBrushRodCpp/lib/maya%s/debug/smooth_brush_maya_debug%s"%(version,extension)
 
 
-dec_loadSmoothBrush = shared.dec_loadPlugin(pathToSmoothBrushPlugin())
+dec_loadSmoothBrush = shared.dec_loadPlugin(pathToSmoothBrushPlugin)
 
 
 class BrushMode:

@@ -3,8 +3,8 @@
 Historical M0 evidence is retained; M1/M2 updates identify corrected targets.
 Status is not acceptance. Runtime evidence
 is explicitly distinguished from isolated Python execution and source inspection.
-D001-D013 retain the supplied register; D014-D023 are additional observations.
-M1/M2/M3 were accepted by continuation; M4 remains awaiting acceptance. Unchecked boxes
+D001-D013 retain the supplied register; D014-D026 are additional observations.
+M1/M2/M3/M4 were accepted by continuation; M5 remains awaiting acceptance. Unchecked boxes
 are retained for explicit ledger review; verification evidence is stated per entry.
 
 - [ ] D001
@@ -273,7 +273,7 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
 - [ ] D013
 
-    Category: Unverified hypothesis
+    Category: Product installer defect, reproduced in M5
 
     Severity: High
 
@@ -287,11 +287,11 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Root cause: No staging/verification/rollback transaction established in inspected overwrite path.
 
-    Test coverage: Source inspection only; live installer explicitly not executed.
+    Test coverage: Private real-directory copy/preparation/checksum/promotion/readback failures, overwrite/backup, old settings/tooltips, rollback failure recovery path and source preservation; actual installer UI method delegates in disposable Maya.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M5 with validated same-volume staging, unique backup, exact promotion verification and rollback; source contents are copied rather than consumed.
 
-    Verification status: Unverified. Installer failure not reproduced; M5 target.
+    Verification status: Original M4 installer overwrite body reproduced deletion of a private old tree before missing-source failure. Desired filesystem and Maya adapter regressions pass. Live installation, crash/power loss and interactive MEL drop remain unexecuted.
 
 - [ ] D014
 
@@ -375,11 +375,11 @@ are retained for explicit ledger review; verification evidence is stated per ent
 
     Root cause: Python 2 print syntax remains in reachable optional source.
 
-    Test coverage: Inventory parse_failures explicitly records Python 3 SyntaxError; no interactive translation run.
+    Test coverage: Actual module import/language lookup in Maya2025, actual Qt6 source-defined combobox widget in isolated system Python, and new inventory without Python3 parse failures.
 
-    Implementation status: Unchanged; M0 characterization only.
+    Implementation status: Fixed in M5: compatible print syntax, concrete dict key/value lists and bundled translator quote import with Python2 fallback.
 
-    Verification status: Confirmed. Source syntax confirmed; UI path runtime unverified; out of current correction scope.
+    Verification status: Maya2025 import and lookup plus Qt6 combobox API checks pass. Full translation-dialog interaction, remote requests and Python2/PySide2 runtime remain unexecuted.
 - [ ] D018
 
     Category: Product defect, newly discovered during M1.
@@ -516,3 +516,69 @@ are retained for explicit ledger review; verification evidence is stated per ent
     Implementation status: Fixed in M4 by grouping each recalculated row directly by mesh/influence layout and committing once.
 
     Verification status: Original method failure reproduced and desired cases pass in fresh Maya2025. Full interactive table event wiring remains unexecuted.
+
+- [ ] D024
+
+    Category: Product plugin discovery/version defect.
+
+    Severity: High.
+
+    Source location: Maya/api.py getMayaVersion/getPlugin; Maya/interface.py getMayaVersion/pathToPlugin; shared load decorator.
+
+    Observed behavior: Relocated mayapy launcher reports C: rather than 2025. Plugin search selects the first traversal match and API builds a nonexistent primary path; missing paths may be silently ignored in debug. Different same-basename binaries can collide.
+
+    Expected behavior: API-reported host year, exact owner/path, no cross-year fallback and explicit load failure before operations.
+
+    Reproduction: Original version body with API20250000 and C:\custom\mayapy.exe returns C:. Known conflicting source trees and real duplicate basename load checks establish ownership hazards.
+
+    Root cause: Executable parsing plus duplicated resolver/loader logic and unchecked directory traversal.
+
+    Test coverage: Exact owner/year/casing/suffix fixtures; real API/interface agreement, native metadata, missing-plugin scene preservation and basename collision rejection in Maya2025. Reloader None handling uses isolated source execution.
+
+    Implementation status: Fixed in M5 via pluginPaths and lazy decorators; original public function names remain.
+
+    Verification status: Reproduced version defect and tested current discovery/load contract. Legacy/other-platform ABI execution remains unvalidated.
+
+- [ ] D025
+
+    Category: Product release packaging defect, source-confirmed.
+
+    Severity: High.
+
+    Source location: packageCreator.py top-level build/exclusion/version logic.
+
+    Observed behavior: Import rewrites source versions and rebuilds/removes package output. averageWeightPerryCpp is excluded, dedicated .txt license notices are excluded and archive timestamps/order are uncontrolled.
+
+    Expected behavior: Explicit, reproducible packaging without source mutation, including matching plugins and existing notices.
+
+    Reproduction: Source inspection of top-level calls/exclusions; original import deliberately not executed against the user checkout. Desired repeated builds are executed on private trees and the actual reviewed checkout.
+
+    Root cause: Build actions at module scope, broad exclusion heuristics, date stamping and external unchecked 7z calls.
+
+    Test coverage: Equal repeated archive hashes, version copy-only stamping, source preservation, manifest validation, license byte checks, tracked allowlist/private-data exclusions and extracted release Maya smoke.
+
+    Implementation status: Fixed in M5 with explicit ZIP CLI and canonical manifest/order/time/permissions. Version date helper no longer rewrites source.
+
+    Verification status: Source-confirmed baseline; actual final release hashes match, notices/binary verified, private installation and fresh Maya smoke pass. Cross-compressor/newline equivalence is not claimed.
+
+- [ ] D026
+
+    Category: Native build ownership/configuration defect, confirmed.
+
+    Severity: Medium.
+
+    Source location: skinToolWeightsCpp/CMakeLists.txt; averageWeightPerryCpp build configuration.
+
+    Observed behavior: Setter target produces smooth_brush_maya despite registering only SkinWeights and installs into a brush lib tree. Primary default install prefix is derived from build directory. SDK year/standard handling and Maya discovery differ between targets.
+
+    Expected behavior: Artifact/install paths express command ownership and explicit SDK ABI; existing brush assets are preserved.
+
+    Reproduction: M3/M4 independent setter build metadata shows only SkinWeights from smooth_brush_maya.mll; inspected CMake install paths.
+
+    Root cause: Historical brush configuration reused for setter project.
+
+    Test coverage: Both M5 targets configure/build with explicit Maya2025 SDK/C++17; primary full Maya suite and separate setter regressions execute.
+
+    Implementation status: Fixed for the two setter builds in M5: shared FindMaya, explicit year/source list, retained target name with skinCommands output and comp install layout respecting explicit prefix. Older SDK years retain C++11.
+
+    Verification status: Maya2025/Windows builds and command metadata pass. No install target invoked; older SDK/OS and independent SBR build execution remain unvalidated.
